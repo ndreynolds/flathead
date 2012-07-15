@@ -89,48 +89,48 @@ Statement:
     ;
 
 Block:
-    '{' StatementList '}'                             { $$ = block_node($2); }
+    '{' StatementList '}'                             { $$ = NEW_BLOCK($2); }
     ;
 
 StatementList:
-    Statement                                         { $$ = stmtlst_node($1, NULL); } 
-    | StatementList Statement                         { $$ = stmtlst_node($2, $1); }
+    Statement                                         { $$ = NEW_STMTLST($1, NULL); } 
+    | StatementList Statement                         { $$ = NEW_STMTLST($2, $1); }
     ;
 
 VariableStatement:
-    VAR Identifier ';'                                { $$ = varstmt_node($2); }
+    VAR Identifier ';'                                { $$ = NEW_VARSTMT($2); }
     ;
 
 EmptyStatement:
-    ';'                                               { $$ = emptstmt_node(); }
+    ';'                                               { $$ = NEW_EMPTSTMT(); }
     ;
 
 ExpressionStatement:
-    Expression ';'                                    { $$ = expstmt_node($1); }
+    Expression ';'                                    { $$ = NEW_EXPSTMT($1); }
     ;
 
 IfStatement:
-    IF '(' Expression ')' Statement ELSE Statement    { $$ = if_node($3, $5, $7); }
-    | IF '(' Expression ')' Statement                 { $$ = if_node($3, $5, NULL); }
+    IF '(' Expression ')' Statement ELSE Statement    { $$ = NEW_IF($3, $5, $7); }
+    | IF '(' Expression ')' Statement                 { $$ = NEW_IF($3, $5, NULL); }
     ;
 
 IterationStatement:
-    DO Statement WHILE '(' Expression ')'                               { $$ = dowhile_node($2, $5); }
-    | WHILE '(' Expression ')' Statement                                { $$ = while_node($3, $5); }
-    | FOR '(' Expression ';' Expression ';' Expression ')' Statement    { $$ = for_node($3, $5, $7, $9); }
+    DO Statement WHILE '(' Expression ')'                               { $$ = NEW_DOWHILE($2, $5); }
+    | WHILE '(' Expression ')' Statement                                { $$ = NEW_WHILE($3, $5); }
+    | FOR '(' Expression ';' Expression ';' Expression ')' Statement    { $$ = NEW_FOR($3, $5, $7); }
     ;
 
 ContinueStatement:
-    CONTINUE ';'                       { $$ = ctl_node(NULL); }
+    CONTINUE ';'                       { $$ = NEW_CONT(); }
     ;
 
 BreakStatement:
-    BREAK ';'                          { $$ = ctl_node(NULL); }
+    BREAK ';'                          { $$ = NEW_BREAK(); }
     ;
 
 ReturnStatement:
-    RETURN ';'                         { $$ = ctl_node(NULL); }
-    | RETURN Expression ';'            { $$ = ctl_node($2); }
+    RETURN ';'                         { $$ = NEW_RETURN(NULL); }
+    | RETURN Expression ';'            { $$ = NEW_RETURN($2); }
     ;
 
 Literal:
@@ -141,14 +141,14 @@ Literal:
     ;
 
 ArrayLiteral:
-    '[' Elision ']'                    { $$ = arr_node(); }
-    | '[' ElementList ']'              { $$ = arr_node(); }
-    | '[' ElementList ',' Elision ']'  { $$ = arr_node(); }
+    '[' Elision ']'                    { $$ = NEW_ARR(); }
+    | '[' ElementList ']'              { $$ = NEW_ARR(); }
+    | '[' ElementList ',' Elision ']'  { $$ = NEW_ARR(); }
     ;
 
 ElementList:
-    | Elision AssignmentExpression                  { $$ = ellst_node(); }
-    | ElementList ',' Elision AssignmentExpression  { $$ = ellst_node(); }
+    | Elision AssignmentExpression                  { $$ = NEW_ARR(); }
+    | ElementList ',' Elision AssignmentExpression  { $$ = NEW_ARR(); }
     ;
 
 Elision:
@@ -157,29 +157,29 @@ Elision:
     ;
 
 BooleanLiteral:
-    TRUE                  { $$ = bool_node(1); }
-    | FALSE               { $$ = bool_node(0); }
+    TRUE                  { $$ = NEW_BOOL(1); }
+    | FALSE               { $$ = NEW_BOOL(0); }
     ;
 
 StringLiteral:
-    STRING                { $$ = str_node($1); }
+    STRING                { $$ = NEW_STR($1); }
     ;
 
 NullLiteral:
-    NULLT                 { $$ = null_node(); }
+    NULLT                 { $$ = NEW_NULL(); }
     ;
 
 NumericLiteral:
-    INTEGER               { $$ = num_node((double)$1); }
-    | FLOAT               { $$ = num_node($1); }
+    INTEGER               { $$ = NEW_NUM((double)$1); }
+    | FLOAT               { $$ = NEW_NUM($1); }
     ;
 
 Identifier:
-    IDENT                 { $$ = ident_node($1); }
+    IDENT                 { $$ = NEW_IDENT($1); }
     ;
 
 PrimaryExpression:
-    THIS                  { $$ = this_node($1); }
+    THIS                  { $$ = NEW_THIS(); }
     | Identifier          { $$ = $1; }
     | Literal             { $$ = $1; }
     | ArrayLiteral        { $$ = $1; }
@@ -192,85 +192,85 @@ ConditionalExpression:
 
 LogicalORExpression:
     LogicalANDExpression                                 { $$ = $1; }
-    | LogicalORExpression OR LogicalANDExpression        { $$ = exp_node($2, $1, $3); }
+    | LogicalORExpression OR LogicalANDExpression        { $$ = NEW_EXP($1, $3, $2); }
     ;
 
 LogicalANDExpression:
     BitwiseORExpression                                  { $$ = $1; }
-    | LogicalANDExpression AND BitwiseORExpression       { $$ = exp_node($2, $1, $3); }
+    | LogicalANDExpression AND BitwiseORExpression       { $$ = NEW_EXP($1, $3, $2); }
     ;
 
 BitwiseORExpression:
     BitwiseXORExpression                                 { $$ = $1; }
-    | BitwiseORExpression '|' BitwiseXORExpression       { $$ = exp_node("|", $1, $3); }
+    | BitwiseORExpression '|' BitwiseXORExpression       { $$ = NEW_EXP($1, $3, "|"); }
     ;
 
 BitwiseXORExpression:
     BitwiseANDExpression                                 { $$ = $1; }
-    | BitwiseXORExpression '^' BitwiseANDExpression      { $$ = exp_node("^", $1, $3); }
+    | BitwiseXORExpression '^' BitwiseANDExpression      { $$ = NEW_EXP($1, $3, "^"); }
     ;
 
 BitwiseANDExpression:
     EqualityExpression                                   { $$ = $1; }
-    | BitwiseANDExpression '&' EqualityExpression        { $$ = exp_node("&", $1, $3); }
+    | BitwiseANDExpression '&' EqualityExpression        { $$ = NEW_EXP($1, $3, "&"); }
     ;
 
 EqualityExpression:
     RelationalExpression                                 { $$ = $1; }
-    | EqualityExpression EQEQ RelationalExpression       { $$ = exp_node($2, $1, $3); }
-    | EqualityExpression NE RelationalExpression         { $$ = exp_node($2, $1, $3); }
+    | EqualityExpression EQEQ RelationalExpression       { $$ = NEW_EXP($1, $3, $2); }
+    | EqualityExpression NE RelationalExpression         { $$ = NEW_EXP($1, $3, $2); }
     ;
 
 RelationalExpression: 
     ShiftExpression                                      { $$ = $1; }
-    | RelationalExpression '<' ShiftExpression           { $$ = exp_node("<", $1, $3); }
-    | RelationalExpression '>' ShiftExpression           { $$ = exp_node(">", $1, $3); }
-    | RelationalExpression LTE ShiftExpression           { $$ = exp_node($2, $1, $3); }
-    | RelationalExpression GTE ShiftExpression           { $$ = exp_node($2, $1, $3); }
+    | RelationalExpression '<' ShiftExpression           { $$ = NEW_EXP($1, $3, "<"); }
+    | RelationalExpression '>' ShiftExpression           { $$ = NEW_EXP($1, $3, ">"); }
+    | RelationalExpression LTE ShiftExpression           { $$ = NEW_EXP($1, $3, $2); }
+    | RelationalExpression GTE ShiftExpression           { $$ = NEW_EXP($1, $3, $2); }
 
 ShiftExpression:
     AdditiveExpression                                   { $$ = $1; }
-    | ShiftExpression LSHIFT AdditiveExpression          { $$ = exp_node($2, $1, $3); }
-    | ShiftExpression RSHIFT AdditiveExpression          { $$ = exp_node($2, $1, $3); }
+    | ShiftExpression LSHIFT AdditiveExpression          { $$ = NEW_EXP($1, $3, $2); }
+    | ShiftExpression RSHIFT AdditiveExpression          { $$ = NEW_EXP($1, $3, $2); }
     ;
 
 AdditiveExpression:
     MultiplicativeExpression                             { $$ = $1; }
-    | AdditiveExpression '+' MultiplicativeExpression    { $$ = exp_node("+", $1, $3); }
-    | AdditiveExpression '-' MultiplicativeExpression    { $$ = exp_node("-", $1, $3); }
+    | AdditiveExpression '+' MultiplicativeExpression    { $$ = NEW_EXP($1, $3, "+"); }
+    | AdditiveExpression '-' MultiplicativeExpression    { $$ = NEW_EXP($1, $3, "-"); }
     ;
 
 MultiplicativeExpression:
     UnaryExpression                                      { $$ = $1; }
-    | MultiplicativeExpression '*' UnaryExpression       { $$ = exp_node("*", $1, $3); }
-    | MultiplicativeExpression '/' UnaryExpression       { $$ = exp_node("/", $1, $3); }
-    | MultiplicativeExpression '%' UnaryExpression       { $$ = exp_node("%", $1, $3); }
+    | MultiplicativeExpression '*' UnaryExpression       { $$ = NEW_EXP($1, $3, "*"); }
+    | MultiplicativeExpression '/' UnaryExpression       { $$ = NEW_EXP($1, $3, "/"); }
+    | MultiplicativeExpression '%' UnaryExpression       { $$ = NEW_EXP($1, $3, "%"); }
     ;
 
 UnaryExpression:
     PostfixExpression                                    { $$ = $1; }
-    | PLUSPLUS UnaryExpression                           { $$ = exp_node($1, NULL, $2); }
-    | MINUSMINUS UnaryExpression                         { $$ = exp_node($1, NULL, $2); }
-    | '+' UnaryExpression                                { $$ = exp_node("+", NULL, $2); }
-    | '-' UnaryExpression                                { $$ = exp_node("-", NULL, $2); }
-    | '!' UnaryExpression                                { $$ = exp_node("!", NULL, $2); }
+    | PLUSPLUS UnaryExpression                           { $$ = NEW_UNEXP($2, $1); }
+    | MINUSMINUS UnaryExpression                         { $$ = NEW_UNEXP($2, $1); }
+    | '+' UnaryExpression                                { $$ = NEW_UNEXP($2, "+"); }
+    | '-' UnaryExpression                                { $$ = NEW_UNEXP($2, "-"); }
+    | '!' UnaryExpression                                { $$ = NEW_UNEXP($2, "!"); }
     ;
 
 PostfixExpression:
     LeftHandSideExpression                               { $$ = $1; }
-    | LeftHandSideExpression PLUSPLUS                    { $$ = exp_node($2, $1, NULL); }
-    | LeftHandSideExpression MINUSMINUS                  { $$ = exp_node($2, $1, NULL); }
+    | LeftHandSideExpression PLUSPLUS                    { $$ = NEW_UNEXP($1, $2); }
+    | LeftHandSideExpression MINUSMINUS                  { $$ = NEW_UNEXP($1, $2); }
     ;
 
 Expression:
     AssignmentExpression                                 { $$ = $1; }
-    | Expression ',' AssignmentExpression                { $$ = asgnexp_node($1, $3); }
+    | Expression ',' AssignmentExpression                { $$ = NEW_ASGN($1, $3, 0); }
     ;
 
 AssignmentExpression:
     ConditionalExpression                                                 { $$ = $1; }
-    | LeftHandSideExpression '=' AssignmentExpression                     { $$ = asgn_node("=", $1, $3); }
-    | LeftHandSideExpression AssignmentOperator AssignmentExpression      { $$ = asgn_node($2, $1, $3); }
+    | LeftHandSideExpression '=' AssignmentExpression                     { $$ = NEW_ASGN($1, $3, "="); }
+    | LeftHandSideExpression AssignmentOperator AssignmentExpression      { $$ = NEW_ASGN($1, $3, $2); }
     ;
 
 AssignmentOperator:
