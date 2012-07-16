@@ -1,5 +1,7 @@
 %{
+  #include <unistd.h>
   #include <stdio.h>
+  #include <stdlib.h>
   #include "src/nodes.h"
 
   #define YYDEBUG 1
@@ -51,7 +53,7 @@
 
 /* ASSOCIATIVITY */
 
-%left '+' '-' '*' '%' AND OR
+%left '+' '-' '*' '%' '/' AND OR
 
 %union {
   char * val;
@@ -68,12 +70,17 @@ Expression PrimaryExpression LeftHandSideExpression UnaryExpression
 PostfixExpression ShiftExpression RelationalExpression AdditiveExpression EqualityExpression
 BitwiseANDExpression BitwiseORExpression BitwiseXORExpression LogicalORExpression
 LogicalANDExpression MultiplicativeExpression ConditionalExpression StatementList
-AssignmentExpression ElementList
+AssignmentExpression ElementList SourceElements
 
 %%
 
 Program:
-    Statement                                         { root = $1; }
+    SourceElements                                    { root = $1; }
+    ;
+
+SourceElements:
+    StatementList                                     { $$ = $1; }
+    | Block                                           { $$ = $1; }
     ;
 
 Statement:
@@ -249,17 +256,17 @@ MultiplicativeExpression:
 
 UnaryExpression:
     PostfixExpression                                    { $$ = $1; }
-    | PLUSPLUS UnaryExpression                           { $$ = NEW_UNEXP($2, $1); }
-    | MINUSMINUS UnaryExpression                         { $$ = NEW_UNEXP($2, $1); }
-    | '+' UnaryExpression                                { $$ = NEW_UNEXP($2, "+"); }
-    | '-' UnaryExpression                                { $$ = NEW_UNEXP($2, "-"); }
-    | '!' UnaryExpression                                { $$ = NEW_UNEXP($2, "!"); }
+    | PLUSPLUS UnaryExpression                           { $$ = NEW_UNPRE($2, $1); }
+    | MINUSMINUS UnaryExpression                         { $$ = NEW_UNPRE($2, $1); }
+    | '+' UnaryExpression                                { $$ = NEW_UNPRE($2, "+"); }
+    | '-' UnaryExpression                                { $$ = NEW_UNPRE($2, "-"); }
+    | '!' UnaryExpression                                { $$ = NEW_UNPRE($2, "!"); }
     ;
 
 PostfixExpression:
     LeftHandSideExpression                               { $$ = $1; }
-    | LeftHandSideExpression PLUSPLUS                    { $$ = NEW_UNEXP($1, $2); }
-    | LeftHandSideExpression MINUSMINUS                  { $$ = NEW_UNEXP($1, $2); }
+    | LeftHandSideExpression PLUSPLUS                    { $$ = NEW_UNPOST($1, $2); }
+    | LeftHandSideExpression MINUSMINUS                  { $$ = NEW_UNPOST($1, $2); }
     ;
 
 Expression:
@@ -296,18 +303,33 @@ yyerror(char *s)
 int 
 main(int argc, char *argv[]) 
 {
-  yydebug = 1;
+  int c;
+  int print_parse_tree = 0;
 
-  yyin = argc > 0 ? fopen(argv[1], "r") : stdin;
-  if (!yyin) return 1;
+  while((c = getopt(argc, argv, "vp")) != -1) {
+    switch(c) {
+      case 'v':
+        yydebug = 1;
+        break;
+      case 'p':
+        print_parse_tree = 1;
+        break;
+    }
+  }
 
-  puts("Parsing...");
+  yyin = optind < argc ? fopen(argv[optind], "r") : stdin;
+  if (!yyin) {
+    fprintf(stderr, "Invalid input file.\n");
+    return 1;
+  }
+
+  // Parse it.
   yyparse();
-  puts("Done parsing.\n");
 
-  puts("Parse tree:");
-  puts("-----------------------------------------------");
-  PR(root);
+  if (print_parse_tree) PR(root);
+
+  // Evaluate.
+  jl_eval(root, yydebug);
 
   return 0;
 }

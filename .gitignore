@@ -1,2 +1,3 @@
 bin/jslite
 y.*
+lex.yy.c

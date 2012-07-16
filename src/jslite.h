@@ -34,12 +34,6 @@ struct JLArray {
   void *ptr;
 };
 
-struct JLVariable {
-  const char *name;
-  struct JLValue *ptr;
-  UT_hash_handle hh;
-};
-
 typedef struct JLVALUE {
   union {
     struct JLNumber number;
@@ -50,37 +44,22 @@ typedef struct JLVALUE {
   JLTYPE type;
 } JLVALUE;
 
-JLVALUE *
-alloc_val()
-{
-  JLVALUE *val = malloc(sizeof(JLVALUE));
-  val->type = T_NULL;
-}
+struct JLVariable {
+  const char *name;
+  JLVALUE *ptr;
+  UT_hash_handle hh;
+};
 
-JLVALUE *
-new_number(int x)
-{
-  JLVALUE *val = alloc_val();
-  val->number.val = x;
-  val->type = T_NUMBER;
-}
+JLVALUE * new_number(double);
+JLVALUE * new_string(char *);
+JLVALUE * new_null(void);
+JLVALUE * new_boolean(bool);
+char * jl_typeof(JLVALUE *);
+char * jl_str_concat(char *, char*);
 
-JLVALUE *
-new_string(char *x)
-{
-  JLVALUE *val = alloc_val();
-  val->string.ptr = x;
-  val->type = T_STRING;
-}
-
-JLVALUE *
-new_boolean(bool x)
-{
-  JLVALUE *val = alloc_val();
-  val->type = T_BOOLEAN;
-  val->boolean.val = x;
-}
+void jl_debug_value(JLVALUE *);
 
 #define JLBOOL(x) new_boolean(x)
 #define JLNUM(x) new_number(x)
 #define JLSTR(x) new_string(x)
+#define JLNULL() new_null()
