@@ -24,8 +24,8 @@
 
     /* LITERALS */
 L?\"(\\.|[^\\"])*\"          { yylval.val = yytext; return STRING; }
-L?\'(\\.|[^\\'])*\'          { yylval.val = yytext; return STRING; }
-[_\$A-Za-z][_\$0-9A-Za-z]*   return IDENT;
+L?'(\\.|[^\\'])+'            { yylval.val = yytext; return STRING; }
+[_\$A-Za-z][_\$0-9A-Za-z]*   { yylval.val = yytext; return IDENT; }
 [0-9]+                       { yylval.intval = atoi(yytext); return INTEGER; }
 [0-9]+\.[0-9]+               { yylval.floatval = atof(yytext); return FLOAT; }
 
@@ -38,7 +38,7 @@ L?\'(\\.|[^\\'])*\'          { yylval.val = yytext; return STRING; }
 "!="        return NE; 
 "<="        return LTE; 
 ">="        return GTE; 
-"+="        return PLUSEQ; 
+"+="        return PLUSEQ;
 "-="        return MINUSEQ; 
 "*="        return MULTEQ; 
 "/="        return DIVEQ; 
@@ -46,7 +46,7 @@ L?\'(\\.|[^\\'])*\'          { yylval.val = yytext; return STRING; }
 "<<"        return LSHIFT;
 ">>"        return RSHIFT;
 
-[-+()=*/%;]  return *yytext;
+[-+()=*/%;{}]  return *yytext;
 [ \t]       ; /* skip whitespace */
 <<EOF>>     return EOF;
 .           lyyerror("Parse error", yytext);

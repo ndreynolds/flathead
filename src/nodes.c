@@ -33,7 +33,7 @@ new_node(JLNodeType type, JLNode *e1, JLNode *e2, JLNode *e3, double x, char *s)
   node->e3 = e3;
 
   if (type == NODE_NUM || type == NODE_BOOL) node->val = x;
-  if (type == NODE_STR || type == NODE_EXP || type == NODE_ASGN) {
+  if (s != 0) {
     node->sval = (char *) malloc(100);
     strcpy(node->sval, s);
   }
@@ -50,8 +50,7 @@ print_indent(int indent)
 void 
 print_node(JLNode *node, bool rec, int depth)
 {
-  print_indent(depth);
-  switch(node->type)
+  print_indent(depth); switch(node->type)
   {
     case NODE_IDENT:
       printf("identifier (%s)\n", node->sval);
@@ -82,7 +81,7 @@ print_node(JLNode *node, bool rec, int depth)
         print_indent(depth+2);
         printf("%s\n", node->sval);
         print_node(node->e1, rec, depth+2);
-        print_node(node->e2, rec, depth+2);
+        if (node->e2 != 0) print_node(node->e2, rec, depth+2);
       }
       break;
     case NODE_STMT_LST:
@@ -94,6 +93,12 @@ print_node(JLNode *node, bool rec, int depth)
       break;
     case NODE_ASGN:
       printf("assignment\n");
+      if (rec) {
+        print_indent(depth+2);
+        printf("%s\n", node->sval);
+        print_node(node->e1, rec, depth+2);
+        print_node(node->e2, rec, depth+2);
+      }
       break;
     case NODE_IF:
       printf("if\n");
@@ -123,7 +128,23 @@ print_node(JLNode *node, bool rec, int depth)
     case NODE_BLOCK:
       printf("block\n");
       break;
+    case NODE_OBJ:
+      printf("object\n");
+      break;
+    case NODE_PROP:
+      printf("property\n");
+      if (rec) print_node(node->e1, rec, depth+2);
+      if (rec) print_node(node->e2, rec, depth+2);
+      break;
+    case NODE_PROP_LST:
+      printf("property list\n");
+      print_node(node->e1, rec, depth+2);
+      if (node->e2 != 0) print_node(node->e2, rec, depth+2);
+      break;
+    case NODE_EMPT_STMT:
+      printf("empty statement\n");
+      break;
     default:
-      printf("unknown type\n");
+      printf("unknown type: %d\n", node->type);
   }
 }

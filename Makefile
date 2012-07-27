@@ -1,4 +1,5 @@
-SRC_FILES=src/objects.c src/nodes.c src/eval.c 
+SRC_FILES=src/nodes.c src/eval.c src/runtime.c  
+LIB_FILES=lib/console.c
 
 all: grammar
 
@@ -8,9 +9,9 @@ tests:
 grammar-debug:
 	bison -y -d -t -v src/grammar.y
 	flex src/lexer.l
-	gcc -g -o bin/jslite y.tab.c lex.yy.c $(SRC_FILES)
+	gcc -g -o bin/jslite y.tab.c lex.yy.c src/jslite.c $(LIB_FILES) $(SRC_FILES)
 	
 grammar:
 	bison -y -d -t -v src/grammar.y
 	flex src/lexer.l
-	gcc -o bin/jslite y.tab.c lex.yy.c $(SRC_FILES)
+	gcc -o bin/jslite y.tab.c lex.yy.c src/jslite.c $(LIB_FILES) $(SRC_FILES) 

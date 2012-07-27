@@ -3,38 +3,67 @@
 
 #include "eval.h"
 #include "nodes.h"
+#include <math.h>
+
+#ifndef JLDEBUG
+#define JLDEBUG 1
+#endif
 
 int 
-jl_eval(JLNode *node, bool debug)
+jl_eval(JLVALUE *scope, JLNode *node)
 {
   switch(node->type) {
     case NODE_STMT_LST:
-      jl_eval(node->e1, debug);
-      if (node->e2 != 0) jl_eval(node->e2, debug);
+      jl_eval(scope, node->e1);
+      if (node->e2 != 0) jl_eval(scope, node->e2);
       break;
     case NODE_EXP_STMT:
-      debug ?  
+      JLDEBUG ?
         jl_debug_value(jl_eval_exp(node->e1)) :
         jl_eval_exp(node->e1);
       break;
+    case NODE_EMPT_STMT:
+      break;
+    case NODE_IF:
+      // If condition is satisfied, evaluate the ifBlock.
+      if (JLCAST(jl_eval_exp(node->e1), T_BOOLEAN)->boolean.val)
+        jl_eval(scope, node->e2);
+      // Otherwise, provided there is an elseBlock, evaluate it.
+      else if (node->e3 != 0) 
+        jl_eval(scope, node->e3);
+      break;
+    case NODE_WHILE:
+      jl_while(node->e1, node->e2);
+      break;
     default:
-      fprintf(stderr, "Unknown");
+      fprintf(stderr, "Evaluation error: unsupported structure\n");
       return 1;
   }
   return 0;
 }
 
+void
+jl_while(JLNode *cnd, JLNode *block)
+{
+  int loop_cnt;
+  while(JLCAST(jl_eval_exp(cnd), T_BOOLEAN)) {
+    jl_eval(JLOBJ(), block);
+    loop_cnt++;
+  }
+}
+
 JLVALUE *
 jl_eval_exp(JLNode *node)
 {
-  if (node->type == NODE_BOOL)
-    return JLBOOL((bool)node->val);
-  if (node->type == NODE_STR)
-    return JLSTR(node->sval);
-  if (node->type == NODE_NUM)
-    return JLNUM(node->val);
-  if (node->type == NODE_NULL)
-    return JLNULL();
+  if (node->type == NODE_BOOL) return JLBOOL((bool)node->val);
+  if (node->type == NODE_STR) return JLSTR(node->sval);
+  if (node->type == NODE_NUM) return JLNUM(node->val);
+  if (node->type == NODE_NULL) return JLNULL();
+  if (node->type == NODE_OBJ) return JLOBJ();
+  if (node->type == NODE_ASGN) {
+    jl_assign(node->sval, jl_eval_exp(node->e1));
+    return jl_eval_exp(node->e1);
+  }
   if (node->type == NODE_EXP) {
     switch(node->sub_type) {
       case NODE_UNARY_POST:
@@ -51,11 +80,11 @@ JLVALUE *
 jl_eval_postfix_exp(JLNode *node)
 {
   char *op = node->sval;
-  if (strcmp(op, "++") == 0)
-    // TODO: increment
+  if (STREQ(op, "++"))
+    // TODO: postfix increment
     return JLNUM(1);
-  if (strcmp(op, "--") == 0)
-    // TODO: decrement
+  if (STREQ(op, "--"))
+    // TODO: postfix decrement
     return JLNUM(1);
 }
 
@@ -63,121 +92,112 @@ JLVALUE *
 jl_eval_prefix_exp(JLNode *node)
 {
   char *op = node->sval;
-  if (strcmp(op, "+") == 0)
-    // TODO: cast to number (or NaN)
-    return JLNUM(1);
-  if (strcmp(op, "-") == 0)
-    // TODO: cast to number (or NaN) and negate
-    return JLNUM(1);
-  if (strcmp(op, "!") == 0)
-    // TODO: cast to boolean and negate
-    return JLBOOL(0);
+  if (STREQ(op, "+"))
+    return JLCAST(jl_eval_exp(node->e1), T_NUMBER);
+  if (STREQ(op, "-"))
+    return JLNUM(-1 * JLCAST(jl_eval_exp(node->e1), T_NUMBER)->number.val);
+  if (STREQ(op, "!"))
+    return JLCAST(jl_eval_exp(node->e1), T_BOOLEAN)->boolean.val == 1 ? 
+      JLBOOL(0): JLBOOL(1);
+  // TODO: prefix inc/dec
 }
 
 JLVALUE *
 jl_eval_bin_exp(JLNode *node)
 {
   char *op = node->sval;
-  if (strcmp(op, "+") == 0)
+  if (STREQ(op, "+"))
     return jl_add(jl_eval_exp(node->e1), jl_eval_exp(node->e2));
-  if (strcmp(op, "-") == 0)
+  if (STREQ(op, "-"))
     return jl_sub(jl_eval_exp(node->e1), jl_eval_exp(node->e2));
-  if (strcmp(op, "*") == 0)
+  if (STREQ(op, "*"))
     return jl_mul(jl_eval_exp(node->e1), jl_eval_exp(node->e2)); 
+  if (STREQ(op, "/"))
+    return jl_div(jl_eval_exp(node->e1), jl_eval_exp(node->e2));
+  if (STREQ(op, "%"))
+    return jl_mod(jl_eval_exp(node->e1), jl_eval_exp(node->e2));
 }
+
+#define T_BOTH(a,b,t)      (a->type == t && b->type == t)
+#define T_XOR(a,b,t1,t2)   (a->type == t1 && b->type == t2 || a->type == t2 && b->type == t1)
 
 JLVALUE *
 jl_add(JLVALUE *a, JLVALUE *b)
 {
-  JLVALUE *c;
-
-  // Treat bools as numbers (0 & 1)
-  if (a->type == T_BOOLEAN) a->type = T_NUMBER;
-  if (b->type == T_BOOLEAN) b->type = T_NUMBER;
-
   // Two strings => String
-  if (a->type == T_STRING && b->type == T_STRING)
-    c = JLSTR(jl_str_concat(a->string.ptr, b->string.ptr));
+  if (T_BOTH(a, b, T_STRING))
+    return JLSTR(jl_str_concat(a->string.ptr, b->string.ptr));
 
   // Two numbers => Number
-  else if (a->type == T_NUMBER && b->type == T_NUMBER)
-    c = JLNUM(a->number.val + b->number.val);
+  if (T_BOTH(a, b, T_NUMBER))
+    return JLNUM(a->number.val + b->number.val);
 
-  // String and a number => String
-  else if (a->type == T_STRING && b->type == T_NUMBER ||
-           a->type == T_NUMBER && b->type == T_STRING)
-  {
-    // something complicated
-    c = JLSTR(a->string.ptr);
-  }
+  // String and (null|undefined|Boolean|Number) => String
+  if (T_XOR(a, b, T_NULL, T_STRING) || 
+      T_XOR(a, b, T_BOOLEAN, T_STRING) ||
+      T_XOR(a, b, T_NUMBER, T_STRING) ||
+      T_XOR(a, b, T_UNDEF, T_STRING))
+    return jl_add(JLCAST(a, T_STRING), JLCAST(b, T_STRING));
 
-  // String and null => String
-  else if (a->type == T_STRING && b->type == T_NULL ||
-           a->type == T_NULL && b->type == T_STRING)
-  {
-    c = JLSTR(a->type == T_NULL ? 
-              jl_str_concat("null", b->string.ptr) : 
-              jl_str_concat(a->string.ptr, "null"));
-  }
+  // Number and undefined => NaN
+  if (T_XOR(a, b, T_NUMBER, T_UNDEF)) 
+    return JLNAN();
 
   // Number and null => Null
-  else if (a->type == T_NUMBER && b->type == T_NULL ||
-           a->type == T_NULL && b->type == T_NUMBER)
-    c = JLNUM(a->type == T_NULL ? b->number.val : c->number.val);
+  if (T_XOR(a, b, T_NULL, T_NUMBER))
+    return jl_add(JLCAST(a, T_NUMBER), JLCAST(b, T_NUMBER));
 
-  // TODO: Number and undefined => NaN
-  // TODO: String and undefined => String
-  
-  return c;
+  // Number and Boolean => Number
+  if (T_XOR(a, b, T_NUMBER, T_BOOLEAN))
+    return jl_add(JLCAST(a, T_NUMBER), JLCAST(b, T_NUMBER));
 }
 
 JLVALUE *
 jl_sub(JLVALUE *a, JLVALUE *b)
 {
-  JLVALUE *c;
-
-  // Treat bools as numbers (0 & 1)
-  if (a->type == T_BOOLEAN) a->type = T_NUMBER;
-  if (b->type == T_BOOLEAN) b->type = T_NUMBER;
-
-  // Parse string operands
-  // TODO
-
-  // Two numbers => Number
-  else if (a->type == T_NUMBER && b->type == T_NUMBER)
-    c = JLNUM(a->number.val - b->number.val);
-
-  // NaN and a number => NaN
-  else if (a->type == T_STRING && b->type == T_NUMBER ||
-           a->type == T_NUMBER && b->type == T_STRING)
-  {
-    // something complicated
-    c = JLSTR(a->string.ptr);
+  if (T_BOTH(a, b, T_NUMBER)) {
+    // Subtraction on NaN or Infinity results in NaN
+    if (a->number.is_nan || b->number.is_nan) return JLNAN();
+    if (a->number.is_inf || b->number.is_inf) return JLNAN();
+    return JLNUM(a->number.val - b->number.val);
   }
 
-  // NaN and null => String
-  else if (a->type == T_STRING && b->type == T_NULL ||
-           a->type == T_NULL && b->type == T_STRING)
-  {
-    c = JLSTR(a->type == T_NULL ? 
-              jl_str_concat("null", b->string.ptr) : 
-              jl_str_concat(a->string.ptr, "null"));
-  }
-
-  // Number and null => Null
-  else if (a->type == T_NUMBER && b->type == T_NULL ||
-           a->type == T_NULL && b->type == T_NUMBER)
-    c = JLNUM(a->type == T_NULL ? b->number.val : c->number.val);
-
-  // TODO: Number and undefined => NaN
-  // TODO: String and undefined => String
-  
-  return c;
+  // Simpler approach here. Cast both to Number and recurse.
+  // We'll be back at the top with numbers: finite, infinite and NaN.
+  return jl_sub(JLCAST(a, T_NUMBER), JLCAST(b, T_NUMBER));
 }
 
 JLVALUE *
 jl_mul(JLVALUE *a, JLVALUE *b)
 {
-  // TODO
-  return JLNUM(1);
+  if (T_BOTH(a, b, T_NUMBER)) {
+    if (a->number.is_nan || b->number.is_nan) return JLNAN();
+    if (a->number.is_inf || b->number.is_inf) return JLNAN();
+    return JLNUM(a->number.val * b->number.val);
+  }
+  return jl_mul(JLCAST(a, T_NUMBER), JLCAST(b, T_NUMBER));
+}
+
+JLVALUE *
+jl_div(JLVALUE *a, JLVALUE *b)
+{
+  if (T_BOTH(a, b, T_NUMBER)) {
+    if (a->number.is_nan || b->number.is_nan) return JLNAN();
+    if (a->number.is_inf || b->number.is_inf) return JLNAN();
+    // Division by 0 yields Infinity
+    if (b->number.val == 0) return JLINF();
+    return JLNUM(a->number.val / b->number.val);
+  }
+  return jl_div(JLCAST(a, T_NUMBER), JLCAST(b, T_NUMBER));
+}
+
+JLVALUE *
+jl_mod(JLVALUE *a, JLVALUE *b)
+{
+  if (T_BOTH(a, b, T_NUMBER)) {
+    if (a->number.is_nan || b->number.is_nan) return JLNAN();
+    if (a->number.is_inf || b->number.is_inf) return JLNAN();
+    return JLNUM(fmod(a->number.val, b->number.val));
+  }
+  return jl_mod(JLCAST(a, T_NUMBER), JLCAST(b, T_NUMBER));
 }

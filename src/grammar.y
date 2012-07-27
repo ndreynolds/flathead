@@ -3,6 +3,7 @@
   #include <stdio.h>
   #include <stdlib.h>
   #include "src/nodes.h"
+  #include "src/runtime.h"
 
   #define YYDEBUG 1
   #define P(x)  print_node(x, false, 0)
@@ -65,12 +66,12 @@
 %type<val> AssignmentOperator 
 %type<node> Program Statement Block VariableStatement EmptyStatement ExpressionStatement 
 IfStatement IterationStatement ContinueStatement BreakStatement ReturnStatement
-Literal NumericLiteral BooleanLiteral StringLiteral NullLiteral ArrayLiteral Identifier
-Expression PrimaryExpression LeftHandSideExpression UnaryExpression 
+Literal NumericLiteral BooleanLiteral StringLiteral NullLiteral ArrayLiteral ObjectLiteral
+Identifier Expression PrimaryExpression LeftHandSideExpression UnaryExpression 
 PostfixExpression ShiftExpression RelationalExpression AdditiveExpression EqualityExpression
 BitwiseANDExpression BitwiseORExpression BitwiseXORExpression LogicalORExpression
 LogicalANDExpression MultiplicativeExpression ConditionalExpression StatementList
-AssignmentExpression ElementList SourceElements
+AssignmentExpression ElementList SourceElements PropertyName PropertyAssignment PropertyNameAndValueList
 
 %%
 
@@ -102,6 +103,7 @@ Block:
 StatementList:
     Statement                                         { $$ = NEW_STMTLST($1, NULL); } 
     | StatementList Statement                         { $$ = NEW_STMTLST($2, $1); }
+    /* TODO: Are we evaluating statements in reverse? */
     ;
 
 VariableStatement:
@@ -145,6 +147,7 @@ Literal:
     | BooleanLiteral                   { $$ = $1; }
     | NumericLiteral                   { $$ = $1; }
     | StringLiteral                    { $$ = $1; }
+    | ObjectLiteral                    { $$ = $1; }
     ;
 
 ArrayLiteral:
@@ -179,6 +182,27 @@ NullLiteral:
 NumericLiteral:
     INTEGER               { $$ = NEW_NUM((double)$1); }
     | FLOAT               { $$ = NEW_NUM($1); }
+    ;
+
+ObjectLiteral:
+    '{' '}'                                { $$ = NEW_OBJ(NULL); }
+    | '{' PropertyNameAndValueList '}'     { $$ = NEW_OBJ($2); }
+    | '{' PropertyNameAndValueList ',' '}' { $$ = NEW_OBJ($2); }
+    ;
+       
+PropertyNameAndValueList:
+    PropertyAssignment                                 { $$ = NEW_PROPLST($1, NULL); }
+    | PropertyNameAndValueList ',' PropertyAssignment  { $$ = NEW_PROPLST($3, $1); }
+    ;
+
+PropertyAssignment:
+    PropertyName ':' AssignmentExpression  { $$ = NEW_PROP($1, $3); }
+    ;
+
+PropertyName:
+    Identifier                    { $$ = $1; }
+    | StringLiteral               { $$ = $1; }
+    | NumericLiteral              { $$ = $1; }
     ;
 
 Identifier:
@@ -281,11 +305,11 @@ AssignmentExpression:
     ;
 
 AssignmentOperator:
-    PLUSEQ               { $$ = $1; }
-    | MINUSEQ            { $$ = $1; }
-    | MULTEQ             { $$ = $1; }
-    | DIVEQ              { $$ = $1; }
-    | MODEQ              { $$ = $1; }
+    PLUSEQ               { $$ = "+="; }
+    | MINUSEQ            { $$ = "-="; }
+    | MULTEQ             { $$ = "*="; }
+    | DIVEQ              { $$ = "/="; }
+    | MODEQ              { $$ = "%="; }
     ;
 
 LeftHandSideExpression:
@@ -325,11 +349,13 @@ main(int argc, char *argv[])
 
   // Parse it.
   yyparse();
-
   if (print_parse_tree) PR(root);
 
+  // Bootstrap a runtime.
+  JLVALUE *global = jl_bootstrap();
+
   // Evaluate.
-  jl_eval(root, yydebug);
+  jl_eval(global, root);
 
   return 0;
 }
