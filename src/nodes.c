@@ -50,55 +50,38 @@ print_indent(int indent)
 void 
 print_node(JLNode *node, bool rec, int depth)
 {
-  print_indent(depth); switch(node->type)
+  print_indent(depth); 
+  switch(node->type)
   {
     case NODE_IDENT:
       printf("identifier (%s)\n", node->sval);
-      break;
+      return;
     case NODE_NUM:
       printf("number (%f)\n", node->val);
-      break;
+      return;
     case NODE_BOOL:
       printf("bool (%d)\n", (int)node->val);
-      break;
+      return;
     case NODE_STR:
       printf("string (%s)\n", node->sval);
-      break;
+      return;
     case NODE_NULL:
       printf("null (NULL)\n");
       break;
     case NODE_VAR_STMT:
       printf("variable statement\n");
-      if (rec) print_node(node->e1, rec, depth+2);
       break;
     case NODE_EXP_STMT:
       printf("expression statement\n");
-      if (rec) print_node(node->e1, rec, depth+2);
       break;
     case NODE_EXP:
       printf("expression\n");
-      if (rec) {
-        print_indent(depth+2);
-        printf("%s\n", node->sval);
-        print_node(node->e1, rec, depth+2);
-        if (node->e2 != 0) print_node(node->e2, rec, depth+2);
-      }
       break;
     case NODE_STMT_LST:
       printf("statement list\n");
-      if (rec) {
-        print_node(node->e1, rec, depth+2);
-        if (node->e2 != 0) print_node(node->e2, rec, depth+2);
-      }
       break;
     case NODE_ASGN:
       printf("assignment\n");
-      if (rec) {
-        print_indent(depth+2);
-        printf("%s\n", node->sval);
-        print_node(node->e1, rec, depth+2);
-        print_node(node->e2, rec, depth+2);
-      }
       break;
     case NODE_IF:
       printf("if\n");
@@ -123,7 +106,6 @@ print_node(JLNode *node, bool rec, int depth)
       break;
     case NODE_RETURN:
       printf("return\n");
-      if (rec) print_node(node->e1, rec, depth+2);
       break;
     case NODE_BLOCK:
       printf("block\n");
@@ -133,13 +115,9 @@ print_node(JLNode *node, bool rec, int depth)
       break;
     case NODE_PROP:
       printf("property\n");
-      if (rec) print_node(node->e1, rec, depth+2);
-      if (rec) print_node(node->e2, rec, depth+2);
       break;
     case NODE_PROP_LST:
       printf("property list\n");
-      print_node(node->e1, rec, depth+2);
-      if (node->e2 != 0) print_node(node->e2, rec, depth+2);
       break;
     case NODE_EMPT_STMT:
       printf("empty statement\n");
@@ -147,4 +125,13 @@ print_node(JLNode *node, bool rec, int depth)
     default:
       printf("unknown type: %d\n", node->type);
   }
+
+  if (!rec) return;
+  if (node->sval != 0) {
+    print_indent(depth+2);
+    printf("%s\n", node->sval);
+  }
+  if (node->e1 != 0) print_node(node->e1, rec, depth+2);
+  if (node->e2 != 0) print_node(node->e2, rec, depth+2);
+  if (node->e3 != 0) print_node(node->e3, rec, depth+2);
 }
