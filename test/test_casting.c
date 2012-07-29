@@ -1,6 +1,6 @@
 #include "test.h"
 #include "../src/jslite.h"
-#include "../src/objects.c"
+#include "../src/jslite.c"
 
 void
 test_numeric_strings_are_correctly_cast()
@@ -98,7 +98,7 @@ main()
   test_null_and_undefined_correctly_cast_to_number();
   test_true_and_false_correctly_cast_to_number();
 
-  TEST_SUMMARY(tests);
+  TEST_SUMMARY();
 
   return 0;
 }

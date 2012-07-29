@@ -1,30 +1,38 @@
-// objects.c
+// jslite.c
+// --------
+// Core function implementations
 
 #include <stdio.h>
 #include "jslite.h"
 
-struct JLVariable *scope = NULL;
-
-struct JLVariable *
-jl_lookup(char *name) 
+JLPROP *
+jl_lookup(JLVALUE *obj, char *name) 
 {
-  struct JLVariable *var;
-  HASH_FIND_STR(scope, name, var);
-  return var;
+  JLPROP *prop = NULL;
+  HASH_FIND_STR(obj->object.map, name, prop);
+  return prop;
 }
 
 void 
-jl_assign(char *name, JLVALUE *val) 
+jl_assign(JLVALUE *obj, char *name, JLVALUE *val)
 {
-  struct JLVariable *var = jl_lookup(name);
-  if (var == NULL) var = malloc(sizeof(struct JLVariable));
-  var->name = name;
-  var->ptr = val;
-  HASH_ADD_KEYPTR(hh, scope, var->name, strlen(var->name), var);
+  JLPROP *prop = jl_lookup(obj, name);
+  if (prop == NULL) 
+    prop = malloc(sizeof(JLPROP));
+  prop->name = malloc((strlen(name) + 1) * sizeof(char));
+  strcpy(prop->name, name);
+  prop->ptr = (JLVALUE *)val;
+  HASH_ADD_KEYPTR(hh, obj->object.map, prop->name, strlen(prop->name), prop);
+}
+
+void 
+jl_assign_natv_func(JLVALUE *obj, char *name, JLNATVFUNC *func_ptr)
+{
 }
 
 void
-jl_gc() {
+jl_gc() 
+{
   /**
    * Mark and Sweep
    * --------------
@@ -81,7 +89,14 @@ JLVALUE *
 jl_new_object()
 {
   JLVALUE *val = jl_new_val(T_OBJECT);
+  JLPROP *map = NULL;
+  val->object.map = map;
   return val;
+}
+
+JLPROP *
+jl_new_prop()
+{
 }
 
 char *
@@ -161,18 +176,6 @@ jl_cast(JLVALUE *val, JLTYPE type)
   }
   if (type == T_NULL) return JLNULL();
   if (type == T_UNDEF) return JLUNDEF();
-}
-
-void jl_prop_assign_obj(JLVALUE *obj, char *name, JLVALUE *val)
-{
-}
-
-void jl_prop_assign_natv_func(JLVALUE *obj, char *name, JLNATVFUNC *func_ptr)
-{
-}
-
-void jl_prop_assign_func(JLVALUE *obj, char *name, void *func_ptr)
-{
 }
 
 void

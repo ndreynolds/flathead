@@ -5,6 +5,7 @@
 
 #include "../ext/uthash.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef int bool;
 #define true 1
@@ -26,6 +27,15 @@ typedef struct JLARGS {
 } JLARGS;
 
 typedef void (*JLNATVFUNC)(JLARGS*); 
+
+typedef struct JLPROP {
+  char *name;
+  bool writable;
+  bool enumerable;
+  bool configurable;
+  void *ptr;
+  UT_hash_handle hh;
+} JLPROP;
 
 struct JLNumber {
   double val;
@@ -49,20 +59,13 @@ struct JLArray {
 
 struct JLObject {
   void *proto;
+  JLPROP *map;
 };
 
 struct JLFunction {
   bool is_native;
   void *func_body;
   JLNATVFUNC *native;
-};
-
-struct JLProperty {
-  char *prop_name;
-  bool writable;
-  bool enumerable;
-  bool configurable;
-  void *ptr;
 };
 
 typedef struct JLVALUE {
@@ -82,8 +85,7 @@ struct JLVariable {
   UT_hash_handle hh;
 };
 
-void jl_assign(char *, JLVALUE *);
-struct JLVariable * jl_lookup(char *);
+JLPROP * jl_lookup(JLVALUE *, char *);
 void jl_gc(void);
 
 JLVALUE * jl_alloc_val();
@@ -98,9 +100,8 @@ char * jl_typeof(JLVALUE *);
 char * jl_str_concat(char *, char *);
 void jl_debug_value(JLVALUE *);
 
-void jl_prop_assign_obj(JLVALUE *, char *, JLVALUE *);
-void jl_prop_assign_func(JLVALUE *, char *, void *);
-void jl_prop_assign_natv_func(JLVALUE *, char *, JLNATVFUNC *);
+void jl_assign(JLVALUE *, char *, JLVALUE *);
+void jl_assign_natv_func(JLVALUE *, char *, JLNATVFUNC *);
 
 #define JLCAST(x, t) jl_cast((x), (t))
 #define JLBOOL(x) jl_new_boolean((x))

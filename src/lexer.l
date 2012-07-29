@@ -46,7 +46,7 @@ L?'(\\.|[^\\'])+'            { yylval.val = yytext; return STRING; }
 "<<"        return LSHIFT;
 ">>"        return RSHIFT;
 
-[-+()=*/%;{}]  return *yytext;
+[-+()=*/%,:;{}]  return *yytext;
 [ \t]       ; /* skip whitespace */
 <<EOF>>     return EOF;
 .           lyyerror("Parse error", yytext);

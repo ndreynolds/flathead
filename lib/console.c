@@ -27,9 +27,9 @@ bootstrap_console()
 {
   JLVALUE *console = JLOBJ();
 
-  jl_prop_assign_natv_func(console, "log", (JLNATVFUNC*)&console_log);
-  jl_prop_assign_natv_func(console, "error", (JLNATVFUNC*)&console_error);
-  jl_prop_assign_natv_func(console, "time", (JLNATVFUNC*)&console_time);
+  jl_assign_natv_func(console, "log", (JLNATVFUNC*)&console_log);
+  jl_assign_natv_func(console, "error", (JLNATVFUNC*)&console_error);
+  jl_assign_natv_func(console, "time", (JLNATVFUNC*)&console_time);
 
   return console;
 }

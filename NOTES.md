@@ -22,7 +22,8 @@ Machine code interpreter
 This is just an AST-walker.
 
 
-Evaluating an AST:
+Evaluating an AST
+-----------------
 
 - Register variable declarations and assignments in the scope.
 - Evaluate expressions by first reducing operands to literals and then 
@@ -30,3 +31,29 @@ Evaluating an AST:
 - Test branch conditions (according to spec'd truth values) and then 
   branch accordingly.
 - TODO: Find out how to handle loops.
+
+Bootstrapping natives
+---------------------
+
+- Create a new object to serve as the global this.
+
+- Assign various properties to it, e.g.:
+    console  (obj)
+    Math     (obj)
+    Number   (func)
+    String   (func)
+    Object   (func)
+    Boolean  (func)
+    Function (func)
+    NaN      (num)
+    Infinity (num)
+
+- Do do that, use:
+    jl_assign_property(object, property_name, value)
+
+- Functions can either be implemented natively, or in JavaScript.
+    * The chosen implementation should be made visible by a flag. 
+    * Some things need to be exposed natively (like printing to stdout), while other 
+      things simply ought to be done natively for the performance benefits (e.g. sorting).
+    * Native implementations are referenced by a function pointer.
+    * JavaScript implementations are given as an AST node pointer.

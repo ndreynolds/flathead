@@ -12,4 +12,4 @@ int tests;
   printf(" ✓ %s\n", __func__); \
 } while (0)
 
-#define TEST_SUMMARY(i)  printf("\n%d tests passed. 0 failures.\n", i)
+#define TEST_SUMMARY()  printf("\n%d tests passed. 0 failures.\n", tests)

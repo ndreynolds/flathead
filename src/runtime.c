@@ -10,9 +10,9 @@ jl_bootstrap()
 {
   JLVALUE *global = JLOBJ();
 
-  jl_prop_assign_obj(global, "console", bootstrap_console());
-  jl_prop_assign_obj(global, "NaN", JLNAN());
-  jl_prop_assign_obj(global, "Infinity", JLINF());
+  jl_assign(global, "console", bootstrap_console());
+  jl_assign(global, "NaN", JLNAN());
+  jl_assign(global, "Infinity", JLINF());
 
   return global;
 }

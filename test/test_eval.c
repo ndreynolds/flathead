@@ -1,6 +1,6 @@
 #include "test.h"
 #include "../src/jslite.h"
-#include "../src/objects.c"
+#include "../src/jslite.c"
 #include "../src/eval.c"
 
 void
@@ -116,7 +116,7 @@ main()
   test_mod_handles_numbers();
   test_mod_handles_non_numeric_types();
 
-  TEST_SUMMARY(tests);
+  TEST_SUMMARY();
 
   return 0;
 }
