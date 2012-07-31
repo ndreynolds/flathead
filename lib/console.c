@@ -7,12 +7,14 @@
 void
 console_log(JLARGS *args)
 {
+  fprintf(stdout, "some stuff");
   // https://developer.mozilla.org/en/DOM/console.log
 }
 
 void
 console_error(JLARGS *args)
 {
+  fprintf(stderr, "some bad stuff");
   // https://developer.mozilla.org/en/DOM/console.error
 }
 
@@ -27,9 +29,9 @@ bootstrap_console()
 {
   JLVALUE *console = JLOBJ();
 
-  jl_assign_natv_func(console, "log", (JLNATVFUNC*)&console_log);
-  jl_assign_natv_func(console, "error", (JLNATVFUNC*)&console_error);
-  jl_assign_natv_func(console, "time", (JLNATVFUNC*)&console_time);
+  jl_assign(console, "log", JLNFUNC((JLNATVFUNC*)&console_log));
+  jl_assign(console, "error", JLNFUNC((JLNATVFUNC*)&console_error));
+  jl_assign(console, "time", JLNFUNC((JLNATVFUNC*)&console_time));
 
   return console;
 }

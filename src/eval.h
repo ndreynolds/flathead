@@ -5,6 +5,7 @@
 
 int jl_eval(JLVALUE *, JLNode *);
 void jl_while(JLVALUE *, JLNode *, JLNode *);
+JLVALUE * jl_obj(JLNode *);
 JLVALUE * jl_eval_exp(JLVALUE *, JLNode *);
 JLVALUE * jl_eval_postfix_exp(JLVALUE *, JLNode *);
 JLVALUE * jl_eval_prefix_exp(JLVALUE *, JLNode *);

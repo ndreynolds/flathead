@@ -17,6 +17,7 @@
 "break"     return BREAK;
 "continue"  return CONTINUE;
 "return"    return RETURN;
+"function"  return FUNCTION;
 "var"       return VAR;
 "null"      return NULLT;
 "true"      return TRUE; 

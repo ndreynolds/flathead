@@ -6,7 +6,7 @@
 #include <math.h>
 
 #ifndef JLDEBUG
-#define JLDEBUG 0
+#define JLDEBUG 1
 #endif
 
 int 
@@ -18,9 +18,7 @@ jl_eval(JLVALUE *this, JLNode *node)
       if (node->e2 != 0) jl_eval(this, node->e2);
       break;
     case NODE_EXP_STMT:
-      JLDEBUG ?
-        jl_debug_value(jl_eval_exp(this, node->e1)) :
-        jl_eval_exp(this, node->e1);
+      jl_eval_exp(this, node->e1);
       break;
     case NODE_IF:
       // If condition is satisfied, evaluate the ifBlock.
@@ -30,8 +28,18 @@ jl_eval(JLVALUE *this, JLNode *node)
       else if (node->e3 != 0) 
         jl_eval(this, node->e3);
       break;
+    case NODE_OBJ:
+      jl_obj(node);
+      break;
+    case NODE_PROP_LST:
+      jl_eval(this, node->e1);
+      if (node->e2 != 0) jl_eval(this, node->e2);
+      break;
+    case NODE_PROP:
+      jl_assign(this, node->e1->sval, jl_eval_exp(this, node->e2));
+      break;
     case NODE_VAR_STMT:
-      // var x;
+      // For now we just initialize the property to null.
       jl_assign(this, node->e1->sval, JLNULL());
       break;
     case NODE_WHILE:
@@ -44,6 +52,14 @@ jl_eval(JLVALUE *this, JLNode *node)
       return 1;
   }
   return 0;
+}
+
+JLVALUE *
+jl_obj(JLNode *node)
+{
+  JLVALUE *obj = JLOBJ();
+  jl_eval(obj, node->e1);
+  return obj;
 }
 
 void
@@ -63,14 +79,21 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
   if (node->type == NODE_STR) return JLSTR(node->sval);
   if (node->type == NODE_NUM) return JLNUM(node->val);
   if (node->type == NODE_NULL) return JLNULL();
-  if (node->type == NODE_OBJ) return JLOBJ();
+  if (node->type == NODE_OBJ) return jl_obj(node);
+  if (node->type == NODE_IDENT) {
+    JLPROP * prop = jl_lookup(this, node->sval);
+    if (prop == 0) return JLUNDEF();
+    return prop->ptr;
+  }
   if (node->type == NODE_ASGN) {
+    // This assumes the Node at e1 is an ident, which won't
+    // always be true.
     jl_assign(
-        this, 
-        JLCAST(jl_eval_exp(this, node->e1), T_STRING)->string.ptr, 
-        jl_eval_exp(this, node->e2)
+      this, 
+      node->e1->sval,
+      jl_eval_exp(this, node->e2)
     );
-    return jl_eval_exp(this, node->e1);
+    return jl_eval_exp(this, node->e2);
   }
   if (node->type == NODE_EXP) {
     switch(node->sub_type) {

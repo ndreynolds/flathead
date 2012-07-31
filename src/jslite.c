@@ -25,20 +25,10 @@ jl_assign(JLVALUE *obj, char *name, JLVALUE *val)
   HASH_ADD_KEYPTR(hh, obj->object.map, prop->name, strlen(prop->name), prop);
 }
 
-void 
-jl_assign_natv_func(JLVALUE *obj, char *name, JLNATVFUNC *func_ptr)
-{
-}
-
 void
 jl_gc() 
 {
-  /**
-   * Mark and Sweep
-   * --------------
-   * Go through the hashtable of JLVariables. Follow them to their values.
-   * Mark the values 'keepers'. Sweep away everything else. No mercy.
-   */
+  // TODO: Mark and Sweep
 }
 
 JLVALUE *
@@ -94,9 +84,13 @@ jl_new_object()
   return val;
 }
 
-JLPROP *
-jl_new_prop()
+JLVALUE *
+jl_new_native_function(JLNATVFUNC *func)
 {
+  JLVALUE *val = jl_new_val(T_FUNCTION);
+  val->function.is_native = true;
+  val->function.native = func;
+  return val;
 }
 
 char *
@@ -106,15 +100,16 @@ jl_typeof(JLVALUE *value)
   switch(value->type) 
   {
     case T_OBJECT:
+    case T_NULL:
       return "object";
+    case T_FUNCTION:
+      return "function";
     case T_BOOLEAN:
       return "boolean";
     case T_NUMBER:
       return "number";
     case T_STRING:
       return "string";
-    case T_NULL:
-      return "object";
     default:
       return "undefined";
   }
@@ -179,22 +174,51 @@ jl_cast(JLVALUE *val, JLTYPE type)
 }
 
 void
-jl_debug_value(JLVALUE *val)
+jl_debug_obj(JLVALUE *obj)
 {
-  printf("%s ", jl_typeof(val));
-  switch(val->type) 
+  JLPROP *x, *tmp;
+  bool first = true;
+  HASH_ITER(hh, obj->object.map, x, tmp) {
+    if (!first) 
+      printf(",\n ");
+    else
+      first = false;
+    printf(" %s: ", x->name);
+    jl_debug((JLVALUE *)x->ptr, false);
+  };
+  if (!first) printf(" ");
+}
+
+void
+jl_debug(JLVALUE *val, bool newline)
+{
+  switch(val->type)
   {
+    printf("%s", jl_typeof(val));
     case T_BOOLEAN:
       printf("%s", !val->boolean.val ? "false" : "true");
       break;
     case T_NUMBER:
-      printf("%f", val->number.val);
+      if (val->number.is_nan) 
+        printf("NaN");
+      else if (val->number.is_inf) 
+        printf("Infinity");
+      else 
+        printf("%f", val->number.val);
       break;
     case T_STRING:
       printf("%s", val->string.ptr);
       break;
-    default:
+    case T_NULL:
+      printf("null");
+    case T_FUNCTION:
+      printf("[Function]");
+      break;
+    case T_OBJECT:
+      printf("{");
+      jl_debug_obj(val);
+      printf("}");
       break;
   }
-  printf("\n");
+  if (newline) printf("\n");
 }
