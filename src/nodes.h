@@ -35,6 +35,10 @@ typedef enum JLNodeType {
   NODE_EL_LST,
   NODE_UNARY_POST,
   NODE_UNARY_PRE,
+  NODE_CALL,
+  NODE_NEW,
+  NODE_ARG_LST,
+  NODE_MEMBER,
   NODE_UNKNOWN
 } JLNodeType;
 
@@ -77,6 +81,10 @@ JLNode * new_node(JLNodeType, JLNode *, JLNode *, JLNode *, double, char *);
 #define NEW_OBJ(proplst)        new_node(NODE_OBJ,proplst,0,0,0,0)
 #define NEW_PROP(name,exp)      new_node(NODE_PROP,name,exp,0,0,0)
 #define NEW_PROPLST(head,tail)  new_node(NODE_PROP_LST,head,tail,0,0,0)
+#define NEW_ARGLST(head,tail)   new_node(NODE_ARG_LST,head,tail,0,0,0)
+#define NEW_CALL(call,args)     new_node(NODE_CALL,call,args,0,0,0);
+#define NEW_NEW(exp)            new_node(NODE_NEW,exp,0,0,0,0);
+#define NEW_MEMBER(head,tail)   new_node(NODE_MEMBER,head,tail,0,0,0)
 
 void print_indent(int); 
 void print_node(JLNode *, bool, int);

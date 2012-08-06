@@ -49,7 +49,7 @@
 /* Control */
 %token<val> BREAK CONTINUE RETURN
 /* Misc */
-%token<val> VAR THIS NULLT
+%token<val> VAR THIS NULLT FUNCTION NEW
 
 
 /* ASSOCIATIVITY */
@@ -72,6 +72,8 @@ PostfixExpression ShiftExpression RelationalExpression AdditiveExpression Equali
 BitwiseANDExpression BitwiseORExpression BitwiseXORExpression LogicalORExpression
 LogicalANDExpression MultiplicativeExpression ConditionalExpression StatementList
 AssignmentExpression ElementList SourceElements PropertyName PropertyAssignment PropertyNameAndValueList
+FunctionDeclaration FunctionBody FunctionExpression FormalParameterList CallExpression 
+MemberExpression NewExpression Arguments ArgumentList
 
 %%
 
@@ -82,6 +84,7 @@ Program:
 SourceElements:
     StatementList                                     { $$ = $1; }
     | Block                                           { $$ = $1; }
+    | FunctionDeclaration                             { $$ = $1; }
     ;
 
 Statement:
@@ -205,6 +208,24 @@ PropertyName:
     | NumericLiteral              { $$ = $1; }
     ;
 
+FunctionDeclaration:
+    FUNCTION IDENT '(' FormalParameterList ')' '{' FunctionBody '}' {}
+    ;
+
+FunctionExpression:
+    FUNCTION '(' FormalParameterList ')' '{' FunctionBody '}' {}
+    | FUNCTION IDENT '(' FormalParameterList ')' '{' FunctionBody '}' {}
+    ;
+
+FormalParameterList:
+    IDENT                             {}
+    | FormalParameterList ',' IDENT   {}
+    ;
+
+FunctionBody:
+    SourceElements        {}
+    ;
+
 Identifier:
     IDENT                 { $$ = NEW_IDENT($1); }
     ;
@@ -305,15 +326,46 @@ AssignmentExpression:
     ;
 
 AssignmentOperator:
-    PLUSEQ               { $$ = "+="; }
-    | MINUSEQ            { $$ = "-="; }
-    | MULTEQ             { $$ = "*="; }
-    | DIVEQ              { $$ = "/="; }
-    | MODEQ              { $$ = "%="; }
+    PLUSEQ                                    { $$ = "+="; }
+    | MINUSEQ                                 { $$ = "-="; }
+    | MULTEQ                                  { $$ = "*="; }
+    | DIVEQ                                   { $$ = "/="; }
+    | MODEQ                                   { $$ = "%="; }
     ;
 
 LeftHandSideExpression:
-    PrimaryExpression /* Ridiculously incomplete */      { $$ = $1; }
+    NewExpression                             { $$ = $1; }
+    | CallExpression                          { $$ = $1; }
+    ;
+
+CallExpression:
+    MemberExpression Arguments                { $$ = NEW_CALL($1, $2); }
+    | CallExpression Arguments                { $$ = NEW_CALL($1, $2); }
+    | CallExpression '[' Expression ']'       { $$ = NEW_CALL($1, $3); }
+    | CallExpression '.' Identifier           { $$ = NEW_CALL($1, $3); }
+    ;
+
+NewExpression:
+    MemberExpression                          { $$ = $1; }
+    | NEW NewExpression                       { $$ = NEW_NEW($2); }
+    ;
+
+MemberExpression:
+    PrimaryExpression                         { $$ = $1; }
+    | FunctionExpression                      { $$ = $1; }
+    | MemberExpression '[' Expression ']'     { $$ = NEW_MEMBER($3, $1); }
+    | MemberExpression '.' Identifier         { $$ = NEW_MEMBER($3, $1); }
+    | NEW MemberExpression Arguments          { $$ = NEW_NEW(NEW_MEMBER($3, $2)); }
+    ;
+
+Arguments:
+    '(' ')'                                   { $$ = NEW_ARGLST(NULL, NULL); }
+    | '(' ArgumentList ')'                    { $$ = $2; }
+    ;
+
+ArgumentList:
+    AssignmentExpression                      { $$ = NEW_ARGLST($1, NULL); }
+    | ArgumentList ',' AssignmentExpression   { $$ = NEW_ARGLST($3, $1); }
     ;
 
 %%
@@ -356,6 +408,9 @@ main(int argc, char *argv[])
 
   // Evaluate.
   jl_eval(global, root);
+
+  // Debug.
+  JLDEBUG(global);
 
   return 0;
 }

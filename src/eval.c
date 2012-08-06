@@ -18,7 +18,7 @@ jl_eval(JLVALUE *this, JLNode *node)
       if (node->e2 != 0) jl_eval(this, node->e2);
       break;
     case NODE_EXP_STMT:
-      jl_eval_exp(this, node->e1);
+      JLDEBUG(jl_eval_exp(this, node->e1));
       break;
     case NODE_IF:
       // If condition is satisfied, evaluate the ifBlock.
@@ -65,7 +65,7 @@ jl_obj(JLNode *node)
 void
 jl_while(JLVALUE *this, JLNode *cnd, JLNode *block)
 {
-  int loop_cnt;
+  int loop_cnt = 0;
   while(JLCAST(jl_eval_exp(this, cnd), T_BOOLEAN)) {
     jl_eval(JLOBJ(), block);
     loop_cnt++;
@@ -80,11 +80,9 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
   if (node->type == NODE_NUM) return JLNUM(node->val);
   if (node->type == NODE_NULL) return JLNULL();
   if (node->type == NODE_OBJ) return jl_obj(node);
-  if (node->type == NODE_IDENT) {
-    JLPROP * prop = jl_lookup(this, node->sval);
-    if (prop == 0) return JLUNDEF();
-    return prop->ptr;
-  }
+  if (node->type == NODE_CALL) return jl_call(this, node);
+  if (node->type == NODE_MEMBER) return jl_member(this, node);
+  if (node->type == NODE_IDENT) return jl_get(this, node->sval);
   if (node->type == NODE_ASGN) {
     // This assumes the Node at e1 is an ident, which won't
     // always be true.
@@ -105,6 +103,69 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
         return jl_eval_bin_exp(this, node);
     }
   }
+  fprintf(stderr, "Unknown expression type\n");
+  exit(1);
+}
+
+JLVALUE *
+jl_get(JLVALUE *obj, char *prop_name)
+{
+  // Can't read properties from undefined.
+  if (obj->type == T_UNDEF) {
+    fprintf(stderr, "TypeError: Cannot read property '%s' of undefined\n", prop_name);
+    exit(1);
+  }
+  JLPROP *prop = jl_lookup(obj, prop_name);
+  // We'll happily return undefined if a property doesn't exist.
+  if (prop == 0) return JLUNDEF();
+  return prop->ptr;
+}
+
+JLVALUE *
+jl_member(JLVALUE *this, JLNode *member)
+{
+  // Similar to an Identifier node, we have to retrieve a value
+  // from an object. The difference here is that we need to recurse
+  // to retrieve sub-members as instructed.
+  JLVALUE *a = jl_get(this, member->e2->sval);
+  JLVALUE *b = jl_get(a, member->e1->sval);
+  return b;
+}
+
+JLVALUE *
+jl_call(JLVALUE *this, JLNode *call)
+{
+  JLVALUE *maybe_func = jl_eval_exp(this, call->e1);
+  if (maybe_func->type != T_FUNCTION) {
+    fprintf(stderr, "TypeError: %s is not a function\n", jl_typeof(maybe_func));
+    exit(1);
+  }
+  jl_function_call(this, maybe_func, call->e2);
+  return JLUNDEF();
+}
+
+JLARGS *
+jl_build_args(JLVALUE *this, JLNode *args_node)
+{
+  JLARGS *args = malloc(sizeof(JLARGS));
+  if (args_node->e1 == 0) return args;
+  args->arg = jl_eval_exp(this, args_node->e1);
+  if (args_node->e2 != 0)
+    args->next = jl_build_args(this, args_node->e2);
+  return args;
+}
+
+JLVALUE *
+jl_function_call(JLVALUE *this, JLVALUE *func, JLNode *args_node)
+{
+  if (func->function.is_native) {
+    // TODO: construct JLARGS struct from a arguments node.
+    JLARGS *args = jl_build_args(this, args_node);
+    (*(func->function.native))(args);
+    return JLUNDEF();
+  }
+  fprintf(stderr, "Unsupported\n");
+  return JLUNDEF();
 }
 
 JLVALUE *
@@ -194,7 +255,7 @@ jl_sub(JLVALUE *a, JLVALUE *b)
   }
 
   // Simpler approach here. Cast both to Number and recurse.
-  // We'll be back at the top with numbers: finite, infinite and NaN.
+  // We'll be back at the top with numbers (either finite, infinite, or NaN).
   return jl_sub(JLCAST(a, T_NUMBER), JLCAST(b, T_NUMBER));
 }
 

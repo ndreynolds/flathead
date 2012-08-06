@@ -18,6 +18,7 @@
 "continue"  return CONTINUE;
 "return"    return RETURN;
 "function"  return FUNCTION;
+"new"       return NEW;
 "var"       return VAR;
 "null"      return NULLT;
 "true"      return TRUE; 
@@ -47,7 +48,7 @@ L?'(\\.|[^\\'])+'            { yylval.val = yytext; return STRING; }
 "<<"        return LSHIFT;
 ">>"        return RSHIFT;
 
-[-+()=*/%,:;{}]  return *yytext;
+[-+()=*/%,.:;{}]  return *yytext;
 [ \t]       ; /* skip whitespace */
 <<EOF>>     return EOF;
 .           lyyerror("Parse error", yytext);

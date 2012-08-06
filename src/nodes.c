@@ -122,6 +122,18 @@ print_node(JLNode *node, bool rec, int depth)
     case NODE_EMPT_STMT:
       printf("empty statement\n");
       break;
+    case NODE_CALL:
+      printf("call expression\n");
+      break;
+    case NODE_NEW:
+      printf("new expression\n");
+      break;
+    case NODE_ARG_LST:
+      printf("argument list\n");
+      break;
+    case NODE_MEMBER:
+      printf("member expression\n");
+      break;
     default:
       printf("unknown type: %d\n", node->type);
   }

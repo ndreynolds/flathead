@@ -24,7 +24,8 @@ typedef enum JLTYPE {
 } JLTYPE;
 
 typedef struct JLARGS {
-  void *args;
+  void *arg;
+  void *next;
 } JLARGS;
 
 typedef void (*JLNATVFUNC)(JLARGS*); 
@@ -66,7 +67,7 @@ struct JLObject {
 struct JLFunction {
   bool is_native;
   void *func_body;
-  JLNATVFUNC *native;
+  JLNATVFUNC native;
 };
 
 typedef struct JLVALUE {
@@ -96,7 +97,9 @@ JLVALUE * jl_new_number(double, bool, bool);
 JLVALUE * jl_new_string(char *);
 JLVALUE * jl_new_boolean(bool);
 JLVALUE * jl_new_object();
-JLVALUE * jl_new_native_function(JLNATVFUNC *);
+JLVALUE * jl_new_native_function(JLNATVFUNC);
+
+JLARGS * jl_new_args();
 
 JLVALUE * jl_cast(JLVALUE *, JLTYPE);
 char * jl_typeof(JLVALUE *);

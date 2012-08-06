@@ -85,7 +85,7 @@ jl_new_object()
 }
 
 JLVALUE *
-jl_new_native_function(JLNATVFUNC *func)
+jl_new_native_function(JLNATVFUNC func)
 {
   JLVALUE *val = jl_new_val(T_FUNCTION);
   val->function.is_native = true;
@@ -213,6 +213,9 @@ jl_debug(JLVALUE *val, bool newline)
       printf("null");
     case T_FUNCTION:
       printf("[Function]");
+      break;
+    case T_UNDEF:
+      printf("undefined");
       break;
     case T_OBJECT:
       printf("{");
