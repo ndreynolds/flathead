@@ -134,6 +134,15 @@ print_node(JLNode *node, bool rec, int depth)
     case NODE_MEMBER:
       printf("member expression\n");
       break;
+    case NODE_FUNC:
+      printf("function expression\n");
+      break;
+    case NODE_FUNC_DECL:
+      printf("function declaration\n");
+      break;
+    case NODE_PARAM_LST:
+      printf("parameter list\n");
+      break;
     default:
       printf("unknown type: %d\n", node->type);
   }

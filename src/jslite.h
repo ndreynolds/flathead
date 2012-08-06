@@ -66,7 +66,7 @@ struct JLObject {
 
 struct JLFunction {
   bool is_native;
-  void *func_body;
+  void *body; 
   JLNATVFUNC native;
 };
 
@@ -97,6 +97,7 @@ JLVALUE * jl_new_number(double, bool, bool);
 JLVALUE * jl_new_string(char *);
 JLVALUE * jl_new_boolean(bool);
 JLVALUE * jl_new_object();
+JLVALUE * jl_new_function(void *);
 JLVALUE * jl_new_native_function(JLNATVFUNC);
 
 JLARGS * jl_new_args();
@@ -116,6 +117,7 @@ void jl_assign(JLVALUE *, char *, JLVALUE *);
 #define JLNAN()    jl_new_number(0,1,0)
 #define JLINF()    jl_new_number(0,0,1)
 #define JLOBJ()    jl_new_object()
+#define JLFUNC(x)  jl_new_function(x)
 #define JLNFUNC(x) jl_new_native_function(x)
 
 #define JLCAST(x, t) jl_cast((x), (t))

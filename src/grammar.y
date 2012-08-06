@@ -209,21 +209,23 @@ PropertyName:
     ;
 
 FunctionDeclaration:
-    FUNCTION IDENT '(' FormalParameterList ')' '{' FunctionBody '}' {}
+    FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}' { $$ = NEW_FUNCDECL($4, $7, $2); }
     ;
 
 FunctionExpression:
-    FUNCTION '(' FormalParameterList ')' '{' FunctionBody '}' {}
-    | FUNCTION IDENT '(' FormalParameterList ')' '{' FunctionBody '}' {}
+    FUNCTION '(' FormalParameterList ')' '{' FunctionBody '}'              { $$ = NEW_FUNC($3, $6, NULL); }
+    | FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}' { $$ = NEW_FUNC($4, $7, $2); }
+    | FUNCTION Identifier '(' ')' '{' FunctionBody '}'                     { $$ = NEW_FUNC(NULL, $6, $2); }
+    | FUNCTION '(' ')' '{' FunctionBody '}'                                { $$ = NEW_FUNC(NULL, $5, NULL); }
     ;
 
 FormalParameterList:
-    IDENT                             {}
-    | FormalParameterList ',' IDENT   {}
+    Identifier                             { $$ = NEW_PARAMLST($1, NULL); }
+    | FormalParameterList ',' Identifier   { $$ = NEW_PARAMLST($3, $1); }
     ;
 
 FunctionBody:
-    SourceElements        {}
+    SourceElements        { $$ = $1; }
     ;
 
 Identifier:

@@ -85,6 +85,14 @@ jl_new_object()
 }
 
 JLVALUE *
+jl_new_function(void *body)
+{
+  JLVALUE *val = jl_new_val(T_FUNCTION);
+  val->function.body = body;
+  return val;
+}
+
+JLVALUE *
 jl_new_native_function(JLNATVFUNC func)
 {
   JLVALUE *val = jl_new_val(T_FUNCTION);

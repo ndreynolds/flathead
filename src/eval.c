@@ -79,6 +79,7 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
   if (node->type == NODE_STR) return JLSTR(node->sval);
   if (node->type == NODE_NUM) return JLNUM(node->val);
   if (node->type == NODE_NULL) return JLNULL();
+  if (node->type == NODE_FUNC) return JLFUNC(node->e1);
   if (node->type == NODE_OBJ) return jl_obj(node);
   if (node->type == NODE_CALL) return jl_call(this, node);
   if (node->type == NODE_MEMBER) return jl_member(this, node);

@@ -39,6 +39,9 @@ typedef enum JLNodeType {
   NODE_NEW,
   NODE_ARG_LST,
   NODE_MEMBER,
+  NODE_FUNC,
+  NODE_FUNC_DECL,
+  NODE_PARAM_LST,
   NODE_UNKNOWN
 } JLNodeType;
 
@@ -55,36 +58,39 @@ typedef struct JLNode {
 JLNode * alloc_node(void);
 JLNode * new_node(JLNodeType, JLNode *, JLNode *, JLNode *, double, char *);
 
-#define NEW_IDENT(name)         new_node(NODE_IDENT,0,0,0,0,name)
-#define NEW_VARSTMT(ident)      new_node(NODE_VAR_STMT,ident,0,0,0,0)
-#define NEW_WHILE(cnd,blck)     new_node(NODE_WHILE,cnd,blck,0,0,0)
-#define NEW_DOWHILE(cnd,blck)   new_node(NODE_DOWHILE,cnd,blck,0,0,0)
-#define NEW_BLOCK(stmtlst)      new_node(NODE_BLOCK,stmtlst,0,0,0,0)
-#define NEW_STMTLST(head,tail)  new_node(NODE_STMT_LST,head,tail,0,0,0)
-#define NEW_IF(cnd,ifb,elseb)   new_node(NODE_IF,cnd,ifb,elseb,0,0)
-#define NEW_FOR(init,cnd,post)  new_node(NODE_FOR,init,cnd,post,0,0)
-#define NEW_NUM(x)              new_node(NODE_NUM,0,0,0,x,0)
-#define NEW_BOOL(x)             new_node(NODE_BOOL,0,0,0,x,0)
-#define NEW_STR(x)              new_node(NODE_STR,0,0,0,0,x)
-#define NEW_NULL()              new_node(NODE_NULL,0,0,0,0,0)
-#define NEW_RETURN(exp)         new_node(NODE_RETURN,exp,0,0,0,0)
-#define NEW_CONT()              new_node(NODE_CONT,0,0,0,0,0)
-#define NEW_BREAK()             new_node(NODE_BREAK,0,0,0,0,0)
-#define NEW_THIS()              new_node(NODE_THIS,0,0,0,0,0)
-#define NEW_EMPTSTMT()          new_node(NODE_EMPT_STMT,0,0,0,0,0)
-#define NEW_EXP(a,b,op)         new_node(NODE_EXP,a,b,0,0,op)
-#define NEW_UNPOST(a,op)        new_node(NODE_UNARY_POST,a,0,0,0,op)
-#define NEW_UNPRE(a,op)         new_node(NODE_UNARY_PRE,a,0,0,0,op)
-#define NEW_EXPSTMT(exp)        new_node(NODE_EXP_STMT,exp,0,0,0,0)
-#define NEW_ASGN(a,b,op)        new_node(NODE_ASGN,a,b,0,0,op)
-#define NEW_ARR()               new_node(NODE_ARR,0,0,0,0,0)
-#define NEW_OBJ(proplst)        new_node(NODE_OBJ,proplst,0,0,0,0)
-#define NEW_PROP(name,exp)      new_node(NODE_PROP,name,exp,0,0,0)
-#define NEW_PROPLST(head,tail)  new_node(NODE_PROP_LST,head,tail,0,0,0)
-#define NEW_ARGLST(head,tail)   new_node(NODE_ARG_LST,head,tail,0,0,0)
-#define NEW_CALL(call,args)     new_node(NODE_CALL,call,args,0,0,0);
-#define NEW_NEW(exp)            new_node(NODE_NEW,exp,0,0,0,0);
-#define NEW_MEMBER(head,tail)   new_node(NODE_MEMBER,head,tail,0,0,0)
+#define NEW_IDENT(name)            new_node(NODE_IDENT,0,0,0,0,name)
+#define NEW_VARSTMT(ident)         new_node(NODE_VAR_STMT,ident,0,0,0,0)
+#define NEW_WHILE(cnd,blck)        new_node(NODE_WHILE,cnd,blck,0,0,0)
+#define NEW_DOWHILE(cnd,blck)      new_node(NODE_DOWHILE,cnd,blck,0,0,0)
+#define NEW_BLOCK(stmtlst)         new_node(NODE_BLOCK,stmtlst,0,0,0,0)
+#define NEW_STMTLST(head,tail)     new_node(NODE_STMT_LST,head,tail,0,0,0)
+#define NEW_IF(cnd,ifb,elseb)      new_node(NODE_IF,cnd,ifb,elseb,0,0)
+#define NEW_FOR(init,cnd,post)     new_node(NODE_FOR,init,cnd,post,0,0)
+#define NEW_NUM(x)                 new_node(NODE_NUM,0,0,0,x,0)
+#define NEW_BOOL(x)                new_node(NODE_BOOL,0,0,0,x,0)
+#define NEW_STR(x)                 new_node(NODE_STR,0,0,0,0,x)
+#define NEW_NULL()                 new_node(NODE_NULL,0,0,0,0,0)
+#define NEW_RETURN(exp)            new_node(NODE_RETURN,exp,0,0,0,0)
+#define NEW_CONT()                 new_node(NODE_CONT,0,0,0,0,0)
+#define NEW_BREAK()                new_node(NODE_BREAK,0,0,0,0,0)
+#define NEW_THIS()                 new_node(NODE_THIS,0,0,0,0,0)
+#define NEW_EMPTSTMT()             new_node(NODE_EMPT_STMT,0,0,0,0,0)
+#define NEW_EXP(a,b,op)            new_node(NODE_EXP,a,b,0,0,op)
+#define NEW_UNPOST(a,op)           new_node(NODE_UNARY_POST,a,0,0,0,op)
+#define NEW_UNPRE(a,op)            new_node(NODE_UNARY_PRE,a,0,0,0,op)
+#define NEW_EXPSTMT(exp)           new_node(NODE_EXP_STMT,exp,0,0,0,0)
+#define NEW_ASGN(a,b,op)           new_node(NODE_ASGN,a,b,0,0,op)
+#define NEW_ARR()                  new_node(NODE_ARR,0,0,0,0,0)
+#define NEW_OBJ(proplst)           new_node(NODE_OBJ,proplst,0,0,0,0)
+#define NEW_PROP(name,exp)         new_node(NODE_PROP,name,exp,0,0,0)
+#define NEW_PROPLST(head,tail)     new_node(NODE_PROP_LST,head,tail,0,0,0)
+#define NEW_ARGLST(head,tail)      new_node(NODE_ARG_LST,head,tail,0,0,0)
+#define NEW_CALL(call,args)        new_node(NODE_CALL,call,args,0,0,0);
+#define NEW_NEW(exp)               new_node(NODE_NEW,exp,0,0,0,0);
+#define NEW_MEMBER(head,tail)      new_node(NODE_MEMBER,head,tail,0,0,0)
+#define NEW_FUNC(args,body,id)     new_node(NODE_FUNC,args,body,id,0,0)
+#define NEW_FUNCDECL(args,body,id) new_node(NODE_FUNC_DECL,args,body,id,0,0)
+#define NEW_PARAMLST(head,tail)    new_node(NODE_PARAM_LST,head,tail,0,0,0)
 
 void print_indent(int); 
 void print_node(JLNode *, bool, int);
