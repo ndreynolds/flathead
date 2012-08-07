@@ -201,6 +201,7 @@ JLVALUE *
 jl_eval_bin_exp(JLVALUE *this, JLNode *node)
 {
   char *op = node->sval;
+  // Arithmetic and string operations
   if (STREQ(op, "+"))
     return jl_add(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2));
   if (STREQ(op, "-"))
@@ -211,6 +212,15 @@ jl_eval_bin_exp(JLVALUE *this, JLNode *node)
     return jl_div(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2));
   if (STREQ(op, "%"))
     return jl_mod(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2));
+  // Comparison
+  if (STREQ(op, "=="))
+    return jl_eq(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2), false);
+  if (STREQ(op, "!="))
+    return jl_neq(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2), false);
+  if (STREQ(op, "==="))
+    return jl_eq(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2), true);
+  if (STREQ(op, "!=="))
+    return jl_neq(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2), true);
 }
 
 #define T_BOTH(a,b,t)      (a->type == t && b->type == t)
@@ -295,4 +305,33 @@ jl_mod(JLVALUE *a, JLVALUE *b)
     return JLNUM(fmod(a->number.val, b->number.val));
   }
   return jl_mod(JLCAST(a, T_NUMBER), JLCAST(b, T_NUMBER));
+}
+
+JLVALUE *
+jl_eq(JLVALUE *a, JLVALUE *b, bool strict)
+{
+  // Strict equality on different types is always false
+  if (a->type != b->type && strict) return JLBOOL(0);
+
+  if (T_XOR(a, b, T_UNDEF, T_NULL)) return JLBOOL(1);
+  if (T_BOTH(a, b, T_NULL) || T_BOTH(a, b, T_UNDEF)) return JLBOOL(1);
+  if (T_BOTH(a, b, T_STRING))
+    return STREQ(a->string.ptr, b->string.ptr) ? JLBOOL(1) : JLBOOL(0);
+  if (T_BOTH(a, b, T_NUMBER)) { 
+    // Nothing equals NaN
+    if (a->number.is_nan || b->number.is_nan) return JLBOOL(0);
+    return a->number.val == b->number.val ? JLBOOL(1) : JLBOOL(0);
+  }
+  // Objects are equal if they occupy the same memory address
+  if (T_BOTH(a, b, T_OBJECT))
+    return a == b ? JLBOOL(1) : JLBOOL(0);
+
+  return jl_eq(JLCAST(a, T_NUMBER), JLCAST(b, T_NUMBER), false);
+}
+
+JLVALUE *
+jl_neq(JLVALUE *a, JLVALUE *b, bool strict)
+{
+  // Invert the result of jl_eq
+  return jl_eq(a, b, strict)->boolean.val ? JLBOOL(0) : JLBOOL(1);
 }

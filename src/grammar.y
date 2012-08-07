@@ -33,7 +33,7 @@
 /* Unary */
 %token<val> PLUSPLUS MINUSMINUS
 /* Relational */
-%token<val> EQEQ GTE LTE NE
+%token<val> EQEQ GTE LTE NE STEQ STNE
 /* Bitwise */
 %token<val> LSHIFT RSHIFT
 /* Assignment */
@@ -271,8 +271,10 @@ BitwiseANDExpression:
 
 EqualityExpression:
     RelationalExpression                                 { $$ = $1; }
-    | EqualityExpression EQEQ RelationalExpression       { $$ = NEW_EXP($1, $3, $2); }
-    | EqualityExpression NE RelationalExpression         { $$ = NEW_EXP($1, $3, $2); }
+    | EqualityExpression EQEQ RelationalExpression       { $$ = NEW_EXP($1, $3, "=="); }
+    | EqualityExpression NE RelationalExpression         { $$ = NEW_EXP($1, $3, "!="); }
+    | EqualityExpression STEQ RelationalExpression       { $$ = NEW_EXP($1, $3, "==="); }
+    | EqualityExpression STNE RelationalExpression       { $$ = NEW_EXP($1, $3, "!=="); }
     ;
 
 RelationalExpression: 

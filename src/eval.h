@@ -20,3 +20,5 @@ JLVALUE * jl_sub(JLVALUE *, JLVALUE *);
 JLVALUE * jl_mul(JLVALUE *, JLVALUE *);
 JLVALUE * jl_div(JLVALUE *, JLVALUE *);
 JLVALUE * jl_mod(JLVALUE *, JLVALUE *);
+JLVALUE * jl_eq(JLVALUE *, JLVALUE *, bool);
+JLVALUE * jl_neq(JLVALUE *, JLVALUE *, bool);

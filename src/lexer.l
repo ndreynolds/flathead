@@ -47,6 +47,8 @@ L?'(\\.|[^\\'])+'            { yylval.val = yytext; return STRING; }
 "%="        return MODEQ;
 "<<"        return LSHIFT;
 ">>"        return RSHIFT;
+"==="       return STEQ;
+"!=="       return STNE;
 
 [-+()=*/%,.:;{}]  return *yytext;
 [ \t]       ; /* skip whitespace */

@@ -99,6 +99,51 @@ test_mod_handles_non_numeric_types()
   TEST(jl_mod(JLSTR("4"), JLUNDEF())->number.is_nan == 1);
 }
 
+void
+test_equality()
+{
+  TEST(jl_eq(JLSTR("Hello"), JLSTR("Hello"), false)->boolean.val == 1);
+  TEST(jl_eq(JLNUM(2), JLNUM(2), false)->boolean.val == 1);
+  TEST(jl_eq(JLNULL(), JLUNDEF(), false)->boolean.val == 1);
+  TEST(jl_eq(JLNULL(), JLNULL(), false)->boolean.val == 1);
+  TEST(jl_eq(JLUNDEF(), JLUNDEF(), false)->boolean.val == 1);
+  TEST(jl_eq(JLSTR("3.14"), JLNUM(3.14), false)->boolean.val == 1);
+  TEST(jl_eq(JLBOOL(1), JLBOOL(1), false)->boolean.val == 1);
+  TEST(jl_eq(JLBOOL(1), JLNUM(1), false)->boolean.val == 1);
+
+  JLVALUE *obj = JLOBJ();
+  TEST(jl_eq(obj, obj, false)->boolean.val == 1);
+
+  // NaN still doesn't equal NaN
+  TEST(jl_eq(JLNAN(), JLNAN(), false)->boolean.val == 0);
+}
+
+void
+test_strict_equality()
+{
+  // Mixed types are never strictly equal.
+  TEST(jl_eq(JLNULL(), JLUNDEF(), true)->boolean.val == 0);
+  TEST(jl_eq(JLSTR("3.14"), JLNUM(3.14), true)->boolean.val == 0);
+  TEST(jl_eq(JLBOOL(1), JLNUM(1), true)->boolean.val == 0);
+
+  TEST(jl_eq(JLBOOL(1), JLBOOL(1), true)->boolean.val == 1);
+  TEST(jl_eq(JLNUM(42), JLNUM(42), true)->boolean.val == 1);
+  TEST(jl_eq(JLNAN(), JLNAN(), true)->boolean.val == 0);
+
+  JLVALUE *obj = JLOBJ();
+  TEST(jl_eq(obj, obj, true)->boolean.val == 1);
+}
+
+void
+test_inequality_returns_the_inverse_of_equality()
+{
+  TEST(jl_eq(JLSTR("Hello"), JLSTR("Hello"), false)->boolean.val == 1);
+  TEST(jl_neq(JLSTR("Hello"), JLSTR("Hello"), false)->boolean.val == 0);
+
+  TEST(jl_eq(JLNAN(), JLNAN(), true)->boolean.val == 0);
+  TEST(jl_neq(JLNAN(), JLNAN(), true)->boolean.val == 1);
+}
+
 int
 main()
 {
@@ -115,6 +160,9 @@ main()
   test_div_handles_non_numeric_types();
   test_mod_handles_numbers();
   test_mod_handles_non_numeric_types();
+  test_equality();
+  test_strict_equality();
+  test_inequality_returns_the_inverse_of_equality();
 
   TEST_SUMMARY();
 
