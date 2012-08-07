@@ -22,6 +22,8 @@ jl_assign(JLVALUE *obj, char *name, JLVALUE *val)
   prop->name = malloc((strlen(name) + 1) * sizeof(char));
   strcpy(prop->name, name);
   prop->ptr = (JLVALUE *)val;
+  // Do we have a circular reference?
+  prop->circular = prop->ptr == obj ? 1 : 0;
   HASH_ADD_KEYPTR(hh, obj->object.map, prop->name, strlen(prop->name), prop);
 }
 
@@ -182,23 +184,39 @@ jl_cast(JLVALUE *val, JLTYPE type)
 }
 
 void
-jl_debug_obj(JLVALUE *obj)
+jl_debug_obj(JLVALUE *obj, int indent)
 {
+  if (HASH_COUNT(obj->object.map) == 0) {
+    printf("{}");
+    return;
+  }
+
   JLPROP *x, *tmp;
+  int i;
   bool first = true;
+
   HASH_ITER(hh, obj->object.map, x, tmp) {
-    if (!first) 
-      printf(",\n ");
-    else
+    if (first) {
+      printf("\n");
+      for(i=0;i<(indent);i++) printf(" ");
+      printf("{");
       first = false;
+    }
+    else {
+      printf(",\n");
+      for(i=0;i<(indent+1);i++) printf(" ");
+    }
+
     printf(" %s: ", x->name);
-    jl_debug((JLVALUE *)x->ptr, false);
+    x->circular ? 
+      printf("[Circular]") : 
+      jl_debug((JLVALUE *)x->ptr, indent+3, false);
   };
-  if (!first) printf(" ");
+  printf(" }");
 }
 
 void
-jl_debug(JLVALUE *val, bool newline)
+jl_debug(JLVALUE *val, int indent, bool newline)
 {
   switch(val->type)
   {
@@ -226,9 +244,7 @@ jl_debug(JLVALUE *val, bool newline)
       printf("undefined");
       break;
     case T_OBJECT:
-      printf("{");
-      jl_debug_obj(val);
-      printf("}");
+      jl_debug_obj(val, indent);
       break;
   }
   if (newline) printf("\n");

@@ -73,7 +73,7 @@ BitwiseANDExpression BitwiseORExpression BitwiseXORExpression LogicalORExpressio
 LogicalANDExpression MultiplicativeExpression ConditionalExpression StatementList
 AssignmentExpression ElementList SourceElements PropertyName PropertyAssignment PropertyNameAndValueList
 FunctionDeclaration FunctionBody FunctionExpression FormalParameterList CallExpression 
-MemberExpression NewExpression Arguments ArgumentList
+MemberExpression NewExpression Arguments ArgumentList Elision
 
 %%
 
@@ -165,8 +165,8 @@ ElementList:
     ;
 
 Elision:
-    ','
-    | Elision ','
+    ','                   { $$ = NEW_ARR(); }
+    | Elision ','         { $$ = NEW_ARR(); }
     ;
 
 BooleanLiteral:

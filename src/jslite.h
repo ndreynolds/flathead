@@ -35,6 +35,7 @@ typedef struct JLPROP {
   bool writable;
   bool enumerable;
   bool configurable;
+  bool circular;
   void *ptr;
   UT_hash_handle hh;
 } JLPROP;
@@ -105,7 +106,8 @@ JLARGS * jl_new_args();
 JLVALUE * jl_cast(JLVALUE *, JLTYPE);
 char * jl_typeof(JLVALUE *);
 char * jl_str_concat(char *, char *);
-void jl_debug(JLVALUE *, int);
+void jl_debug_obj(JLVALUE *, int);
+void jl_debug(JLVALUE *, int, bool);
 
 void jl_assign(JLVALUE *, char *, JLVALUE *);
 
@@ -121,6 +123,6 @@ void jl_assign(JLVALUE *, char *, JLVALUE *);
 #define JLNFUNC(x) jl_new_native_function(x)
 
 #define JLCAST(x, t) jl_cast((x), (t))
-#define JLDEBUG(x)   jl_debug((x), 1)
+#define JLDEBUG(x)   jl_debug((x),0,1)
 
 #endif

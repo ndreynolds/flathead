@@ -58,7 +58,7 @@ JLVALUE *
 jl_obj(JLNode *node)
 {
   JLVALUE *obj = JLOBJ();
-  jl_eval(obj, node->e1);
+  if (node->e1) jl_eval(obj, node->e1);
   return obj;
 }
 
@@ -164,6 +164,8 @@ jl_function_call(JLVALUE *this, JLVALUE *func, JLNode *args_node)
     JLARGS *args = jl_build_args(this, args_node);
     (*(func->function.native))(args);
     return JLUNDEF();
+  } else {
+    jl_eval(this, func->function.body);
   }
   fprintf(stderr, "Unsupported\n");
   return JLUNDEF();
