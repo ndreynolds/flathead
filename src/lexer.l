@@ -31,6 +31,9 @@ L?'(\\.|[^\\'])+'            { yylval.val = yytext; return STRING; }
 [0-9]+                       { yylval.intval = atoi(yytext); return INTEGER; }
 [0-9]+\.[0-9]+               { yylval.floatval = atof(yytext); return FLOAT; }
 
+    /* COMMENTS */
+[/][/].*       ; /* ignore comments */
+
     /* OPERATORS */
 "||"        return OR; 
 "&&"        return AND; 
@@ -50,8 +53,8 @@ L?'(\\.|[^\\'])+'            { yylval.val = yytext; return STRING; }
 "==="       return STEQ;
 "!=="       return STNE;
 
-[-+()=*/%,.:;{}]  return *yytext;
-[ \t]       ; /* skip whitespace */
+[-+()=*/%,.:;!{}]  return *yytext;
+[ \t\n]     ; /* skip whitespace, newlines (until we do ASI) */
 <<EOF>>     return EOF;
 .           lyyerror("Parse error", yytext);
 

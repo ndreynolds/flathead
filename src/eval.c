@@ -5,20 +5,18 @@
 #include "nodes.h"
 #include <math.h>
 
-#ifndef JLDEBUG
-#define JLDEBUG 1
-#endif
-
 int 
 jl_eval(JLVALUE *this, JLNode *node)
 {
   switch(node->type) {
-    case NODE_STMT_LST:
+    case NODE_BLOCK:
       jl_eval(this, node->e1);
-      if (node->e2 != 0) jl_eval(this, node->e2);
+      break;
+    case NODE_STMT_LST:
+      while(!node->visited) jl_eval(this, pop_node(node));
       break;
     case NODE_EXP_STMT:
-      JLDEBUG(jl_eval_exp(this, node->e1));
+      jl_eval_exp(this, node->e1);
       break;
     case NODE_IF:
       // If condition is satisfied, evaluate the ifBlock.
@@ -32,8 +30,7 @@ jl_eval(JLVALUE *this, JLNode *node)
       jl_obj(node);
       break;
     case NODE_PROP_LST:
-      jl_eval(this, node->e1);
-      if (node->e2 != 0) jl_eval(this, node->e2);
+      while(!node->visited) jl_eval(this, pop_node(node));
       break;
     case NODE_PROP:
       jl_assign(this, node->e1->sval, jl_eval_exp(this, node->e2));
@@ -66,8 +63,8 @@ void
 jl_while(JLVALUE *this, JLNode *cnd, JLNode *block)
 {
   int loop_cnt = 0;
-  while(JLCAST(jl_eval_exp(this, cnd), T_BOOLEAN)) {
-    jl_eval(JLOBJ(), block);
+  while(JLCAST(jl_eval_exp(this, cnd), T_BOOLEAN)->boolean.val) {
+    jl_eval(this, block);
     loop_cnt++;
   }
 }
@@ -149,10 +146,11 @@ JLARGS *
 jl_build_args(JLVALUE *this, JLNode *args_node)
 {
   JLARGS *args = malloc(sizeof(JLARGS));
-  if (args_node->e1 == 0) return args;
-  args->arg = jl_eval_exp(this, args_node->e1);
-  if (args_node->e2 != 0)
-    args->next = jl_build_args(this, args_node->e2);
+  if (!args_node->visited) {
+    args->arg = jl_eval_exp(this, pop_node(args_node));
+    if (!args_node->visited)
+      args->next = jl_build_args(this, args_node);
+  }
   return args;
 }
 
@@ -193,38 +191,49 @@ jl_eval_prefix_exp(JLVALUE *this, JLNode *node)
     return JLNUM(-1 * JLCAST(jl_eval_exp(this, node->e1), T_NUMBER)->number.val);
   if (STREQ(op, "!"))
     return JLCAST(jl_eval_exp(this, node->e1), T_BOOLEAN)->boolean.val == 1 ? 
-      JLBOOL(0): JLBOOL(1);
-  // TODO: prefix inc/dec
+      JLBOOL(0) : JLBOOL(1);
+  if (STREQ(op, "++"))
+    // TODO: prefix increment
+    return JLNUM(1);
+  if (STREQ(op, "--"))
+    // TODO: prefix decrement
+    return JLNUM(1);
 }
 
 JLVALUE *
 jl_eval_bin_exp(JLVALUE *this, JLNode *node)
 {
+  JLVALUE *a = jl_eval_exp(this, node->e1);
+  JLVALUE *b = jl_eval_exp(this, node->e2);
   char *op = node->sval;
-  // Arithmetic and string operations
-  if (STREQ(op, "+"))
-    return jl_add(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2));
-  if (STREQ(op, "-"))
-    return jl_sub(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2));
-  if (STREQ(op, "*"))
-    return jl_mul(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2)); 
-  if (STREQ(op, "/"))
-    return jl_div(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2));
-  if (STREQ(op, "%"))
-    return jl_mod(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2));
-  // Comparison
-  if (STREQ(op, "=="))
-    return jl_eq(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2), false);
-  if (STREQ(op, "!="))
-    return jl_neq(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2), false);
-  if (STREQ(op, "==="))
-    return jl_eq(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2), true);
-  if (STREQ(op, "!=="))
-    return jl_neq(jl_eval_exp(this, node->e1), jl_eval_exp(this, node->e2), true);
-}
 
-#define T_BOTH(a,b,t)      (a->type == t && b->type == t)
-#define T_XOR(a,b,t1,t2)   (a->type == t1 && b->type == t2 || a->type == t2 && b->type == t1)
+  // Logical
+  if (STREQ(op, "&&")) return jl_and(a, b);
+  if (STREQ(op, "||")) return jl_or(a, b);
+
+  // Arithmetic and string operations
+  if (STREQ(op, "+")) return jl_add(a, b);
+  if (STREQ(op, "-")) return jl_sub(a, b);
+  if (STREQ(op, "*")) return jl_mul(a, b); 
+  if (STREQ(op, "/")) return jl_div(a, b);
+  if (STREQ(op, "%")) return jl_mod(a, b);
+
+  // (In)equality
+  if (STREQ(op, "==")) return jl_eq(a, b, false);
+  if (STREQ(op, "!=")) return jl_neq(a, b, false);
+  if (STREQ(op, "===")) return jl_eq(a, b, true);
+  if (STREQ(op, "!==")) return jl_neq(a, b, true);
+
+  // Relational 
+  if (STREQ(op, "<")) return jl_lt(a, b);
+  if (STREQ(op, ">")) return jl_gt(a, b);
+  if (STREQ(op, "<=")) 
+    return jl_lt(a, b)->boolean.val || jl_eq(a, b, false)->boolean.val ?
+      JLBOOL(1) : JLBOOL(0);
+  if (STREQ(op, ">=")) return jl_gt(a, b);
+    return jl_gt(a, b)->boolean.val || jl_eq(a, b, false)->boolean.val ?
+      JLBOOL(1) : JLBOOL(0);
+}
 
 JLVALUE *
 jl_add(JLVALUE *a, JLVALUE *b)
@@ -334,4 +343,44 @@ jl_neq(JLVALUE *a, JLVALUE *b, bool strict)
 {
   // Invert the result of jl_eq
   return jl_eq(a, b, strict)->boolean.val ? JLBOOL(0) : JLBOOL(1);
+}
+
+JLVALUE *
+jl_gt(JLVALUE *a, JLVALUE *b)
+{
+  if (T_BOTH(a, b, T_NUMBER)) {
+    // _ > NaN == false, NaN > _ == false
+    if (a->number.is_nan || b->number.is_nan) return JLBOOL(0);
+    if (a->number.is_inf) return JLBOOL(1);
+    if (b->number.is_inf) return JLBOOL(0);
+    return a->number.val > b->number.val ? JLBOOL(1) : JLBOOL(0);
+  }
+  if (T_BOTH(a, b, T_STRING)) {
+    // Lexographic comparison
+  }
+}
+
+JLVALUE *
+jl_lt(JLVALUE *a, JLVALUE *b)
+{
+  if (T_BOTH(a, b, T_NUMBER)) {
+    if (a->number.is_nan || b->number.is_nan) return JLBOOL(0);
+    if (a->number.is_inf) return JLBOOL(0);
+    if (b->number.is_inf) return JLBOOL(1);
+    return a->number.val < b->number.val ? JLBOOL(1) : JLBOOL(0);
+  }
+}
+
+JLVALUE *
+jl_and(JLVALUE *a, JLVALUE *b)
+{
+  return JLCAST(a, T_BOOLEAN)->boolean.val && JLCAST(b, T_BOOLEAN)->boolean.val ?
+    JLBOOL(1) : JLBOOL(0);
+}
+
+JLVALUE *
+jl_or(JLVALUE *a, JLVALUE *b)
+{
+  return JLCAST(a, T_BOOLEAN)->boolean.val || JLCAST(b, T_BOOLEAN)->boolean.val ?
+    JLBOOL(1) : JLBOOL(0);
 }

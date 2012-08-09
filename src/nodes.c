@@ -10,6 +10,7 @@ alloc_node()
   struct JLNode *node = malloc(sizeof(struct JLNode));
   node->type = NODE_UNKNOWN;
   node->sub_type = NODE_UNKNOWN;
+  node->visited = false;
   return node;
 }
 
@@ -38,6 +39,38 @@ new_node(JLNodeType type, JLNode *e1, JLNode *e2, JLNode *e3, double x, char *s)
     strcpy(node->sval, s);
   }
   return node;
+}
+
+JLNode *
+pop_node(JLNode *node)
+{
+  // Several of our AST nodes follow the pattern:
+  //  
+  //  Head Tail
+  //       Head Tail
+  //            Head Tail
+  //                 Head `
+  // 
+  // ...where "Head" is e1 and "Tail" is e2.
+  
+  if (node->e2 != 0 && !node->e2->visited)
+    return pop_node(node->e2);
+  node->visited = true;
+  return node->e1 != 0 ? node->e1 : NULL;
+}
+
+bool
+empty_node(JLNode *node)
+{
+  return node->visited;
+}
+
+void
+rewind_node(JLNode *node)
+{
+  // Unset visited on a node linked list.
+  node->visited = false;
+  if (node->e2 != 0) rewind_node(node->e2);
 }
 
 void

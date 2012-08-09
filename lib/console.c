@@ -22,14 +22,27 @@ console_log(JLARGS *args)
 void
 console_error(JLARGS *args)
 {
-  fprintf(stderr, "some bad stuff\n");
   // https://developer.mozilla.org/en/DOM/console.error
+  // TODO: Change JLDEBUG to accept an output stream
+  console_log(args);
 }
 
 void
 console_time(JLARGS *args)
 {
   // https://developer.mozilla.org/en/DOM/console.time
+}
+
+void
+console_assert(JLARGS *args)
+{
+  // Non-standard, found in new Webkit builds and Firebug
+
+  JLVALUE *result = JLCAST(args->arg, T_BOOLEAN);
+  if (!result->boolean.val) {
+    fprintf(stderr, "Assertion failed!");
+    exit(1);
+  }
 }
 
 JLVALUE *
@@ -40,6 +53,7 @@ bootstrap_console()
   jl_assign(console, "log", JLNFUNC((JLNATVFUNC)&console_log));
   jl_assign(console, "error", JLNFUNC((JLNATVFUNC)&console_error));
   jl_assign(console, "time", JLNFUNC((JLNATVFUNC)&console_time));
+  jl_assign(console, "assert", JLNFUNC((JLNATVFUNC)&console_assert));
 
   return console;
 }

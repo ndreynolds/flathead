@@ -144,6 +144,30 @@ test_inequality_returns_the_inverse_of_equality()
   TEST(jl_neq(JLNAN(), JLNAN(), true)->boolean.val == 1);
 }
 
+void
+test_less_than_operator()
+{
+  TEST(jl_lt(2, 4, false)->boolean.val == 1);
+  TEST(jl_lt(1234132, 3426423623, false)->boolean.val == 1);
+}
+
+void
+test_greater_than_operator()
+{
+  TEST(jl_gt(4, 1, false)->boolean.val == 1);
+  TEST(jl_lt(123532234132, 3426423623, false)->boolean.val == 1);
+}
+
+void
+test_less_than_or_equal_to_operator()
+{
+}
+
+void
+test_greater_than_or_equal_to_operator()
+{
+}
+
 int
 main()
 {

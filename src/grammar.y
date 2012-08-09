@@ -5,7 +5,7 @@
   #include "src/nodes.h"
   #include "src/runtime.h"
 
-  #define YYDEBUG 1
+  #define YYDEBUG 0
   #define P(x)  print_node(x, false, 0)
   #define PR(x) print_node(x, true, 0)
   #define O(s)  puts(s)
@@ -154,9 +154,9 @@ Literal:
     ;
 
 ArrayLiteral:
-    '[' Elision ']'                    { $$ = NEW_ARR(); }
-    | '[' ElementList ']'              { $$ = NEW_ARR(); }
-    | '[' ElementList ',' Elision ']'  { $$ = NEW_ARR(); }
+    '[' Elision ']'                                 { $$ = NEW_ARR(); }
+    | '[' ElementList ']'                           { $$ = NEW_ARR(); }
+    | '[' ElementList ',' Elision ']'               { $$ = NEW_ARR(); }
     ;
 
 ElementList:
@@ -209,7 +209,7 @@ PropertyName:
     ;
 
 FunctionDeclaration:
-    FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}' { $$ = NEW_FUNCDECL($4, $7, $2); }
+    FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}'   { $$ = NEW_FUNCDECL($4, $7, $2); }
     ;
 
 FunctionExpression:
@@ -281,8 +281,8 @@ RelationalExpression:
     ShiftExpression                                      { $$ = $1; }
     | RelationalExpression '<' ShiftExpression           { $$ = NEW_EXP($1, $3, "<"); }
     | RelationalExpression '>' ShiftExpression           { $$ = NEW_EXP($1, $3, ">"); }
-    | RelationalExpression LTE ShiftExpression           { $$ = NEW_EXP($1, $3, $2); }
-    | RelationalExpression GTE ShiftExpression           { $$ = NEW_EXP($1, $3, $2); }
+    | RelationalExpression LTE ShiftExpression           { $$ = NEW_EXP($1, $3, "<="); }
+    | RelationalExpression GTE ShiftExpression           { $$ = NEW_EXP($1, $3, ">="); }
 
 ShiftExpression:
     AdditiveExpression                                   { $$ = $1; }
@@ -407,14 +407,13 @@ main(int argc, char *argv[])
   yyparse();
   if (print_parse_tree) PR(root);
 
-  // Bootstrap a runtime.
   JLVALUE *global = jl_bootstrap();
 
   // Evaluate.
   jl_eval(global, root);
 
   // Debug.
-  JLDEBUG(global);
+  if (yydebug) JLDEBUG(global);
 
   return 0;
 }

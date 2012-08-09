@@ -53,10 +53,14 @@ typedef struct JLNode {
   double val;
   JLNodeType type;
   JLNodeType sub_type;
+  bool visited;
 } JLNode;
 
 JLNode * alloc_node(void);
 JLNode * new_node(JLNodeType, JLNode *, JLNode *, JLNode *, double, char *);
+JLNode * pop_node(JLNode *);
+void rewind_node(JLNode *);
+bool empty_node(JLNode *);
 
 #define NEW_IDENT(name)            new_node(NODE_IDENT,0,0,0,0,name)
 #define NEW_VARSTMT(ident)         new_node(NODE_VAR_STMT,ident,0,0,0,0)

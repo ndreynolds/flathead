@@ -3,6 +3,9 @@
 
 #include "nodes.h"
 
+#define T_BOTH(a,b,t)      (a->type == t && b->type == t)
+#define T_XOR(a,b,t1,t2)   (a->type == t1 && b->type == t2 || a->type == t2 && b->type == t1)
+
 int jl_eval(JLVALUE *, JLNode *);
 void jl_while(JLVALUE *, JLNode *, JLNode *);
 JLARGS * jl_build_args(JLVALUE *, JLNode *);
@@ -22,3 +25,7 @@ JLVALUE * jl_div(JLVALUE *, JLVALUE *);
 JLVALUE * jl_mod(JLVALUE *, JLVALUE *);
 JLVALUE * jl_eq(JLVALUE *, JLVALUE *, bool);
 JLVALUE * jl_neq(JLVALUE *, JLVALUE *, bool);
+JLVALUE * jl_gt(JLVALUE *, JLVALUE *);
+JLVALUE * jl_lt(JLVALUE *, JLVALUE *);
+JLVALUE * jl_and(JLVALUE *, JLVALUE *);
+JLVALUE * jl_or(JLVALUE *, JLVALUE *);

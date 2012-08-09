@@ -11,6 +11,8 @@ typedef int bool;
 #define true 1
 #define false 0
 
+bool jldebug;
+
 #define STREQ(a,b)  (strcmp((a),(b)) == 0)
 
 typedef enum JLTYPE {
@@ -122,7 +124,8 @@ void jl_assign(JLVALUE *, char *, JLVALUE *);
 #define JLFUNC(x)  jl_new_function(x)
 #define JLNFUNC(x) jl_new_native_function(x)
 
-#define JLCAST(x, t) jl_cast((x), (t))
-#define JLDEBUG(x)   jl_debug((x),0,1)
+#define JLCAST(x, t)  jl_cast((x), (t))
+#define JLDEBUG(x)    jl_debug((x),0,1);
+
 
 #endif
