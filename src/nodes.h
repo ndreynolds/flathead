@@ -1,5 +1,20 @@
-// nodes.h
-// -------
+/*
+ * nodes.h -- AST node definitions and traversal helpers
+ *
+ * Copyright (c) 2012 Nick Reynolds
+ *  
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
 
 #ifndef NODES_H
 #define NODES_H
@@ -92,8 +107,8 @@ bool empty_node(JLNode *);
 #define NEW_CALL(call,args)        new_node(NODE_CALL,call,args,0,0,0);
 #define NEW_NEW(exp)               new_node(NODE_NEW,exp,0,0,0,0);
 #define NEW_MEMBER(head,tail)      new_node(NODE_MEMBER,head,tail,0,0,0)
-#define NEW_FUNC(args,body,id)     new_node(NODE_FUNC,args,body,id,0,0)
-#define NEW_FUNCDECL(args,body,id) new_node(NODE_FUNC_DECL,args,body,id,0,0)
+#define NEW_FUNC(params,body,id)   new_node(NODE_FUNC,params,body,id,0,0)
+#define NEW_FUNCDL(params,body,id) new_node(NODE_FUNC_DECL,params,body,id,0,0)
 #define NEW_PARAMLST(head,tail)    new_node(NODE_PARAM_LST,head,tail,0,0,0)
 
 void print_indent(int); 

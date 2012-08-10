@@ -1,22 +1,45 @@
-// jslite.c
-// --------
-// Core function implementations
+/*
+ * jslite.c -- Memory management, casting, and debug helpers
+ *
+ * Copyright (c) 2012 Nick Reynolds
+ *  
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
 
 #include <stdio.h>
 #include "jslite.h"
 
 JLPROP *
-jl_lookup(JLVALUE *obj, char *name) 
+jl_lookup(JLVALUE *obj, char *name, bool rec) 
 {
   JLPROP *prop = NULL;
   HASH_FIND_STR(obj->object.map, name, prop);
+  // If not found here, check the parent object.
+  if (rec && prop == NULL) {
+    HASH_FIND_STR(obj->object.map, "this", prop);
+    if (prop != NULL && !prop->circular) {
+      JLVALUE *parent = (JLVALUE *)prop->ptr;
+      return jl_lookup(parent, name, rec);
+    }
+  }
   return prop;
 }
 
 void 
 jl_assign(JLVALUE *obj, char *name, JLVALUE *val)
 {
-  JLPROP *prop = jl_lookup(obj, name);
+  // TODO: Handle undeclared assignment properly; set prop flags
+  JLPROP *prop = jl_lookup(obj, name, false);
   if (prop == NULL) 
     prop = malloc(sizeof(JLPROP));
   prop->name = malloc((strlen(name) + 1) * sizeof(char));
@@ -137,8 +160,6 @@ jl_str_concat(char *dst, char *new)
 JLVALUE *
 jl_cast(JLVALUE *val, JLTYPE type)
 {
-  // Currently very wasteful. Should repurpose them instead
-  // of throwing them out.
   if (val->type == type) return val;
   if (val->type == T_NUMBER && type == T_STRING) {
     if (val->number.is_nan) return JLSTR("NaN");
@@ -248,4 +269,18 @@ jl_debug(JLVALUE *val, int indent, bool newline)
       break;
   }
   if (newline) printf("\n");
+}
+
+void
+jl_debug_args(JLARGS *args)
+{
+  bool first = true;
+  while(first || args->next != 0)
+  {
+    if (!first)
+      args = args->next;
+    if (args->arg != 0)
+      JLDEBUG(args->arg);
+    first = false;
+  }
 }

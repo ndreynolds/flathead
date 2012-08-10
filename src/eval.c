@@ -1,23 +1,39 @@
-// eval.c
-// ------
+/*
+ * eval.c -- AST-walker
+ *
+ * Copyright (c) 2012 Nick Reynolds
+ *  
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
 
 #include "eval.h"
 #include "nodes.h"
 #include <math.h>
 
-int 
+JLVALUE * 
 jl_eval(JLVALUE *this, JLNode *node)
 {
+  JLVALUE *result = JLUNDEF();
   switch(node->type) {
     case NODE_BLOCK:
-      jl_eval(this, node->e1);
+      result = jl_eval(this, node->e1);
       break;
     case NODE_STMT_LST:
-      while(!node->visited) jl_eval(this, pop_node(node));
+      rewind_node(node);
+      while(!node->visited) result = jl_eval(this, pop_node(node));
       break;
     case NODE_EXP_STMT:
-      jl_eval_exp(this, node->e1);
-      break;
+      return jl_eval_exp(this, node->e1);
     case NODE_IF:
       // If condition is satisfied, evaluate the ifBlock.
       if (JLCAST(jl_eval_exp(this, node->e1), T_BOOLEAN)->boolean.val)
@@ -27,10 +43,11 @@ jl_eval(JLVALUE *this, JLNode *node)
         jl_eval(this, node->e3);
       break;
     case NODE_OBJ:
-      jl_obj(node);
+      result = jl_obj(node);
       break;
     case NODE_PROP_LST:
-      while(!node->visited) jl_eval(this, pop_node(node));
+      rewind_node(node);
+      while(!node->visited) result = jl_eval(this, pop_node(node));
       break;
     case NODE_PROP:
       jl_assign(this, node->e1->sval, jl_eval_exp(this, node->e2));
@@ -42,31 +59,15 @@ jl_eval(JLVALUE *this, JLNode *node)
     case NODE_WHILE:
       jl_while(this, node->e1, node->e2);
       break;
+    case NODE_RETURN:
+      if (node->e1 == 0) return JLUNDEF();
+      return jl_eval_exp(this, node->e1);
     case NODE_EMPT_STMT:
       break;
     default:
       fprintf(stderr, "Evaluation error: unsupported structure (%d)\n", node->type);
-      return 1;
   }
-  return 0;
-}
-
-JLVALUE *
-jl_obj(JLNode *node)
-{
-  JLVALUE *obj = JLOBJ();
-  if (node->e1) jl_eval(obj, node->e1);
-  return obj;
-}
-
-void
-jl_while(JLVALUE *this, JLNode *cnd, JLNode *block)
-{
-  int loop_cnt = 0;
-  while(JLCAST(jl_eval_exp(this, cnd), T_BOOLEAN)->boolean.val) {
-    jl_eval(this, block);
-    loop_cnt++;
-  }
+  return result;
 }
 
 JLVALUE *
@@ -76,7 +77,7 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
   if (node->type == NODE_STR) return JLSTR(node->sval);
   if (node->type == NODE_NUM) return JLNUM(node->val);
   if (node->type == NODE_NULL) return JLNULL();
-  if (node->type == NODE_FUNC) return JLFUNC(node->e1);
+  if (node->type == NODE_FUNC) return JLFUNC(node);
   if (node->type == NODE_OBJ) return jl_obj(node);
   if (node->type == NODE_CALL) return jl_call(this, node);
   if (node->type == NODE_MEMBER) return jl_member(this, node);
@@ -105,6 +106,24 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
   exit(1);
 }
 
+void
+jl_while(JLVALUE *this, JLNode *cnd, JLNode *block)
+{
+  int loop_cnt = 0;
+  while(JLCAST(jl_eval_exp(this, cnd), T_BOOLEAN)->boolean.val) {
+    jl_eval(this, block);
+    loop_cnt++;
+  }
+}
+
+JLVALUE *
+jl_obj(JLNode *node)
+{
+  JLVALUE *obj = JLOBJ();
+  if (node->e1) jl_eval(obj, node->e1);
+  return obj;
+}
+
 JLVALUE *
 jl_get(JLVALUE *obj, char *prop_name)
 {
@@ -113,7 +132,7 @@ jl_get(JLVALUE *obj, char *prop_name)
     fprintf(stderr, "TypeError: Cannot read property '%s' of undefined\n", prop_name);
     exit(1);
   }
-  JLPROP *prop = jl_lookup(obj, prop_name);
+  JLPROP *prop = jl_lookup(obj, prop_name, true);
   // We'll happily return undefined if a property doesn't exist.
   if (prop == 0) return JLUNDEF();
   return prop->ptr;
@@ -125,6 +144,7 @@ jl_member(JLVALUE *this, JLNode *member)
   // Similar to an Identifier node, we have to retrieve a value
   // from an object. The difference here is that we need to recurse
   // to retrieve sub-members as instructed.
+  // TODO
   JLVALUE *a = jl_get(this, member->e2->sval);
   JLVALUE *b = jl_get(a, member->e1->sval);
   return b;
@@ -138,8 +158,7 @@ jl_call(JLVALUE *this, JLNode *call)
     fprintf(stderr, "TypeError: %s is not a function\n", jl_typeof(maybe_func));
     exit(1);
   }
-  jl_function_call(this, maybe_func, call->e2);
-  return JLUNDEF();
+  return jl_function_call(this, maybe_func, call->e2);
 }
 
 JLARGS *
@@ -158,14 +177,29 @@ JLVALUE *
 jl_function_call(JLVALUE *this, JLVALUE *func, JLNode *args_node)
 {
   if (func->function.is_native) {
-    // TODO: construct JLARGS struct from a arguments node.
+    rewind_node(args_node);
     JLARGS *args = jl_build_args(this, args_node);
+
     (*(func->function.native))(args);
+    // Currently all our native functions (and the type JLNATVFUNC) return void.
     return JLUNDEF();
   } else {
-    jl_eval(this, func->function.body);
+    JLVALUE *scope = JLOBJ();
+    jl_assign(scope, "this", this);
+    //jl_assign(scope, "arguments", args);
+    
+    // Gather params
+    JLNode *params = ((JLNode *)func->function.body)->e1;
+    rewind_node(args_node);
+    rewind_node(params);
+    while(!params->visited && !args_node->visited)
+      jl_assign(
+        scope, 
+        pop_node(params)->sval, 
+        jl_eval_exp(this, pop_node(args_node))
+      );
+    return jl_eval(scope, ((JLNode *)func->function.body)->e2);
   }
-  fprintf(stderr, "Unsupported\n");
   return JLUNDEF();
 }
 
@@ -356,18 +390,22 @@ jl_gt(JLVALUE *a, JLVALUE *b)
     return a->number.val > b->number.val ? JLBOOL(1) : JLBOOL(0);
   }
   if (T_BOTH(a, b, T_STRING)) {
-    // Lexographic comparison
+    // TODO: Lexicographic comparison
   }
 }
 
 JLVALUE *
 jl_lt(JLVALUE *a, JLVALUE *b)
 {
+  // TODO: Keep it DRY by returning !(a > b || a == b)
   if (T_BOTH(a, b, T_NUMBER)) {
     if (a->number.is_nan || b->number.is_nan) return JLBOOL(0);
     if (a->number.is_inf) return JLBOOL(0);
     if (b->number.is_inf) return JLBOOL(1);
     return a->number.val < b->number.val ? JLBOOL(1) : JLBOOL(0);
+  }
+  if (T_BOTH(a, b, T_STRING)) {
+    // TODO: Lexicographic comparison
   }
 }
 

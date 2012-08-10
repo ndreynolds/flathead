@@ -53,7 +53,7 @@ L?'(\\.|[^\\'])+'            { yylval.val = yytext; return STRING; }
 "==="       return STEQ;
 "!=="       return STNE;
 
-[-+()=*/%,.:;!{}]  return *yytext;
+[-+()=*/%<>,.:;!{}]  return *yytext;
 [ \t\n]     ; /* skip whitespace, newlines (until we do ASI) */
 <<EOF>>     return EOF;
 .           lyyerror("Parse error", yytext);

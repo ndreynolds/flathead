@@ -38,11 +38,12 @@ console_assert(JLARGS *args)
 {
   // Non-standard, found in new Webkit builds and Firebug
 
-  JLVALUE *result = JLCAST(args->arg, T_BOOLEAN);
-  if (!result->boolean.val) {
-    fprintf(stderr, "Assertion failed!");
-    exit(1);
+  if (args->arg != 0) {
+    JLVALUE *result = JLCAST((JLVALUE *)args->arg, T_BOOLEAN);
+    if (result->boolean.val) return;
   }
+  fprintf(stderr, "Assertion failed!");
+  exit(1);
 }
 
 JLVALUE *
