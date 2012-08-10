@@ -6,4 +6,3 @@ console.assert(true == !false);
 console.assert(false == !true);
 console.assert(true == !!true);
 console.assert(false == !!false);
-console.log(1, 2, 3, 4);
