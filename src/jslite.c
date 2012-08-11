@@ -35,8 +35,22 @@ jl_lookup(JLVALUE *obj, char *name, bool rec)
   return prop;
 }
 
-void 
-jl_assign(JLVALUE *obj, char *name, JLVALUE *val)
+JLVALUE *
+jl_get(JLVALUE *obj, char *prop_name)
+{
+  // We can't read properties from undefined.
+  if (obj->type == T_UNDEF) {
+    fprintf(stderr, "TypeError: Cannot read property '%s' of undefined\n", prop_name);
+    exit(1);
+  }
+  JLPROP *prop = jl_lookup(obj, prop_name, true);
+  // But we'll happily return undefined if a property doesn't exist.
+  if (prop == 0) return JLUNDEF();
+  return prop->ptr;
+}
+
+void
+jl_set(JLVALUE *obj, char *name, JLVALUE *val)
 {
   // TODO: Handle undeclared assignment properly; set prop flags
   JLPROP *prop = jl_lookup(obj, name, false);
@@ -44,7 +58,7 @@ jl_assign(JLVALUE *obj, char *name, JLVALUE *val)
     prop = malloc(sizeof(JLPROP));
   prop->name = malloc((strlen(name) + 1) * sizeof(char));
   strcpy(prop->name, name);
-  prop->ptr = (JLVALUE *)val;
+  prop->ptr = val;
   // Do we have a circular reference?
   prop->circular = prop->ptr == obj ? 1 : 0;
   HASH_ADD_KEYPTR(hh, obj->object.map, prop->name, strlen(prop->name), prop);
@@ -227,7 +241,6 @@ jl_debug_obj(JLVALUE *obj, int indent)
       printf(",\n");
       for(i=0;i<(indent+1);i++) printf(" ");
     }
-
     printf(" %s: ", x->name);
     x->circular ? 
       printf("[Circular]") : 
@@ -251,13 +264,14 @@ jl_debug(JLVALUE *val, int indent, bool newline)
       else if (val->number.is_inf) 
         printf("Infinity");
       else 
-        printf("%f", val->number.val);
+        printf("%g", val->number.val);
       break;
     case T_STRING:
       printf("%s", val->string.ptr);
       break;
     case T_NULL:
       printf("null");
+      break;
     case T_FUNCTION:
       printf("[Function]");
       break;

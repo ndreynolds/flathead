@@ -46,8 +46,6 @@ typedef struct JLARGS {
   void *next;
 } JLARGS;
 
-typedef void (*JLNATVFUNC)(JLARGS*); 
-
 typedef struct JLPROP {
   char *name;
   bool writable;
@@ -86,7 +84,7 @@ struct JLObject {
 struct JLFunction {
   bool is_native;
   void *body; 
-  JLNATVFUNC native;
+  void *native;
 };
 
 typedef struct JLVALUE {
@@ -101,15 +99,13 @@ typedef struct JLVALUE {
   JLTYPE type;
 } JLVALUE;
 
-struct JLVariable {
-  const char *name;
-  JLVALUE *ptr;
-  UT_hash_handle hh;
-};
+typedef JLVALUE * (*JLNATVFUNC)(JLARGS *); 
+
+void jl_gc(void);
+void jl_set(JLVALUE *, char *, JLVALUE *);
 
 JLPROP * jl_lookup(JLVALUE *, char *, bool);
-void jl_gc(void);
-
+JLVALUE * jl_get(JLVALUE *, char *);
 JLVALUE * jl_alloc_val();
 JLVALUE * jl_new_val(JLTYPE);
 JLVALUE * jl_new_number(double, bool, bool);
@@ -118,7 +114,6 @@ JLVALUE * jl_new_boolean(bool);
 JLVALUE * jl_new_object();
 JLVALUE * jl_new_function(void *);
 JLVALUE * jl_new_native_function(JLNATVFUNC);
-
 JLARGS * jl_new_args();
 
 JLVALUE * jl_cast(JLVALUE *, JLTYPE);
@@ -127,8 +122,6 @@ char * jl_str_concat(char *, char *);
 void jl_debug_obj(JLVALUE *, int);
 void jl_debug_args(JLARGS *);
 void jl_debug(JLVALUE *, int, bool);
-
-void jl_assign(JLVALUE *, char *, JLVALUE *);
 
 #define JLBOOL(x)  jl_new_boolean((x))
 #define JLSTR(x)   jl_new_string((x))
@@ -143,6 +136,5 @@ void jl_assign(JLVALUE *, char *, JLVALUE *);
 
 #define JLCAST(x, t)  jl_cast((x), (t))
 #define JLDEBUG(x)    jl_debug((x),0,1);
-
 
 #endif

@@ -3,8 +3,8 @@
 
 #include "../src/jslite.h"
 
-void console_log(JLARGS *);
-void console_error(JLARGS *);
-void console_time(JLARGS *);
-void console_assert(JLARGS *);
+JLVALUE * console_log(JLARGS *);
+JLVALUE * console_error(JLARGS *);
+JLVALUE * console_time(JLARGS *);
+JLVALUE * console_assert(JLARGS *);
 JLVALUE * bootstrap_console(void);

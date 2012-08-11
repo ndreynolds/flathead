@@ -20,14 +20,27 @@
 #include "../lib/console.h"
 
 JLVALUE *
+jl_is_nan(JLARGS *args)
+{
+  if (args->arg != 0) {
+    JLVALUE *num = JLCAST((JLVALUE *)args->arg, T_NUMBER);
+    if (num->number.is_nan) return JLBOOL(1);
+    return JLBOOL(0);
+  }
+  // undefined also coerces to NaN.
+  return JLBOOL(1);
+}
+
+JLVALUE *
 jl_bootstrap()
 {
   JLVALUE *global = JLOBJ();
 
-  jl_assign(global, "console", bootstrap_console());
-  jl_assign(global, "NaN", JLNAN());
-  jl_assign(global, "Infinity", JLINF());
-  jl_assign(global, "this", global);
+  jl_set(global, "console", bootstrap_console());
+  jl_set(global, "NaN", JLNAN());
+  jl_set(global, "Infinity", JLINF());
+  jl_set(global, "isNaN", JLNFUNC((JLNATVFUNC)&jl_is_nan));
+  jl_set(global, "this", global);
 
   return global;
 }

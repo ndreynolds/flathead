@@ -26,6 +26,7 @@ test_add_handles_mixed_types()
   TEST(jl_add(JLNUM(42), JLUNDEF())->number.is_nan == 1);
   TEST(jl_add(JLNUM(12), JLBOOL(1))->number.val == 13);
   TEST(jl_add(JLNUM(4), JLBOOL(0))->number.val == 4);
+  TEST(jl_add(JLNAN(), JLNUM(1))->number.is_nan == 1);
 }
 
 void 

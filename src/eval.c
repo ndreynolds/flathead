@@ -50,11 +50,11 @@ jl_eval(JLVALUE *this, JLNode *node)
       while(!node->visited) result = jl_eval(this, pop_node(node));
       break;
     case NODE_PROP:
-      jl_assign(this, node->e1->sval, jl_eval_exp(this, node->e2));
+      jl_assign(this, node->e1->sval, jl_eval_exp(this, node->e2), "=");
       break;
     case NODE_VAR_STMT:
       // For now we just initialize the property to null.
-      jl_assign(this, node->e1->sval, JLNULL());
+      jl_assign(this, node->e1->sval, JLNULL(), "=");
       break;
     case NODE_WHILE:
       jl_while(this, node->e1, node->e2);
@@ -88,7 +88,8 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
     jl_assign(
       this, 
       node->e1->sval,
-      jl_eval_exp(this, node->e2)
+      jl_eval_exp(this, node->e2),
+      node->sval
     );
     return jl_eval_exp(this, node->e2);
   }
@@ -125,20 +126,6 @@ jl_obj(JLNode *node)
 }
 
 JLVALUE *
-jl_get(JLVALUE *obj, char *prop_name)
-{
-  // Can't read properties from undefined.
-  if (obj->type == T_UNDEF) {
-    fprintf(stderr, "TypeError: Cannot read property '%s' of undefined\n", prop_name);
-    exit(1);
-  }
-  JLPROP *prop = jl_lookup(obj, prop_name, true);
-  // We'll happily return undefined if a property doesn't exist.
-  if (prop == 0) return JLUNDEF();
-  return prop->ptr;
-}
-
-JLVALUE *
 jl_member(JLVALUE *this, JLNode *member)
 {
   // Similar to an Identifier node, we have to retrieve a value
@@ -148,6 +135,19 @@ jl_member(JLVALUE *this, JLNode *member)
   JLVALUE *a = jl_get(this, member->e2->sval);
   JLVALUE *b = jl_get(a, member->e1->sval);
   return b;
+}
+
+void 
+jl_assign(JLVALUE *obj, char *name, JLVALUE *val, char *op)
+{
+  if (STREQ(op, "=")) return jl_set(obj, name, val);
+
+  // Handle other assignment operators
+  JLVALUE *cur = jl_get(obj, name);
+  if (STREQ(op, "+=")) return jl_set(obj, name, jl_add(cur, val));
+  if (STREQ(op, "-=")) return jl_set(obj, name, jl_sub(cur, val));
+  if (STREQ(op, "*=")) return jl_set(obj, name, jl_mul(cur, val));
+  if (STREQ(op, "/=")) return jl_set(obj, name, jl_div(cur, val));
 }
 
 JLVALUE *
@@ -179,13 +179,11 @@ jl_function_call(JLVALUE *this, JLVALUE *func, JLNode *args_node)
   if (func->function.is_native) {
     rewind_node(args_node);
     JLARGS *args = jl_build_args(this, args_node);
-
-    (*(func->function.native))(args);
-    // Currently all our native functions (and the type JLNATVFUNC) return void.
-    return JLUNDEF();
+    JLNATVFUNC native = (JLNATVFUNC)func->function.native;
+    return (*native)(args);
   } else {
     JLVALUE *scope = JLOBJ();
-    jl_assign(scope, "this", this);
+    jl_assign(scope, "this", this, "=");
     //jl_assign(scope, "arguments", args);
     
     // Gather params
@@ -196,7 +194,8 @@ jl_function_call(JLVALUE *this, JLVALUE *func, JLNode *args_node)
       jl_assign(
         scope, 
         pop_node(params)->sval, 
-        jl_eval_exp(this, pop_node(args_node))
+        jl_eval_exp(this, pop_node(args_node)),
+        "="
       );
     return jl_eval(scope, ((JLNode *)func->function.body)->e2);
   }
@@ -206,13 +205,16 @@ jl_function_call(JLVALUE *this, JLVALUE *func, JLNode *args_node)
 JLVALUE *
 jl_eval_postfix_exp(JLVALUE *this, JLNode *node)
 {
+  JLVALUE *old_val = JLCAST(jl_eval_exp(this, node->e1), T_NUMBER);
   char *op = node->sval;
-  if (STREQ(op, "++"))
-    // TODO: postfix increment
-    return JLNUM(1);
-  if (STREQ(op, "--"))
-    // TODO: postfix decrement
-    return JLNUM(1);
+  if (STREQ(op, "++")) {
+    jl_set(this, node->e1->sval, jl_add(old_val, JLNUM(1)));
+    return old_val;
+  }
+  if (STREQ(op, "--")) {
+    jl_set(this, node->e1->sval, jl_sub(old_val, JLNUM(1)));
+    return old_val;
+  }
 }
 
 JLVALUE *
@@ -226,12 +228,20 @@ jl_eval_prefix_exp(JLVALUE *this, JLNode *node)
   if (STREQ(op, "!"))
     return JLCAST(jl_eval_exp(this, node->e1), T_BOOLEAN)->boolean.val == 1 ? 
       JLBOOL(0) : JLBOOL(1);
-  if (STREQ(op, "++"))
-    // TODO: prefix increment
-    return JLNUM(1);
-  if (STREQ(op, "--"))
-    // TODO: prefix decrement
-    return JLNUM(1);
+
+  // Increment and decrement.
+  JLVALUE *old_val = JLCAST(jl_eval_exp(this, node->e1), T_NUMBER);
+  JLVALUE *new_val;
+  if (STREQ(op, "++")) {
+    new_val = jl_add(old_val, JLNUM(1));
+    jl_set(this, node->e1->sval, new_val);
+    return new_val;
+  }
+  if (STREQ(op, "--")) {
+    new_val = jl_sub(old_val, JLNUM(1));
+    jl_set(this, node->e1->sval, new_val);
+    return new_val;
+  }
 }
 
 JLVALUE *
@@ -277,8 +287,10 @@ jl_add(JLVALUE *a, JLVALUE *b)
     return JLSTR(jl_str_concat(a->string.ptr, b->string.ptr));
 
   // Two numbers => Number
-  if (T_BOTH(a, b, T_NUMBER))
+  if (T_BOTH(a, b, T_NUMBER)) {
+    if (a->number.is_nan || b->number.is_nan) return JLNAN();
     return JLNUM(a->number.val + b->number.val);
+  }
 
   // String and (null|undefined|Boolean|Number) => String
   if (T_XOR(a, b, T_NULL, T_STRING) || 

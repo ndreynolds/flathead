@@ -17,6 +17,14 @@ incrementSquare = function(x) {
   return add(square(x), 1);
 };
 
+recursive = function(x) {
+  if (x < 10) {
+    x = x + 1;
+    return recursive(x);
+  }
+  return x;
+};
+
 assertEquals(square(3), 9);
 assertEquals(add(2, 2), 4);
 assertEquals(incrementSquare(9), 82);

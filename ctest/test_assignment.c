@@ -9,10 +9,10 @@ test_values_can_be_assigned_to_an_object()
   JLVALUE *obj = JLOBJ();
 
   // Assign the value to the object under the property name "my_number"
-  jl_assign(obj, "my_number", val);
+  jl_set(obj, "my_number", val);
 
   // Retrieve the property from the object.
-  JLPROP *prop = jl_lookup(obj, "my_number");
+  JLPROP *prop = jl_lookup(obj, "my_number", 0);
 
   TEST(prop != 0);
   TEST(prop->ptr == val);
@@ -29,8 +29,8 @@ test_multiple_values_can_be_stored_on_an_object()
   jl_assign(obj, "my_true", val1);
   jl_assign(obj, "my_false", val2);
   
-  JLPROP *prop1 = jl_lookup(obj, "my_true");
-  JLPROP *prop2 = jl_lookup(obj, "my_false");
+  JLPROP *prop1 = jl_lookup(obj, "my_true", 0);
+  JLPROP *prop2 = jl_lookup(obj, "my_false", 0);
 
   TEST(prop1 != 0);
   TEST(prop2 != 0);
@@ -43,7 +43,7 @@ test_looking_up_a_undefined_property_returns_a_null_prop_pointer()
 {
   JLVALUE *obj = JLOBJ();
 
-  JLPROP *undefined = jl_lookup(obj, "foobar"); 
+  JLPROP *undefined = jl_lookup(obj, "foobar", 0); 
 
   TEST(undefined == 0);
 }
@@ -57,11 +57,11 @@ test_values_can_be_reassigned_to_an_object()
 
   // First assign 15 to obj.x
   jl_assign(obj, "x", some_number);
-  TEST(jl_lookup(obj, "x")->ptr == some_number);
+  TEST(jl_lookup(obj, "x", 0)->ptr == some_number);
 
   // Now assign "the string" to obj.x
   jl_assign(obj, "x", some_string);
-  TEST(jl_lookup(obj, "x")->ptr == some_string);
+  TEST(jl_lookup(obj, "x", 0)->ptr == some_string);
 }
 
 int

@@ -264,12 +264,12 @@ ConditionalExpression:
 
 LogicalORExpression:
     LogicalANDExpression                                 { $$ = $1; }
-    | LogicalORExpression OR LogicalANDExpression        { $$ = NEW_EXP($1, $3, $2); }
+    | LogicalORExpression OR LogicalANDExpression        { $$ = NEW_EXP($1, $3, "||"); }
     ;
 
 LogicalANDExpression:
     BitwiseORExpression                                  { $$ = $1; }
-    | LogicalANDExpression AND BitwiseORExpression       { $$ = NEW_EXP($1, $3, $2); }
+    | LogicalANDExpression AND BitwiseORExpression       { $$ = NEW_EXP($1, $3, "&&"); }
     ;
 
 BitwiseORExpression:
@@ -323,8 +323,8 @@ MultiplicativeExpression:
 
 UnaryExpression:
     PostfixExpression                                    { $$ = $1; }
-    | PLUSPLUS UnaryExpression                           { $$ = NEW_UNPRE($2, $1); }
-    | MINUSMINUS UnaryExpression                         { $$ = NEW_UNPRE($2, $1); }
+    | PLUSPLUS UnaryExpression                           { $$ = NEW_UNPRE($2, "++"); }
+    | MINUSMINUS UnaryExpression                         { $$ = NEW_UNPRE($2, "--"); }
     | '+' UnaryExpression                                { $$ = NEW_UNPRE($2, "+"); }
     | '-' UnaryExpression                                { $$ = NEW_UNPRE($2, "-"); }
     | '!' UnaryExpression                                { $$ = NEW_UNPRE($2, "!"); }
@@ -332,8 +332,8 @@ UnaryExpression:
 
 PostfixExpression:
     LeftHandSideExpression                               { $$ = $1; }
-    | LeftHandSideExpression PLUSPLUS                    { $$ = NEW_UNPOST($1, $2); }
-    | LeftHandSideExpression MINUSMINUS                  { $$ = NEW_UNPOST($1, $2); }
+    | LeftHandSideExpression PLUSPLUS                    { $$ = NEW_UNPOST($1, "++"); }
+    | LeftHandSideExpression MINUSMINUS                  { $$ = NEW_UNPOST($1, "--"); }
     ;
 
 Expression:

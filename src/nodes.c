@@ -123,7 +123,10 @@ print_node(JLNode *node, bool rec, int depth)
       printf("expression statement\n");
       break;
     case NODE_EXP:
-      printf("expression\n");
+      printf("expression");
+      if (node->sub_type == NODE_UNARY_PRE) printf(" (unary prefix)\n");
+      else if (node->sub_type == NODE_UNARY_POST) printf(" (unary postfix)\n");
+      else printf (" (binary)\n");
       break;
     case NODE_STMT_LST:
       printf("statement list\n");

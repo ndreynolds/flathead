@@ -22,10 +22,10 @@
 #define T_XOR(a,b,t1,t2)   (a->type == t1 && b->type == t2 || a->type == t2 && b->type == t1)
 
 void jl_while(JLVALUE *, JLNode *, JLNode *);
+void jl_assign(JLVALUE *, char *, JLVALUE *, char *);
 JLARGS * jl_build_args(JLVALUE *, JLNode *);
 JLVALUE * jl_eval(JLVALUE *, JLNode *);
 JLVALUE * jl_obj(JLNode *);
-JLVALUE * jl_get(JLVALUE *, char *);
 JLVALUE * jl_call(JLVALUE *, JLNode *);
 JLVALUE * jl_function_call(JLVALUE *, JLVALUE *, JLNode *);
 JLVALUE * jl_member(JLVALUE *, JLNode *);

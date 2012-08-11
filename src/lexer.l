@@ -4,6 +4,7 @@
   #include "y.tab.h"
   #include <stdlib.h>
   void lyyerror(char *, char *);
+  char * extract_string(char *);
 %}
 
 %%
@@ -25,8 +26,8 @@
 "false"     return FALSE;
 
     /* LITERALS */
-L?\"(\\.|[^\\"])*\"          { yylval.val = yytext; return STRING; }
-L?'(\\.|[^\\'])+'            { yylval.val = yytext; return STRING; }
+L?\"(\\.|[^\\"])*\"          { yylval.val = extract_string(yytext); return STRING; } 
+L?'(\\.|[^\\'])*'            { yylval.val = extract_string(yytext); return STRING; } 
 [_\$A-Za-z][_\$0-9A-Za-z]*   { yylval.val = yytext; return IDENT; }
 [0-9]+                       { yylval.intval = atoi(yytext); return INTEGER; }
 [0-9]+\.[0-9]+               { yylval.floatval = atof(yytext); return FLOAT; }
@@ -53,7 +54,7 @@ L?'(\\.|[^\\'])+'            { yylval.val = yytext; return STRING; }
 "==="       return STEQ;
 "!=="       return STNE;
 
-[-+()=*/%<>,.:;!{}]  return *yytext;
+[-+()\[\]=*/%<>,.:;!{}]  return *yytext;
 [ \t\n]     ; /* skip whitespace, newlines (until we do ASI) */
 <<EOF>>     return EOF;
 .           lyyerror("Parse error", yytext);
@@ -70,4 +71,13 @@ int
 yywrap(void) 
 {
   return 1;
+}
+
+char *
+extract_string(char * src)
+{
+  char *dest = malloc(sizeof(char));
+  int len = strlen(src);
+  snprintf(dest, len - 1, "%.*s\n", len - 2, src + 1);
+  return dest;
 }
