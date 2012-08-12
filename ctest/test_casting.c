@@ -51,6 +51,27 @@ test_numbers_are_correctly_cast()
 }
 
 void
+test_objects_are_correctly_cast()
+{
+  JLVALUE *obj = JLOBJ();
+
+  TEST(JLCAST(obj, T_BOOLEAN)->boolean.val == 1);
+  TEST(JLCAST(obj, T_NUMBER)->number.is_nan);
+  TEST(STREQ(JLCAST(obj, T_STRING)->string.ptr, "[Object object]"));
+}
+
+void
+test_functions_are_correctly_cast()
+{
+  void *fake_node = malloc(sizeof(void *));
+  JLVALUE *func = JLFUNC(fake_node);
+
+  TEST(JLCAST(func, T_BOOLEAN)->boolean.val == 1);
+  TEST(JLCAST(func, T_NUMBER)->number.is_nan);
+  TEST(STREQ(JLCAST(func, T_STRING)->string.ptr, "[Function]"));
+}
+
+void
 test_zero_is_false_others_true()
 {
   JLVALUE *zero = JLNUM(0);
@@ -93,6 +114,8 @@ main()
   test_numeric_strings_are_correctly_cast();
   test_non_numeric_strings_are_NaN_when_cast_to_num();
   test_numbers_are_correctly_cast();
+  test_objects_are_correctly_cast();
+  test_functions_are_correctly_cast();
   test_zero_is_false_others_true();
   test_keywords_and_specials_cast_to_strings();
   test_null_and_undefined_correctly_cast_to_number();

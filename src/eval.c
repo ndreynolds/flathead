@@ -50,11 +50,13 @@ jl_eval(JLVALUE *this, JLNode *node)
       while(!node->visited) result = jl_eval(this, pop_node(node));
       break;
     case NODE_PROP:
-      jl_assign(this, node->e1->sval, jl_eval_exp(this, node->e2), "=");
+      jl_set(this, node->e1->sval, jl_eval_exp(this, node->e2));
       break;
     case NODE_VAR_STMT:
-      // For now we just initialize the property to null.
-      jl_assign(this, node->e1->sval, JLNULL(), "=");
+      if (node->e2 != 0)
+        jl_set(this, node->e1->sval, jl_eval_exp(this, node->e2));
+      else
+        jl_set(this, node->e1->sval, JLNULL());
       break;
     case NODE_WHILE:
       jl_while(this, node->e1, node->e2);

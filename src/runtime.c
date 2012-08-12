@@ -16,6 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <math.h>
 #include "runtime.h"
 #include "../lib/console.h"
 
@@ -32,6 +33,29 @@ jl_is_nan(JLARGS *args)
 }
 
 JLVALUE *
+jl_is_finite(JLARGS *args)
+{
+  JLVALUE *num = JLCAST(args->arg == 0 ? JLUNDEF() : args->arg, T_NUMBER);
+  if (num->number.is_nan || num->number.is_inf) return JLBOOL(0);
+  return JLBOOL(1);
+}
+
+JLVALUE *
+jl_parse_int(JLARGS *args)
+{
+  // Ecma 15.1.2.2
+  // TODO: use radix argument, strip whitespace.
+  JLVALUE *num = JLCAST(args->arg == 0 ? JLUNDEF() : args->arg, T_NUMBER);
+  return JLNUM(floor(num->number.val));
+}
+
+JLVALUE *
+jl_parse_float(JLARGS *args)
+{
+  return JLCAST(args->arg == 0 ? JLUNDEF() : args->arg, T_NUMBER);
+}
+
+JLVALUE *
 jl_bootstrap()
 {
   JLVALUE *global = JLOBJ();
@@ -40,6 +64,9 @@ jl_bootstrap()
   jl_set(global, "NaN", JLNAN());
   jl_set(global, "Infinity", JLINF());
   jl_set(global, "isNaN", JLNFUNC((JLNATVFUNC)&jl_is_nan));
+  jl_set(global, "isFinite", JLNFUNC((JLNATVFUNC)&jl_is_finite));
+  jl_set(global, "parseInt", JLNFUNC((JLNATVFUNC)&jl_parse_int));
+  jl_set(global, "parseFloat", JLNFUNC((JLNATVFUNC)&jl_parse_float));
   jl_set(global, "undefined", JLUNDEF());
   jl_set(global, "this", global);
 

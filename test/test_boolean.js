@@ -1,6 +1,5 @@
 // test_boolean.js
 // ---------------
-// Tests adapted from v8's msjunit
 
 console.assert(true == !false);
 console.assert(false == !true);

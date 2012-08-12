@@ -19,3 +19,5 @@
 #include "jslite.h"
 
 JLVALUE * jl_bootstrap(void);
+JLVALUE * jl_is_nan(JLARGS *);
+JLVALUE * jl_is_finite(JLARGS *);

@@ -227,47 +227,79 @@ JLVALUE *
 jl_cast(JLVALUE *val, JLTYPE type)
 {
   if (val->type == type) return val;
-  if (val->type == T_NUMBER && type == T_STRING) {
-    if (val->number.is_nan) return JLSTR("NaN");
-    if (val->number.is_inf) return JLSTR("Infinity");
-    char tmp[100];
-    sprintf(tmp, "%g", val->number.val);
-    return JLSTR(tmp);
-  }
-  if (val->type == T_STRING && type == T_NUMBER) {
-    char *err;
-    double d = strtod(val->string.ptr, &err);
-    if (*err != 0) return JLNAN();
-    return JLNUM(d);
-  }
-  if (val->type == T_NULL && type == T_STRING)
-    return JLSTR("null");
-  if (val->type == T_NULL && type == T_NUMBER)
-    return JLNUM(0);
-  if (val->type == T_UNDEF && type == T_STRING)
-    return JLSTR("undefined");
-  if (val->type == T_UNDEF && type == T_NUMBER)
-    return JLNAN();
-  if (val->type == T_BOOLEAN && type == T_STRING) {
-    if (val->boolean.val == 1) return JLSTR("true");
-    return JLSTR("false");
-  }
-  if (val->type == T_BOOLEAN && type == T_NUMBER) {
-    if (val->boolean.val == 1) return JLNUM(1);
-    return JLNUM(0);
-  }
-  if (val->type == T_NUMBER && type == T_BOOLEAN) {
-    // O is false, x < 0 & x > 0 true
-    if (val->number.val == 0) return JLBOOL(0);
-    return JLBOOL(1);
-  }
-  if (val->type == T_STRING && type == T_BOOLEAN) {
-    // "" is false, all others true
-    if (val->string.len == 0) return JLBOOL(0);
-    return JLBOOL(1);
-  }
   if (type == T_NULL) return JLNULL();
   if (type == T_UNDEF) return JLUNDEF();
+
+  // Number => x
+  if (val->type == T_NUMBER) {
+    if (type == T_STRING) {
+      if (val->number.is_nan) return JLSTR("NaN");
+      if (val->number.is_inf) return JLSTR("Infinity");
+      char tmp[100];
+      sprintf(tmp, "%g", val->number.val);
+      return JLSTR(tmp);
+    }
+    if (type == T_BOOLEAN) {
+      // O is false, x < 0 & x > 0 true
+      if (val->number.val == 0) return JLBOOL(0);
+      return JLBOOL(1);
+    }
+  }
+
+  // String => x
+  if (val->type == T_STRING) {
+    if (type == T_NUMBER) {
+      char *err;
+      double d = strtod(val->string.ptr, &err);
+      if (*err != 0) return JLNAN();
+      return JLNUM(d);
+    }
+    if (type == T_BOOLEAN) {
+      // "" is false, all others true
+      if (val->string.len == 0) return JLBOOL(0);
+      return JLBOOL(1);
+    }
+  }
+
+  // Boolean => x
+  if (val->type == T_BOOLEAN) {
+    if (type == T_STRING) {
+      if (val->boolean.val == 1) return JLSTR("true");
+      return JLSTR("false");
+    }
+    if (type == T_NUMBER) {
+      if (val->boolean.val == 1) return JLNUM(1);
+      return JLNUM(0);
+    }
+  }
+
+  // Object => x
+  if (val->type == T_OBJECT) {
+    if (type == T_BOOLEAN) return JLBOOL(1);
+    if (type == T_NUMBER) return JLNAN();
+    // TODO: Call Object.toString()
+    if (type == T_STRING) return JLSTR("[Object object]");
+  }
+
+  // Function => x
+  if (val->type == T_FUNCTION) {
+    if (type == T_BOOLEAN) return JLBOOL(1);
+    if (type == T_NUMBER) return JLNAN();
+    // TODO: Call Function.toString()
+    if (type == T_STRING) return JLSTR("[Function]");
+  }
+
+  // null => x
+  if (val->type == T_NULL) {
+    if (type == T_STRING) return JLSTR("null");
+    if (type == T_NUMBER) return JLNUM(0);
+  }
+
+  // undefined => x
+  if (val->type == T_UNDEF) {
+    if (type == T_STRING) return JLSTR("undefined");
+    if (type == T_NUMBER) return JLNAN();
+  }
 }
 
 void

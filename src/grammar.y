@@ -128,7 +128,8 @@ StatementList:
     ;
 
 VariableStatement:
-    VAR Identifier ';'                                { $$ = NEW_VARSTMT($2); }
+    VAR Identifier ';'                                { $$ = NEW_VARSTMT($2, NULL); }
+    | VAR Identifier '=' AssignmentExpression ';'     { $$ = NEW_VARSTMT($2, $4); }
     ;
 
 EmptyStatement:

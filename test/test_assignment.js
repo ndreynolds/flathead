@@ -1,7 +1,7 @@
 // test_assignment.js
 // ------------------
 
-x = 0;
+var x = 0;
 
 x += 4;
 console.assert(x == 4);

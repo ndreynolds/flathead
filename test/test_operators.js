@@ -1,32 +1,33 @@
 // test_operators.js
 // -----------------
 
-assert = console.assert;
+var assert = console.assert;
 
 // ------------------------------------------------------------------
 // UNARY PREFIX
 // ------------------------------------------------------------------
 
-a = 0;
+var a = 0;
 assert(++a === 1);
 
-b = 2;
+var b = 2;
 assert(--b === 1);
 
-numString = "3.14";
+var numString = "3.14";
 
 assert(+numString === 3.14);
 assert(-numString === -3.14);
 assert(!numString === false);
 assert(!!numString === true);
 assert(!false === true);
+assert(isNaN(+{}));
 
-result = ++numString;
+var result = ++numString;
 
 // Handle IEEE precision quirks
 assert(result >= 4.14 && result <= 4.14 + 0.0000001);
 
-alphaString = "abc";
+var alphaString = "abc";
 assert(isNaN(++alphaString));
 
 
@@ -34,11 +35,11 @@ assert(isNaN(++alphaString));
 // UNARY POSTFIX
 // ------------------------------------------------------------------
 
-c = 0;
+var c = 0;
 assert(c++ === 0);
 assert(c === 1);
 
-d = 2;
+var d = 2;
 assert(d-- === 2);
 assert(d === 1);
 
@@ -58,8 +59,8 @@ assert(NaN != NaN && NaN !== NaN);
 assert(Infinity == Infinity && Infinity === Infinity);
 assert(2 == '2' && 2 !== '2');
 
-obj = {};
-differentObj = {};
+var obj = {};
+var differentObj = {};
 assert(obj == obj && obj === obj);
 assert(obj != differentObj && obj !== differentObj);
 
@@ -117,5 +118,5 @@ assert(2 <= 2);
 assert(2 > 1);
 assert(1.00000001 > 1);
 assert(2 >= 2);
-x = 1;
+var x = 1;
 assert(x < 2);

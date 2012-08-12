@@ -78,7 +78,7 @@ void rewind_node(JLNode *);
 bool empty_node(JLNode *);
 
 #define NEW_IDENT(name)            new_node(NODE_IDENT,0,0,0,0,name)
-#define NEW_VARSTMT(ident)         new_node(NODE_VAR_STMT,ident,0,0,0,0)
+#define NEW_VARSTMT(ident,exp)     new_node(NODE_VAR_STMT,ident,exp,0,0,0)
 #define NEW_WHILE(cnd,blck)        new_node(NODE_WHILE,cnd,blck,0,0,0)
 #define NEW_DOWHILE(cnd,blck)      new_node(NODE_DOWHILE,cnd,blck,0,0,0)
 #define NEW_BLOCK(stmtlst)         new_node(NODE_BLOCK,stmtlst,0,0,0,0)

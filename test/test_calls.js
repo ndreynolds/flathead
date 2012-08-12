@@ -1,7 +1,7 @@
 // test_calls.js
 // -------------
 
-myObject = {
+var myObject = {
   myMethod: function() {
     return 42;
   }
