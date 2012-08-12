@@ -15,7 +15,8 @@ LEX_FILE=src/lexer.l
 all: clean default
 
 tests:
-	mocha --reporter spec --no-colors --recursive test
+	node test/runner.js
+	node ctest/crunner.js
 
 grammar:
 	$(YACC) $(GRAMMAR_FILE)
@@ -28,6 +29,9 @@ clean:
 
 debug: grammar lexer
 	$(COMPILER) -g $(OUT_FILE) y.tab.c lex.yy.c src/jslite.c $(LIB_FILES) $(SRC_FILES)
+
+install: default
+	cp bin/jslite /usr/local/bin/
 	
 default: grammar lexer
 	$(COMPILER) $(OUT_FILE) y.tab.c lex.yy.c src/jslite.c $(LIB_FILES) $(SRC_FILES)

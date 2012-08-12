@@ -61,11 +61,11 @@ jl_eval(JLVALUE *this, JLNode *node)
       break;
     case NODE_RETURN:
       if (node->e1 == 0) return JLUNDEF();
-      return jl_eval_exp(this, node->e1);
+      return jl_eval(this, node->e1);
     case NODE_EMPT_STMT:
       break;
     default:
-      fprintf(stderr, "Evaluation error: unsupported structure (%d)\n", node->type);
+      return jl_eval_exp(this, node);
   }
   return result;
 }
@@ -81,7 +81,7 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
   if (node->type == NODE_OBJ) return jl_obj(node);
   if (node->type == NODE_CALL) return jl_call(this, node);
   if (node->type == NODE_MEMBER) return jl_member(this, node);
-  if (node->type == NODE_IDENT) return jl_get(this, node->sval);
+  if (node->type == NODE_IDENT) return jl_get_rec(this, node->sval);
   if (node->type == NODE_ASGN) {
     // This assumes the Node at e1 is an ident, which won't
     // always be true.
@@ -103,7 +103,7 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
         return jl_eval_bin_exp(this, node);
     }
   }
-  fprintf(stderr, "Unknown expression type\n");
+  fprintf(stderr, "Unsupported syntax type (%d)\n", node->type);
   exit(1);
 }
 
@@ -140,10 +140,10 @@ jl_member(JLVALUE *this, JLNode *member)
 void 
 jl_assign(JLVALUE *obj, char *name, JLVALUE *val, char *op)
 {
-  if (STREQ(op, "=")) return jl_set(obj, name, val);
+  if (STREQ(op, "=")) return jl_set_rec(obj, name, val);
 
   // Handle other assignment operators
-  JLVALUE *cur = jl_get(obj, name);
+  JLVALUE *cur = jl_get_rec(obj, name);
   if (STREQ(op, "+=")) return jl_set(obj, name, jl_add(cur, val));
   if (STREQ(op, "-=")) return jl_set(obj, name, jl_sub(cur, val));
   if (STREQ(op, "*=")) return jl_set(obj, name, jl_mul(cur, val));
@@ -170,36 +170,74 @@ jl_build_args(JLVALUE *this, JLNode *args_node)
     if (!args_node->visited)
       args->next = jl_build_args(this, args_node);
   }
+  rewind_node(args_node);
   return args;
 }
 
 JLVALUE *
 jl_function_call(JLVALUE *this, JLVALUE *func, JLNode *args_node)
 {
+  JLARGS *args = jl_build_args(this, args_node);
+
   if (func->function.is_native) {
+    // Native functions are C functions referenced by pointer.
     rewind_node(args_node);
-    JLARGS *args = jl_build_args(this, args_node);
     JLNATVFUNC native = (JLNATVFUNC)func->function.native;
     return (*native)(args);
-  } else {
-    JLVALUE *scope = JLOBJ();
-    jl_assign(scope, "this", this, "=");
-    //jl_assign(scope, "arguments", args);
-    
-    // Gather params
-    JLNode *params = ((JLNode *)func->function.body)->e1;
-    rewind_node(args_node);
-    rewind_node(params);
-    while(!params->visited && !args_node->visited)
-      jl_assign(
-        scope, 
-        pop_node(params)->sval, 
-        jl_eval_exp(this, pop_node(args_node)),
-        "="
-      );
-    return jl_eval(scope, ((JLNode *)func->function.body)->e2);
   }
-  return JLUNDEF();
+
+  rewind_node(func->function.node);
+  JLVALUE *func_scope = jl_setup_func_env(this, func, args);
+  return jl_eval(func_scope, ((JLNode *)func->function.node)->e2);
+}
+
+JLVALUE *
+jl_setup_func_env(JLVALUE *this, JLVALUE *func, JLARGS *args)
+{
+  JLVALUE *scope = JLOBJ();
+  JLVALUE *arguments = JLOBJ();
+  JLNode *func_node = (JLNode *)func->function.node;
+
+  jl_set(scope, "this", this);
+  jl_set(scope, "arguments", arguments);
+  if (func_node->sval != 0)
+    jl_set(scope, func_node->sval, func);
+
+  // Setup the (array-like) arguments object.
+  jl_set(arguments, "callee", func);
+  int i = 0;
+  char *s;
+  bool first = true;
+  JLARGS *tmp = args;
+  while(first || args->next != 0)
+  {
+    if (!first)
+      args = args->next;
+    if (args->arg != 0) {
+      sprintf(s, "%d", i);
+      jl_set(arguments, s, args->arg);
+      i++;
+    }
+    first = false;
+  }
+  args = tmp;
+  jl_set(arguments, "length", JLNUM((double)i));
+
+  // Setup params as locals
+  JLNode *params = func_node->e1;
+  rewind_node(params);
+  while(!params->visited) {
+    if (args->arg != 0) {
+      jl_set(scope, pop_node(params)->sval, args->arg);
+      if (args->next != 0) 
+        args = args->next;
+    }
+    else {
+      jl_set(scope, pop_node(params)->sval, JLUNDEF());
+    }
+  } 
+
+  return scope;
 }
 
 JLVALUE *
@@ -247,13 +285,15 @@ jl_eval_prefix_exp(JLVALUE *this, JLNode *node)
 JLVALUE *
 jl_eval_bin_exp(JLVALUE *this, JLNode *node)
 {
-  JLVALUE *a = jl_eval_exp(this, node->e1);
-  JLVALUE *b = jl_eval_exp(this, node->e2);
   char *op = node->sval;
 
-  // Logical
-  if (STREQ(op, "&&")) return jl_and(a, b);
-  if (STREQ(op, "||")) return jl_or(a, b);
+  // Logical (must short-circuit)
+  if (STREQ(op, "&&")) return jl_and(this, node->e1, node->e2);
+  if (STREQ(op, "||")) return jl_or(this, node->e1, node->e2);
+
+  // At this point, we can safely evaluate both expressions.
+  JLVALUE *a = jl_eval_exp(this, node->e1);
+  JLVALUE *b = jl_eval_exp(this, node->e2);
 
   // Arithmetic and string operations
   if (STREQ(op, "+")) return jl_add(a, b);
@@ -274,7 +314,7 @@ jl_eval_bin_exp(JLVALUE *this, JLNode *node)
   if (STREQ(op, "<=")) 
     return jl_lt(a, b)->boolean.val || jl_eq(a, b, false)->boolean.val ?
       JLBOOL(1) : JLBOOL(0);
-  if (STREQ(op, ">=")) return jl_gt(a, b);
+  if (STREQ(op, ">="))
     return jl_gt(a, b)->boolean.val || jl_eq(a, b, false)->boolean.val ?
       JLBOOL(1) : JLBOOL(0);
 }
@@ -409,28 +449,25 @@ jl_gt(JLVALUE *a, JLVALUE *b)
 JLVALUE *
 jl_lt(JLVALUE *a, JLVALUE *b)
 {
-  // TODO: Keep it DRY by returning !(a > b || a == b)
-  if (T_BOTH(a, b, T_NUMBER)) {
-    if (a->number.is_nan || b->number.is_nan) return JLBOOL(0);
-    if (a->number.is_inf) return JLBOOL(0);
-    if (b->number.is_inf) return JLBOOL(1);
-    return a->number.val < b->number.val ? JLBOOL(1) : JLBOOL(0);
-  }
-  if (T_BOTH(a, b, T_STRING)) {
-    // TODO: Lexicographic comparison
-  }
+  // !(a > b || a == b)
+  return jl_gt(a, b)->boolean.val || jl_eq(a, b, false)->boolean.val ?
+    JLBOOL(0) : JLBOOL(1);
 }
 
 JLVALUE *
-jl_and(JLVALUE *a, JLVALUE *b)
+jl_and(JLVALUE *this, JLNode *a, JLNode *b)
 {
-  return JLCAST(a, T_BOOLEAN)->boolean.val && JLCAST(b, T_BOOLEAN)->boolean.val ?
-    JLBOOL(1) : JLBOOL(0);
+  // && operator returns the first false value, or the second true value. 
+  JLVALUE *aval = jl_eval_exp(this, a);
+  if (JLCAST(aval, T_BOOLEAN)->boolean.val) return jl_eval_exp(this, b);
+  return aval;
 }
 
 JLVALUE *
-jl_or(JLVALUE *a, JLVALUE *b)
+jl_or(JLVALUE *this, JLNode *a, JLNode *b)
 {
-  return JLCAST(a, T_BOOLEAN)->boolean.val || JLCAST(b, T_BOOLEAN)->boolean.val ?
-    JLBOOL(1) : JLBOOL(0);
+  // || returns the first true value, or the second false value.
+  JLVALUE *aval = jl_eval_exp(this, a);
+  if (JLCAST(aval, T_BOOLEAN)->boolean.val) return aval;
+  return jl_eval_exp(this, b);
 }

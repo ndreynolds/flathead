@@ -1,6 +1,8 @@
 #include "test.h"
 #include "../src/jslite.h"
+#include "../src/nodes.h"
 #include "../src/jslite.c"
+#include "../src/nodes.c"
 #include "../src/eval.c"
 
 void
@@ -148,15 +150,15 @@ test_inequality_returns_the_inverse_of_equality()
 void
 test_less_than_operator()
 {
-  TEST(jl_lt(2, 4, false)->boolean.val == 1);
-  TEST(jl_lt(1234132, 3426423623, false)->boolean.val == 1);
+  TEST(jl_lt(JLNUM(2), JLNUM(4))->boolean.val == 1);
+  TEST(jl_lt(JLNUM(1234132), JLNUM(3426423623))->boolean.val == 1);
 }
 
 void
 test_greater_than_operator()
 {
-  TEST(jl_gt(4, 1, false)->boolean.val == 1);
-  TEST(jl_lt(123532234132, 3426423623, false)->boolean.val == 1);
+  TEST(jl_gt(JLNUM(4), JLNUM(1))->boolean.val == 1);
+  TEST(jl_gt(JLNUM(123532234132), JLNUM(3426423623))->boolean.val == 1);
 }
 
 void
@@ -188,6 +190,8 @@ main()
   test_equality();
   test_strict_equality();
   test_inequality_returns_the_inverse_of_equality();
+  test_less_than_or_equal_to_operator();
+  test_greater_than_or_equal_to_operator();
 
   TEST_SUMMARY();
 

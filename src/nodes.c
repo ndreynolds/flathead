@@ -50,7 +50,7 @@ new_node(JLNodeType type, JLNode *e1, JLNode *e2, JLNode *e3, double x, char *s)
 
   if (type == NODE_NUM || type == NODE_BOOL) node->val = x;
   if (s != 0) {
-    node->sval = (char *) malloc(100);
+    node->sval = malloc((strlen(s) + 1) * sizeof(char));
     strcpy(node->sval, s);
   }
   return node;

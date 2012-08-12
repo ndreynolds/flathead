@@ -20,7 +20,7 @@ incrementSquare = function(x) {
 recursive = function(x) {
   if (x < 10) {
     x = x + 1;
-    return recursive(x);
+    return arguments.callee(x);
   }
   return x;
 };
@@ -29,3 +29,4 @@ assertEquals(square(3), 9);
 assertEquals(add(2, 2), 4);
 assertEquals(incrementSquare(9), 82);
 assertEquals(incrementSquare(20), 401);
+assertEquals(recursive(1), 10);

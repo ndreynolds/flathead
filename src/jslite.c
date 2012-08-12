@@ -19,22 +19,6 @@
 #include <stdio.h>
 #include "jslite.h"
 
-JLPROP *
-jl_lookup(JLVALUE *obj, char *name, bool rec) 
-{
-  JLPROP *prop = NULL;
-  HASH_FIND_STR(obj->object.map, name, prop);
-  // If not found here, check the parent object.
-  if (rec && prop == NULL) {
-    HASH_FIND_STR(obj->object.map, "this", prop);
-    if (prop != NULL && !prop->circular) {
-      JLVALUE *parent = (JLVALUE *)prop->ptr;
-      return jl_lookup(parent, name, rec);
-    }
-  }
-  return prop;
-}
-
 JLVALUE *
 jl_get(JLVALUE *obj, char *prop_name)
 {
@@ -43,25 +27,93 @@ jl_get(JLVALUE *obj, char *prop_name)
     fprintf(stderr, "TypeError: Cannot read property '%s' of undefined\n", prop_name);
     exit(1);
   }
-  JLPROP *prop = jl_lookup(obj, prop_name, true);
+  JLPROP *prop = jl_get_prop(obj, prop_name);
   // But we'll happily return undefined if a property doesn't exist.
   if (prop == 0) return JLUNDEF();
   return prop->ptr;
+}
+
+JLPROP *
+jl_get_prop(JLVALUE *obj, char *name)
+{
+  JLPROP *prop = NULL;
+  HASH_FIND_STR(obj->object.map, name, prop);
+  return prop;
 }
 
 void
 jl_set(JLVALUE *obj, char *name, JLVALUE *val)
 {
   // TODO: Handle undeclared assignment properly; set prop flags
-  JLPROP *prop = jl_lookup(obj, name, false);
-  if (prop == NULL) 
+  bool add = false;
+  JLPROP *prop = jl_get_prop(obj, name);
+  if (prop == NULL) {
     prop = malloc(sizeof(JLPROP));
+    add = true;
+  }
   prop->name = malloc((strlen(name) + 1) * sizeof(char));
   strcpy(prop->name, name);
   prop->ptr = val;
   // Do we have a circular reference?
   prop->circular = prop->ptr == obj ? 1 : 0;
-  HASH_ADD_KEYPTR(hh, obj->object.map, prop->name, strlen(prop->name), prop);
+  // Don't add if it already exists (bad things happen).
+  if (add)
+    HASH_ADD_KEYPTR(hh, obj->object.map, prop->name, strlen(prop->name), prop);
+}
+
+/*
+ * Look for a property on an object and return its value, 
+ * checking parent scopes.
+ */
+JLVALUE *
+jl_get_rec(JLVALUE *obj, char *name) 
+{
+  JLPROP *prop = jl_get_prop_rec(obj, name);
+  return prop == NULL ?  JLUNDEF() : (JLVALUE *)prop->ptr;
+}
+
+JLPROP *
+jl_get_prop_rec(JLVALUE *obj, char *name)
+{
+  JLPROP *prop = jl_get_prop(obj, name);
+  // If not found here, check the parent object.
+  if (prop == NULL) {
+    prop = jl_get_prop(obj, "this");
+    if (prop != NULL && !prop->circular) {
+      JLVALUE *parent = (JLVALUE *)prop->ptr;
+      return jl_get_prop_rec(parent, name);
+    }
+  }
+  return prop;
+}
+
+/*
+ * (Re)set a property on an object, setting the property on the
+ * given object, or the closest parent scope on which it is 
+ * already defined.
+ *
+ * This is used in undeclared assignment.
+ */
+void
+jl_set_rec(JLVALUE *obj, char *name, JLVALUE *val)
+{
+  JLVALUE *scope_to_set = obj;
+  JLVALUE *parent;
+
+  // Try and find the property in a parent scope.
+  JLPROP *prop = jl_get_prop(obj, name);
+  while(prop == NULL) {
+    JLPROP *parentp = jl_get_prop(obj, "this");
+    if (parentp != NULL && !parentp->circular) {
+      parent = (JLVALUE *)parentp->ptr;
+      prop = jl_get_prop((JLVALUE *)parentp->ptr, name);
+    }
+    else break;
+  }
+  if (prop != NULL && parent != NULL) 
+    scope_to_set = parent;
+
+  jl_set(scope_to_set, name, val);
 }
 
 void
@@ -124,10 +176,10 @@ jl_new_object()
 }
 
 JLVALUE *
-jl_new_function(void *body)
+jl_new_function(void *node)
 {
   JLVALUE *val = jl_new_val(T_FUNCTION);
-  val->function.body = body;
+  val->function.node = node;
   return val;
 }
 

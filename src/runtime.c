@@ -40,6 +40,7 @@ jl_bootstrap()
   jl_set(global, "NaN", JLNAN());
   jl_set(global, "Infinity", JLINF());
   jl_set(global, "isNaN", JLNFUNC((JLNATVFUNC)&jl_is_nan));
+  jl_set(global, "undefined", JLUNDEF());
   jl_set(global, "this", global);
 
   return global;
