@@ -84,6 +84,7 @@ void
 rewind_node(JLNode *node)
 {
   // Unset visited on a node linked list.
+  if (node->e1 == 0) return;
   node->visited = false;
   if (node->e2 != 0) rewind_node(node->e2);
 }

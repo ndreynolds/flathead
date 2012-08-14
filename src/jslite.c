@@ -36,6 +36,7 @@ jl_get(JLVALUE *obj, char *prop_name)
 JLPROP *
 jl_get_prop(JLVALUE *obj, char *name)
 {
+  //printf("GET PROP: %s\n", name);
   JLPROP *prop = NULL;
   HASH_FIND_STR(obj->object.map, name, prop);
   return prop;
@@ -77,13 +78,8 @@ jl_get_prop_rec(JLVALUE *obj, char *name)
 {
   JLPROP *prop = jl_get_prop(obj, name);
   // If not found here, check the parent object.
-  if (prop == NULL) {
-    prop = jl_get_prop(obj, "this");
-    if (prop != NULL && !prop->circular) {
-      JLVALUE *parent = (JLVALUE *)prop->ptr;
-      return jl_get_prop_rec(parent, name);
-    }
-  }
+  if (prop == NULL && obj->object.parent != NULL)
+    return jl_get_prop_rec(obj->object.parent, name);
   return prop;
 }
 
@@ -103,14 +99,15 @@ jl_set_rec(JLVALUE *obj, char *name, JLVALUE *val)
   // Try and find the property in a parent scope.
   JLPROP *prop = jl_get_prop(obj, name);
   while(prop == NULL) {
-    JLPROP *parentp = jl_get_prop(obj, "this");
-    if (parentp != NULL && !parentp->circular) {
-      parent = (JLVALUE *)parentp->ptr;
-      prop = jl_get_prop((JLVALUE *)parentp->ptr, name);
+    if (obj->object.parent != NULL) {
+      parent = (JLVALUE *)obj->object.parent;
+      prop = jl_get_prop(parent, name);
+      obj = parent;
+      continue;
     }
-    else break;
+    break;
   }
-  if (prop != NULL && parent != NULL) 
+  if (prop != NULL && parent != NULL)
     scope_to_set = parent;
 
   jl_set(scope_to_set, name, val);
@@ -222,6 +219,19 @@ jl_str_concat(char *dst, char *new)
   strcat(dst, new);
   return dst;
 }
+
+/*
+JLVALUE *
+jl_merge_objects(JLVALUE *a, JLVALUE *b)
+{
+  // Override properties of a with properties of b, then return a.
+  HASH_ITER(hh, b->object.map, x, tmp) {
+    if (prop != NULL && prop->ptr != NULL)
+      jl_set(a, prop->name, prop->ptr);
+  }
+  return a;
+}
+*/
 
 JLVALUE *
 jl_cast(JLVALUE *val, JLTYPE type)

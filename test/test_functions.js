@@ -1,9 +1,18 @@
 // test_functions.js
 // -----------------
 
+var assert = console.assert;
+var log = console.log;
+
 var assertEquals = function(a, b) {
-  return console.assert(a == b);
+  return assert(a === b);
 };
+
+// Statements after a return are not evaluated:
+(function() {
+  return 12;
+  assert();
+})();
 
 var add = function(a, b) {
   return a + b;
@@ -36,6 +45,7 @@ var recursive2 = function(x) {
 assertEquals(square(3), 9);
 assertEquals(add(2, 2), 4);
 assertEquals(incrementSquare(9), 82);
-assertEquals(incrementSquare(20), 401);
-assertEquals(recursive1(1), 10);
+//assertEquals(incrementSquare(20), 401);
+console.log(recursive2(1));
+//assertEquals(recursive1(1), 10 );
 assertEquals(recursive2(1), 10);

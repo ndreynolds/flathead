@@ -25,12 +25,11 @@ jl_eval(JLVALUE *this, JLNode *node)
 {
   JLVALUE *result = JLUNDEF();
   switch(node->type) {
-    case NODE_BLOCK:
+    case NODE_BLOCK: 
       result = jl_eval(this, node->e1);
       break;
     case NODE_STMT_LST:
-      rewind_node(node);
-      while(!node->visited) result = jl_eval(this, pop_node(node));
+      result = jl_stmt_lst(this, node);
       break;
     case NODE_EXP_STMT:
       return jl_eval_exp(this, node->e1);
@@ -43,7 +42,7 @@ jl_eval(JLVALUE *this, JLNode *node)
         jl_eval(this, node->e3);
       break;
     case NODE_OBJ:
-      result = jl_obj(node);
+      result = jl_obj(this, node);
       break;
     case NODE_PROP_LST:
       rewind_node(node);
@@ -62,8 +61,10 @@ jl_eval(JLVALUE *this, JLNode *node)
       jl_while(this, node->e1, node->e2);
       break;
     case NODE_RETURN:
-      if (node->e1 == 0) return JLUNDEF();
-      return jl_eval(this, node->e1);
+      result = node->e1 == 0 ? JLUNDEF() : jl_eval(this, node->e1);
+      if (result->type == T_FUNCTION) 
+        result->function.closure = this;
+      return result;
     case NODE_EMPT_STMT:
       break;
     default:
@@ -80,13 +81,13 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
   if (node->type == NODE_NUM) return JLNUM(node->val);
   if (node->type == NODE_NULL) return JLNULL();
   if (node->type == NODE_FUNC) return JLFUNC(node);
-  if (node->type == NODE_OBJ) return jl_obj(node);
+  if (node->type == NODE_OBJ) return jl_obj(this, node);
   if (node->type == NODE_CALL) return jl_call(this, node);
   if (node->type == NODE_MEMBER) return jl_member(this, node);
   if (node->type == NODE_IDENT) return jl_get_rec(this, node->sval);
   if (node->type == NODE_ASGN) {
     // This assumes the Node at e1 is an ident, which won't
-    // always be true.
+    // always be true. 
     jl_assign(
       this, 
       node->e1->sval,
@@ -109,6 +110,25 @@ jl_eval_exp(JLVALUE *this, JLNode *node)
   exit(1);
 }
 
+JLVALUE *
+jl_stmt_lst(JLVALUE *this, JLNode *node)
+{
+  JLVALUE *result;
+  JLNode *child;
+  rewind_node(node);
+  while(!node->visited) {
+    child = pop_node(node);
+    if (child->type == NODE_RETURN) {
+      if (child->e1 == 0) return JLUNDEF();
+      JLVALUE *val = jl_eval(this, child);
+      if (val->type == T_FUNCTION) val->function.closure = this;
+      return val;
+    }
+    result = jl_eval(this, child);
+  }
+  return result;
+}
+
 void
 jl_while(JLVALUE *this, JLNode *cnd, JLNode *block)
 {
@@ -120,9 +140,10 @@ jl_while(JLVALUE *this, JLNode *cnd, JLNode *block)
 }
 
 JLVALUE *
-jl_obj(JLNode *node)
+jl_obj(JLVALUE *this, JLNode *node)
 {
   JLVALUE *obj = JLOBJ();
+  obj->object.parent = this;
   if (node->e1) jl_eval(obj, node->e1);
   return obj;
 }
@@ -167,6 +188,7 @@ JLARGS *
 jl_build_args(JLVALUE *this, JLNode *args_node)
 {
   JLARGS *args = malloc(sizeof(JLARGS));
+  if (args_node->e1 == 0) return args;
   if (!args_node->visited) {
     args->arg = jl_eval_exp(this, pop_node(args_node));
     if (!args_node->visited)
@@ -196,11 +218,14 @@ jl_function_call(JLVALUE *this, JLVALUE *func, JLNode *args_node)
 JLVALUE *
 jl_setup_func_env(JLVALUE *this, JLVALUE *func, JLARGS *args)
 {
-  JLVALUE *scope = JLOBJ();
+  JLVALUE *scope = func->function.closure;
+  if (scope == 0)
+    scope = JLOBJ();
+
   JLVALUE *arguments = JLOBJ();
   JLNode *func_node = (JLNode *)func->function.node;
 
-  jl_set(scope, "this", this);
+  scope->object.parent = this;
   jl_set(scope, "arguments", arguments);
   if (func_node->sval != 0)
     jl_set(scope, func_node->sval, func);
@@ -225,19 +250,21 @@ jl_setup_func_env(JLVALUE *this, JLVALUE *func, JLARGS *args)
   args = tmp;
   jl_set(arguments, "length", JLNUM((double)i));
 
-  // Setup params as locals
-  JLNode *params = func_node->e1;
-  rewind_node(params);
-  while(!params->visited) {
-    if (args->arg != 0) {
-      jl_set(scope, pop_node(params)->sval, args->arg);
-      if (args->next != 0) 
-        args = args->next;
-    }
-    else {
-      jl_set(scope, pop_node(params)->sval, JLUNDEF());
-    }
-  } 
+  // Setup params as locals, if any
+  if (func_node->e1) {
+    JLNode *params = func_node->e1;
+    rewind_node(params);
+    while(!params->visited) {
+      if (args->arg != 0) {
+        jl_set(scope, pop_node(params)->sval, args->arg);
+        if (args->next != 0) 
+          args = args->next;
+      }
+      else {
+        jl_set(scope, pop_node(params)->sval, JLUNDEF());
+      }
+    } 
+  }
 
   return scope;
 }

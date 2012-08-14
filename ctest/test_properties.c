@@ -90,9 +90,8 @@ test_recursive_property_gets_retrieve_a_property_from_parent_scope()
 
   JLVALUE *val = JLSTR("Jack"); 
 
-  jl_set(grandparent, "this", grandparent);
-  jl_set(parent, "this", grandparent);
-  jl_set(child, "this", parent);
+  parent->object.parent = grandparent;
+  child->object.parent = parent;
 
   jl_set(grandparent, "x", val);
   
@@ -112,8 +111,8 @@ test_undeclared_assignment_checks_parent_scope()
 
   // Set up x on the parent object, and link the child to the parent.
   jl_set(parent, "x", some_number);
-  jl_set(parent, "this", parent);
-  jl_set(child, "this", parent);
+
+  child->object.parent = parent;
 
   // When we recursively set x, it should set the x in the parent scope.
   jl_set_rec(child, "x", another_number);

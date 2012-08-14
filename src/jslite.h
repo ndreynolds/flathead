@@ -78,12 +78,14 @@ struct JLArray {
 
 struct JLObject {
   void *proto;
+  void *parent;
   JLPROP *map;
 };
 
 struct JLFunction {
   bool is_native;
   void *node; 
+  void *closure;
   void *native;
 };
 
