@@ -4,8 +4,8 @@
 
 #include "console.h"
 
-JLVALUE *
-console_log(JLARGS *args)
+JSVALUE *
+console_log(JSARGS *args)
 {
   // https://developer.mozilla.org/en/DOM/console.log
   bool first = true;
@@ -14,51 +14,51 @@ console_log(JLARGS *args)
     if (!first)
       args = args->next;
     if (args->arg != 0)
-      JLDEBUG(args->arg);
+      JSDEBUG(args->arg);
     first = false;
   }
-  return JLUNDEF();
+  return JSUNDEF();
 }
 
-JLVALUE *
-console_error(JLARGS *args)
+JSVALUE *
+console_error(JSARGS *args)
 {
   // https://developer.mozilla.org/en/DOM/console.error
-  // TODO: Change JLDEBUG to accept an output stream
+  // TODO: Change JSDEBUG to accept an output stream
   console_log(args);
-  return JLUNDEF();
+  return JSUNDEF();
 }
 
-JLVALUE *
-console_time(JLARGS *args)
+JSVALUE *
+console_time(JSARGS *args)
 {
   // https://developer.mozilla.org/en/DOM/console.time
   // TODO
-  return JLUNDEF();
+  return JSUNDEF();
 }
 
-JLVALUE *
-console_assert(JLARGS *args)
+JSVALUE *
+console_assert(JSARGS *args)
 {
   // Non-standard, found in new Webkit builds and Firebug
 
   if (args->arg != 0) {
-    JLVALUE *result = JLCAST((JLVALUE *)args->arg, T_BOOLEAN);
-    if (result->boolean.val) return JLUNDEF();
+    JSVALUE *result = JSCAST((JSVALUE *)args->arg, T_BOOLEAN);
+    if (result->boolean.val) return JSUNDEF();
   }
   fprintf(stderr, "Assertion failed!");
   exit(1);
 }
 
-JLVALUE *
+JSVALUE *
 bootstrap_console()
 {
-  JLVALUE *console = JLOBJ();
+  JSVALUE *console = JSOBJ();
 
-  jl_set(console, "log", JLNFUNC((JLNATVFUNC)&console_log));
-  jl_set(console, "error", JLNFUNC((JLNATVFUNC)&console_error));
-  jl_set(console, "time", JLNFUNC((JLNATVFUNC)&console_time));
-  jl_set(console, "assert", JLNFUNC((JLNATVFUNC)&console_assert));
+  fh_set(console, "log", JSNFUNC((JSNATVFUNC)&console_log));
+  fh_set(console, "error", JSNFUNC((JSNATVFUNC)&console_error));
+  fh_set(console, "time", JSNFUNC((JSNATVFUNC)&console_time));
+  fh_set(console, "assert", JSNFUNC((JSNATVFUNC)&console_assert));
 
   return console;
 }

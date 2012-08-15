@@ -1,4 +1,4 @@
-bin/jslite
+bin/fh
 y.*
 lex.yy.c
 *.out

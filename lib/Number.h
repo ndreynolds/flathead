@@ -1,6 +1,6 @@
 // Number.h
 // --------
 
-#include "../src/jslite.h"
+#include "../src/flathead.h"
 
-JLVALUE * bootstrap_number(void);
+JSVALUE * bootstrap_number(void);

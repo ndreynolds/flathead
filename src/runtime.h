@@ -16,8 +16,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "jslite.h"
+#include "flathead.h"
 
-JLVALUE * jl_bootstrap(void);
-JLVALUE * jl_is_nan(JLARGS *);
-JLVALUE * jl_is_finite(JLARGS *);
+JSVALUE * fh_bootstrap(void);
+JSVALUE * fh_is_nan(JSARGS *);
+JSVALUE * fh_is_finite(JSARGS *);

@@ -18,21 +18,21 @@
 
 #include "nodes.h"
 
-JLNode *
+JSNODE *
 alloc_node()
 {
   // Allocate and return a new node
-  struct JLNode *node = malloc(sizeof(struct JLNode));
+  struct JSNODE *node = malloc(sizeof(struct JSNODE));
   node->type = NODE_UNKNOWN;
   node->sub_type = NODE_UNKNOWN;
   node->visited = false;
   return node;
 }
 
-JLNode *
-new_node(JLNodeType type, JLNode *e1, JLNode *e2, JLNode *e3, double x, char *s)
+JSNODE *
+new_node(enum JSNodeType type, JSNODE *e1, JSNODE *e2, JSNODE *e3, double x, char *s)
 {
-  JLNode *node = alloc_node();
+  JSNODE *node = alloc_node();
 
   // Assign expression subtypes
   if (type == NODE_UNARY_POST || type == NODE_UNARY_PRE) {
@@ -56,8 +56,8 @@ new_node(JLNodeType type, JLNode *e1, JLNode *e2, JLNode *e3, double x, char *s)
   return node;
 }
 
-JLNode *
-pop_node(JLNode *node)
+JSNODE *
+pop_node(JSNODE *node)
 {
   // Several of our AST nodes follow the pattern:
   //  
@@ -75,13 +75,13 @@ pop_node(JLNode *node)
 }
 
 bool
-empty_node(JLNode *node)
+empty_node(JSNODE *node)
 {
   return node->visited;
 }
 
 void
-rewind_node(JLNode *node)
+rewind_node(JSNODE *node)
 {
   // Unset visited on a node linked list.
   if (node->e1 == 0) return;
@@ -97,7 +97,7 @@ print_indent(int indent)
 }
 
 void 
-print_node(JLNode *node, bool rec, int depth)
+print_node(JSNODE *node, bool rec, int depth)
 {
   print_indent(depth); 
   switch(node->type)

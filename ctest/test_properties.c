@@ -1,25 +1,25 @@
 #include "test.h"
-#include "../src/jslite.h"
-#include "../src/jslite.c"
+#include "../src/flathead.h"
+#include "../src/flathead.c"
 
 void
 test_values_can_be_set_as_a_property_on_an_object()
 {
-  JLVALUE *val = JLNUM(1);
-  JLVALUE *obj = JLOBJ();
+  JSVALUE *val = JSNUM(1);
+  JSVALUE *obj = JSOBJ();
 
   // Assign the value to the object under the property name "my_number"
-  jl_set(obj, "my_number", val);
+  fh_set(obj, "my_number", val);
 
   // Retrieve the property from the object.
-  JLPROP *prop = jl_get_prop(obj, "my_number");
+  JSPROP *prop = fh_get_prop(obj, "my_number");
 
   TEST(prop != 0);
   TEST(prop->ptr == val);
   TEST(STREQ(prop->name, "my_number"));
 
   // Retrieve the value directly
-  JLVALUE *found_val = jl_get(obj, "my_number");
+  JSVALUE *found_val = fh_get(obj, "my_number");
 
   TEST(found_val == val);
 }
@@ -27,15 +27,15 @@ test_values_can_be_set_as_a_property_on_an_object()
 void
 test_multiple_properties_can_be_set_on_an_object()
 {
-  JLVALUE *val1 = JLBOOL(1);
-  JLVALUE *val2 = JLBOOL(0);
-  JLVALUE *obj = JLOBJ();
+  JSVALUE *val1 = JSBOOL(1);
+  JSVALUE *val2 = JSBOOL(0);
+  JSVALUE *obj = JSOBJ();
 
-  jl_set(obj, "my_true", val1);
-  jl_set(obj, "my_false", val2);
+  fh_set(obj, "my_true", val1);
+  fh_set(obj, "my_false", val2);
   
-  JLVALUE *found1 = jl_get(obj, "my_true");
-  JLVALUE *found2 = jl_get(obj, "my_false");
+  JSVALUE *found1 = fh_get(obj, "my_true");
+  JSVALUE *found2 = fh_get(obj, "my_false");
 
   TEST(found1 == val1);
   TEST(found2 == val2);
@@ -44,10 +44,10 @@ test_multiple_properties_can_be_set_on_an_object()
 void
 test_looking_up_an_undefined_property_returns_undefined()
 {
-  JLVALUE *obj = JLOBJ();
+  JSVALUE *obj = JSOBJ();
 
-  JLPROP *prop = jl_get_prop(obj, "foobar"); 
-  JLVALUE *val = jl_get(obj, "foobar");
+  JSPROP *prop = fh_get_prop(obj, "foobar"); 
+  JSVALUE *val = fh_get(obj, "foobar");
 
   TEST(prop == NULL);
   TEST(val->type == T_UNDEF);
@@ -56,27 +56,27 @@ test_looking_up_an_undefined_property_returns_undefined()
 void
 test_property_values_can_be_reassigned_to_an_object()
 {
-  JLVALUE *some_number = JLNUM(15);
-  JLVALUE *some_string = JLSTR("the string");
-  JLVALUE *obj = JLOBJ();
+  JSVALUE *some_number = JSNUM(15);
+  JSVALUE *some_string = JSSTR("the string");
+  JSVALUE *obj = JSOBJ();
 
   // First assign 15 to obj.x
-  jl_set(obj, "x", some_number);
-  TEST(jl_get(obj, "x") == some_number);
+  fh_set(obj, "x", some_number);
+  TEST(fh_get(obj, "x") == some_number);
 
   // Now assign "the string" to obj.x
-  jl_set(obj, "x", some_string);
-  TEST(jl_get(obj, "x") == some_string);
+  fh_set(obj, "x", some_string);
+  TEST(fh_get(obj, "x") == some_string);
 }
 
 void
 test_circular_references_are_handled()
 {
-  JLVALUE *obj = JLOBJ();
+  JSVALUE *obj = JSOBJ();
 
-  jl_set(obj, "this", obj);
+  fh_set(obj, "this", obj);
 
-  JLVALUE *found = jl_get_rec(obj, "this");
+  JSVALUE *found = fh_get_rec(obj, "this");
 
   TEST(found == obj);
 }
@@ -84,42 +84,42 @@ test_circular_references_are_handled()
 void
 test_recursive_property_gets_retrieve_a_property_from_parent_scope()
 {
-  JLVALUE *grandparent = JLOBJ();
-  JLVALUE *parent = JLOBJ();
-  JLVALUE *child = JLOBJ();
+  JSVALUE *grandparent = JSOBJ();
+  JSVALUE *parent = JSOBJ();
+  JSVALUE *child = JSOBJ();
 
-  JLVALUE *val = JLSTR("Jack"); 
+  JSVALUE *val = JSSTR("Jack"); 
 
   parent->object.parent = grandparent;
   child->object.parent = parent;
 
-  jl_set(grandparent, "x", val);
+  fh_set(grandparent, "x", val);
   
   // On non-recursive get fails...
-  TEST(jl_get(child, "x")->type == T_UNDEF);
+  TEST(fh_get(child, "x")->type == T_UNDEF);
   // But a recursive get retrieves grandparent's 'x'.
-  TEST(jl_get_rec(child, "x") == val);
+  TEST(fh_get_rec(child, "x") == val);
 }
 
 void
 test_undeclared_assignment_checks_parent_scope()
 {
-  JLVALUE *some_number = JLNUM(42);
-  JLVALUE *another_number = JLNUM(24);
-  JLVALUE *parent = JLOBJ();
-  JLVALUE *child = JLOBJ();
+  JSVALUE *some_number = JSNUM(42);
+  JSVALUE *another_number = JSNUM(24);
+  JSVALUE *parent = JSOBJ();
+  JSVALUE *child = JSOBJ();
 
   // Set up x on the parent object, and link the child to the parent.
-  jl_set(parent, "x", some_number);
+  fh_set(parent, "x", some_number);
 
   child->object.parent = parent;
 
   // When we recursively set x, it should set the x in the parent scope.
-  jl_set_rec(child, "x", another_number);
+  fh_set_rec(child, "x", another_number);
 
-  TEST(jl_get(parent, "x") == another_number);
-  TEST(jl_get(child, "x")->type == T_UNDEF);
-  TEST(jl_get_rec(child, "x") == another_number);
+  TEST(fh_get(parent, "x") == another_number);
+  TEST(fh_get(child, "x")->type == T_UNDEF);
+  TEST(fh_get_rec(child, "x") == another_number);
 }
 
 int

@@ -1,10 +1,10 @@
 // console.h
 // ---------
 
-#include "../src/jslite.h"
+#include "../src/flathead.h"
 
-JLVALUE * console_log(JLARGS *);
-JLVALUE * console_error(JLARGS *);
-JLVALUE * console_time(JLARGS *);
-JLVALUE * console_assert(JLARGS *);
-JLVALUE * bootstrap_console(void);
+JSVALUE * console_log(JSARGS *);
+JSVALUE * console_error(JSARGS *);
+JSVALUE * console_time(JSARGS *);
+JSVALUE * console_assert(JSARGS *);
+JSVALUE * bootstrap_console(void);

@@ -6,157 +6,157 @@
 #include <math.h>
 #include "Math.h"
 
-JLVALUE *
-math_abs(JLARGS *args)
+JSVALUE *
+math_abs(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  if (arg->number.is_nan) return JLNAN();
-  return JLNUM(fabs(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  if (arg->number.is_nan) return JSNAN();
+  return JSNUM(fabs(arg->number.val));
 }
 
-JLVALUE *
-math_acos(JLARGS *args)
+JSVALUE *
+math_acos(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(acos(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(acos(arg->number.val));
 }
 
-JLVALUE *
-math_asin(JLARGS *args)
+JSVALUE *
+math_asin(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(asin(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(asin(arg->number.val));
 }
 
-JLVALUE *
-math_atan(JLARGS *args)
+JSVALUE *
+math_atan(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(atan(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(atan(arg->number.val));
 }
 
-JLVALUE *
-math_atan2(JLARGS *args)
+JSVALUE *
+math_atan2(JSARGS *args)
 {
   // TODO
   /*
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(atan2(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(atan2(arg->number.val));
   */
 }
 
-JLVALUE *
-math_ceil(JLARGS *args)
+JSVALUE *
+math_ceil(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(ceil(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(ceil(arg->number.val));
 }
 
-JLVALUE *
-math_cos(JLARGS *args)
+JSVALUE *
+math_cos(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(cos(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(cos(arg->number.val));
 }
 
-JLVALUE *
-math_exp(JLARGS *args)
+JSVALUE *
+math_exp(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(exp(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(exp(arg->number.val));
 }
 
-JLVALUE *
-math_floor(JLARGS *args)
+JSVALUE *
+math_floor(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(floor(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(floor(arg->number.val));
 }
 
-JLVALUE *
-math_log(JLARGS *args)
+JSVALUE *
+math_log(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(log(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(log(arg->number.val));
 }
 
-JLVALUE *
-math_max(JLARGS *args)
-{
-  // TODO
-}
-
-JLVALUE *
-math_min(JLARGS *args)
+JSVALUE *
+math_max(JSARGS *args)
 {
   // TODO
 }
 
-JLVALUE *
-math_pow(JLARGS *args)
+JSVALUE *
+math_min(JSARGS *args)
 {
   // TODO
 }
 
-JLVALUE *
-math_random(JLARGS *args)
+JSVALUE *
+math_pow(JSARGS *args)
 {
   // TODO
 }
 
-JLVALUE *
-math_round(JLARGS *args)
+JSVALUE *
+math_random(JSARGS *args)
 {
   // TODO
 }
 
-JLVALUE *
-math_sin(JLARGS *args)
+JSVALUE *
+math_round(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(sin(arg->number.val));
+  // TODO
 }
 
-JLVALUE *
-math_sqrt(JLARGS *args)
+JSVALUE *
+math_sin(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  if (arg->number.is_nan) return JLNAN();
-  if (arg->number.is_inf) return JLINF();
-  if (arg->number.val < 0) return JLNAN();
-  return JLNUM(sqrt(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(sin(arg->number.val));
 }
 
-JLVALUE *
-math_tan(JLARGS *args)
+JSVALUE *
+math_sqrt(JSARGS *args)
 {
-  JLVALUE *arg = JLCAST(GETARG(args), T_NUMBER);
-  return JLNUM(tan(arg->number.val));
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  if (arg->number.is_nan) return JSNAN();
+  if (arg->number.is_inf) return JSINF();
+  if (arg->number.val < 0) return JSNAN();
+  return JSNUM(sqrt(arg->number.val));
 }
 
-JLVALUE *
+JSVALUE *
+math_tan(JSARGS *args)
+{
+  JSVALUE *arg = JSCAST(GETARG(args), T_NUMBER);
+  return JSNUM(tan(arg->number.val));
+}
+
+JSVALUE *
 bootstrap_math()
 {
-  JLVALUE *math = JLOBJ();
+  JSVALUE *math = JSOBJ();
 
-  jl_set(math, "abs", JLNFUNC((JLNATVFUNC)&math_abs));
-  jl_set(math, "acos", JLNFUNC((JLNATVFUNC)&math_acos));
-  jl_set(math, "asin", JLNFUNC((JLNATVFUNC)&math_asin));
-  jl_set(math, "atan", JLNFUNC((JLNATVFUNC)&math_atan));
-  jl_set(math, "atan2", JLNFUNC((JLNATVFUNC)&math_atan2));
-  jl_set(math, "ceil", JLNFUNC((JLNATVFUNC)&math_ceil));
-  jl_set(math, "cos", JLNFUNC((JLNATVFUNC)&math_cos));
-  jl_set(math, "exp", JLNFUNC((JLNATVFUNC)&math_exp));
-  jl_set(math, "floor", JLNFUNC((JLNATVFUNC)&math_floor));
-  jl_set(math, "log", JLNFUNC((JLNATVFUNC)&math_log));
-  jl_set(math, "max", JLNFUNC((JLNATVFUNC)&math_max));
-  jl_set(math, "min", JLNFUNC((JLNATVFUNC)&math_min));
-  jl_set(math, "pow", JLNFUNC((JLNATVFUNC)&math_pow));
-  jl_set(math, "random", JLNFUNC((JLNATVFUNC)&math_random));
-  jl_set(math, "round", JLNFUNC((JLNATVFUNC)&math_round));
-  jl_set(math, "sin", JLNFUNC((JLNATVFUNC)&math_sin));
-  jl_set(math, "sqrt", JLNFUNC((JLNATVFUNC)&math_sqrt));
-  jl_set(math, "tan", JLNFUNC((JLNATVFUNC)&math_tan));
+  fh_set(math, "abs", JSNFUNC((JSNATVFUNC)&math_abs));
+  fh_set(math, "acos", JSNFUNC((JSNATVFUNC)&math_acos));
+  fh_set(math, "asin", JSNFUNC((JSNATVFUNC)&math_asin));
+  fh_set(math, "atan", JSNFUNC((JSNATVFUNC)&math_atan));
+  fh_set(math, "atan2", JSNFUNC((JSNATVFUNC)&math_atan2));
+  fh_set(math, "ceil", JSNFUNC((JSNATVFUNC)&math_ceil));
+  fh_set(math, "cos", JSNFUNC((JSNATVFUNC)&math_cos));
+  fh_set(math, "exp", JSNFUNC((JSNATVFUNC)&math_exp));
+  fh_set(math, "floor", JSNFUNC((JSNATVFUNC)&math_floor));
+  fh_set(math, "log", JSNFUNC((JSNATVFUNC)&math_log));
+  fh_set(math, "max", JSNFUNC((JSNATVFUNC)&math_max));
+  fh_set(math, "min", JSNFUNC((JSNATVFUNC)&math_min));
+  fh_set(math, "pow", JSNFUNC((JSNATVFUNC)&math_pow));
+  fh_set(math, "random", JSNFUNC((JSNATVFUNC)&math_random));
+  fh_set(math, "round", JSNFUNC((JSNATVFUNC)&math_round));
+  fh_set(math, "sin", JSNFUNC((JSNATVFUNC)&math_sin));
+  fh_set(math, "sqrt", JSNFUNC((JSNATVFUNC)&math_sqrt));
+  fh_set(math, "tan", JSNFUNC((JSNATVFUNC)&math_tan));
 
   return math;
 }

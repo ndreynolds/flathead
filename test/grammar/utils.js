@@ -1,10 +1,10 @@
 // utils.js
 // --------
-// Helpers for passing an eval string to jslite and grabbing the parse tree
+// Helpers for passing an eval string to flathead and grabbing the parse tree
 
 var exec = require('child_process').exec,
     fs = require('fs'),
-    cmd = __dirname + '/../../bin/jslite',
+    cmd = __dirname + '/../../bin/fh',
     fixtures = __dirname + '/fixtures/';
 
 exports.withParseTree = function(evalString, cb) {

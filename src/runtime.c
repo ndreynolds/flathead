@@ -22,58 +22,58 @@
 #include "../lib/Math.h"
 #include "../lib/Number.h"
 
-JLVALUE *
-jl_is_nan(JLARGS *args)
+JSVALUE *
+fh_is_nan(JSARGS *args)
 {
   if (args->arg != NULL) {
-    JLVALUE *num = JLCAST((JLVALUE *)args->arg, T_NUMBER);
-    if (num->number.is_nan) return JLBOOL(1);
-    return JLBOOL(0);
+    JSVALUE *num = JSCAST((JSVALUE *)args->arg, T_NUMBER);
+    if (num->number.is_nan) return JSBOOL(1);
+    return JSBOOL(0);
   }
   // undefined also coerces to NaN.
-  return JLBOOL(1);
+  return JSBOOL(1);
 }
 
-JLVALUE *
-jl_is_finite(JLARGS *args)
+JSVALUE *
+fh_is_finite(JSARGS *args)
 {
-  JLVALUE *num = JLCAST(args->arg == NULL ? JLUNDEF() : args->arg, T_NUMBER);
-  if (num->number.is_nan || num->number.is_inf) return JLBOOL(0);
-  return JLBOOL(1);
+  JSVALUE *num = JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
+  if (num->number.is_nan || num->number.is_inf) return JSBOOL(0);
+  return JSBOOL(1);
 }
 
-JLVALUE *
-jl_parse_int(JLARGS *args)
+JSVALUE *
+fh_parse_int(JSARGS *args)
 {
   // Ecma 15.1.2.2
   // TODO: use radix argument, strip whitespace.
-  JLVALUE *num = JLCAST(args->arg == NULL ? JLUNDEF() : args->arg, T_NUMBER);
-  if (num->number.is_nan) return JLNAN();
-  return JLNUM(floor(num->number.val));
+  JSVALUE *num = JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
+  if (num->number.is_nan) return JSNAN();
+  return JSNUM(floor(num->number.val));
 }
 
-JLVALUE *
-jl_parse_float(JLARGS *args)
+JSVALUE *
+fh_parse_float(JSARGS *args)
 {
-  return JLCAST(args->arg == NULL ? JLUNDEF() : args->arg, T_NUMBER);
+  return JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
 }
 
-JLVALUE *
-jl_bootstrap()
+JSVALUE *
+fh_bootstrap()
 {
-  JLVALUE *global = JLOBJ();
+  JSVALUE *global = JSOBJ();
 
-  jl_set(global, "console", bootstrap_console());
-  jl_set(global, "Math", bootstrap_math());
-  jl_set(global, "Number", bootstrap_number());
-  jl_set(global, "NaN", JLNAN());
-  jl_set(global, "Infinity", JLINF());
-  jl_set(global, "isNaN", JLNFUNC((JLNATVFUNC)&jl_is_nan));
-  jl_set(global, "isFinite", JLNFUNC((JLNATVFUNC)&jl_is_finite));
-  jl_set(global, "parseInt", JLNFUNC((JLNATVFUNC)&jl_parse_int));
-  jl_set(global, "parseFloat", JLNFUNC((JLNATVFUNC)&jl_parse_float));
-  jl_set(global, "undefined", JLUNDEF());
-  jl_set(global, "this", global);
+  fh_set(global, "console", bootstrap_console());
+  fh_set(global, "Math", bootstrap_math());
+  fh_set(global, "Number", bootstrap_number());
+  fh_set(global, "NaN", JSNAN());
+  fh_set(global, "Infinity", JSINF());
+  fh_set(global, "isNaN", JSNFUNC((JSNATVFUNC)&fh_is_nan));
+  fh_set(global, "isFinite", JSNFUNC((JSNATVFUNC)&fh_is_finite));
+  fh_set(global, "parseInt", JSNFUNC((JSNATVFUNC)&fh_parse_int));
+  fh_set(global, "parseFloat", JSNFUNC((JSNATVFUNC)&fh_parse_float));
+  fh_set(global, "undefined", JSUNDEF());
+  fh_set(global, "this", global);
 
   return global;
 }

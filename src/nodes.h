@@ -20,9 +20,9 @@
 #define NODES_H
 
 #include <stdio.h>
-#include "jslite.h"
+#include "flathead.h"
 
-typedef enum JLNodeType {
+enum JSNodeType {
   NODE_IDENT,
   NODE_NUM,
   NODE_BOOL,
@@ -59,24 +59,24 @@ typedef enum JLNodeType {
   NODE_FUNC_DECL,
   NODE_PARAM_LST,
   NODE_UNKNOWN
-} JLNodeType;
+};
 
-typedef struct JLNode {
-  struct JLNode *e1;
-  struct JLNode *e2;
-  struct JLNode *e3;
+typedef struct JSNODE {
+  struct JSNODE *e1;
+  struct JSNODE *e2;
+  struct JSNODE *e3;
   char *sval;
   double val;
-  JLNodeType type;
-  JLNodeType sub_type;
+  enum JSNodeType type;
+  enum JSNodeType sub_type;
   bool visited;
-} JLNode;
+} JSNODE;
 
-JLNode * alloc_node(void);
-JLNode * new_node(JLNodeType, JLNode *, JLNode *, JLNode *, double, char *);
-JLNode * pop_node(JLNode *);
-void rewind_node(JLNode *);
-bool empty_node(JLNode *);
+JSNODE * alloc_node(void);
+JSNODE * new_node(enum JSNodeType, JSNODE *, JSNODE *, JSNODE *, double, char *);
+JSNODE * pop_node(JSNODE *);
+void rewind_node(JSNODE *);
+bool empty_node(JSNODE *);
 
 #define NEW_IDENT(name)            new_node(NODE_IDENT,0,0,0,0,name)
 #define NEW_VARSTMT(ident,exp)     new_node(NODE_VAR_STMT,ident,exp,0,0,0)
@@ -115,6 +115,6 @@ bool empty_node(JLNode *);
 #define NEW_ELISION()              new_node(NODE_ELISION,0,0,0,0,0)
 
 void print_indent(int); 
-void print_node(JLNode *, bool, int);
+void print_node(JSNODE *, bool, int);
 
 #endif

@@ -17,39 +17,39 @@
  */
 
 #include <stdio.h>
-#include "jslite.h"
+#include "flathead.h"
 
-JLVALUE *
-jl_get(JLVALUE *obj, char *prop_name)
+JSVALUE *
+fh_get(JSVALUE *obj, char *prop_name)
 {
   // We can't read properties from undefined.
   if (obj->type == T_UNDEF) {
     fprintf(stderr, "TypeError: Cannot read property '%s' of undefined\n", prop_name);
     exit(1);
   }
-  JLPROP *prop = jl_get_prop(obj, prop_name);
+  JSPROP *prop = fh_get_prop(obj, prop_name);
   // But we'll happily return undefined if a property doesn't exist.
-  if (prop == NULL) return JLUNDEF();
+  if (prop == NULL) return JSUNDEF();
   return prop->ptr;
 }
 
-JLPROP *
-jl_get_prop(JLVALUE *obj, char *name)
+JSPROP *
+fh_get_prop(JSVALUE *obj, char *name)
 {
   //printf("GET PROP: %s\n", name);
-  JLPROP *prop = NULL;
+  JSPROP *prop = NULL;
   HASH_FIND_STR(obj->object.map, name, prop);
   return prop;
 }
 
 void
-jl_set(JLVALUE *obj, char *name, JLVALUE *val)
+fh_set(JSVALUE *obj, char *name, JSVALUE *val)
 {
   // TODO: Handle undeclared assignment properly; set prop flags
   bool add = false;
-  JLPROP *prop = jl_get_prop(obj, name);
+  JSPROP *prop = fh_get_prop(obj, name);
   if (prop == NULL) {
-    prop = malloc(sizeof(JLPROP));
+    prop = malloc(sizeof(JSPROP));
     add = true;
   }
   prop->name = malloc((strlen(name) + 1) * sizeof(char));
@@ -66,20 +66,20 @@ jl_set(JLVALUE *obj, char *name, JLVALUE *val)
  * Look for a property on an object and return its value, 
  * checking parent scopes.
  */
-JLVALUE *
-jl_get_rec(JLVALUE *obj, char *name) 
+JSVALUE *
+fh_get_rec(JSVALUE *obj, char *name) 
 {
-  JLPROP *prop = jl_get_prop_rec(obj, name);
-  return prop == NULL ?  JLUNDEF() : (JLVALUE *)prop->ptr;
+  JSPROP *prop = fh_get_prop_rec(obj, name);
+  return prop == NULL ?  JSUNDEF() : (JSVALUE *)prop->ptr;
 }
 
-JLPROP *
-jl_get_prop_rec(JLVALUE *obj, char *name)
+JSPROP *
+fh_get_prop_rec(JSVALUE *obj, char *name)
 {
-  JLPROP *prop = jl_get_prop(obj, name);
+  JSPROP *prop = fh_get_prop(obj, name);
   // If not found here, check the parent object.
   if (prop == NULL && obj->object.parent != NULL)
-    return jl_get_prop_rec(obj->object.parent, name);
+    return fh_get_prop_rec(obj->object.parent, name);
   return prop;
 }
 
@@ -91,17 +91,17 @@ jl_get_prop_rec(JLVALUE *obj, char *name)
  * This is used in undeclared assignment.
  */
 void
-jl_set_rec(JLVALUE *obj, char *name, JLVALUE *val)
+fh_set_rec(JSVALUE *obj, char *name, JSVALUE *val)
 {
-  JLVALUE *scope_to_set = obj;
-  JLVALUE *parent;
+  JSVALUE *scope_to_set = obj;
+  JSVALUE *parent;
 
   // Try and find the property in a parent scope.
-  JLPROP *prop = jl_get_prop(obj, name);
+  JSPROP *prop = fh_get_prop(obj, name);
   while(prop == NULL) {
     if (obj->object.parent != NULL) {
-      parent = (JLVALUE *)obj->object.parent;
-      prop = jl_get_prop(parent, name);
+      parent = (JSVALUE *)obj->object.parent;
+      prop = fh_get_prop(parent, name);
       obj = parent;
       continue;
     }
@@ -110,87 +110,87 @@ jl_set_rec(JLVALUE *obj, char *name, JLVALUE *val)
   if (prop != NULL && parent != NULL)
     scope_to_set = parent;
 
-  jl_set(scope_to_set, name, val);
+  fh_set(scope_to_set, name, val);
 }
 
 void
-jl_gc() 
+fh_gc() 
 {
   // TODO: Mark and Sweep
 }
 
-JLVALUE *
-jl_alloc_val()
+JSVALUE *
+fh_alloc_val()
 {
-  JLVALUE *val = malloc(sizeof(JLVALUE));
+  JSVALUE *val = malloc(sizeof(JSVALUE));
   val->type = T_NULL;
   return val;
 }
 
-JLVALUE *
-jl_new_val(JLTYPE type)
+JSVALUE *
+fh_new_val(JSTYPE type)
 {
-  JLVALUE *val = malloc(sizeof(JLVALUE));
+  JSVALUE *val = malloc(sizeof(JSVALUE));
   val->type = type;
   return val;
 }
 
-JLVALUE *
-jl_new_number(double x, bool is_nan, bool is_inf)
+JSVALUE *
+fh_new_number(double x, bool is_nan, bool is_inf)
 {
-  JLVALUE *val = jl_new_val(T_NUMBER);
+  JSVALUE *val = fh_new_val(T_NUMBER);
   val->number.val = x;
   val->number.is_nan = is_nan;
   val->number.is_inf = is_inf;
   return val;
 }
 
-JLVALUE *
-jl_new_string(char *x)
+JSVALUE *
+fh_new_string(char *x)
 {
-  JLVALUE *val = jl_new_val(T_STRING);
+  JSVALUE *val = fh_new_val(T_STRING);
   val->string.ptr = malloc((strlen(x) + 1) * sizeof(char));
   strcpy(val->string.ptr, x);
   val->string.len = strlen(x);
   return val;
 }
 
-JLVALUE *
-jl_new_boolean(bool x)
+JSVALUE *
+fh_new_boolean(bool x)
 {
-  JLVALUE *val = jl_new_val(T_BOOLEAN);
+  JSVALUE *val = fh_new_val(T_BOOLEAN);
   val->boolean.val = x;
   return val;
 }
 
-JLVALUE *
-jl_new_object()
+JSVALUE *
+fh_new_object()
 {
-  JLVALUE *val = jl_new_val(T_OBJECT);
-  JLPROP *map = NULL;
+  JSVALUE *val = fh_new_val(T_OBJECT);
+  JSPROP *map = NULL;
   val->object.map = map;
   return val;
 }
 
-JLVALUE *
-jl_new_function(void *node)
+JSVALUE *
+fh_new_function(void *node)
 {
-  JLVALUE *val = jl_new_val(T_FUNCTION);
+  JSVALUE *val = fh_new_val(T_FUNCTION);
   val->function.node = node;
   return val;
 }
 
-JLVALUE *
-jl_new_native_function(JLNATVFUNC func)
+JSVALUE *
+fh_new_native_function(JSNATVFUNC func)
 {
-  JLVALUE *val = jl_new_val(T_FUNCTION);
+  JSVALUE *val = fh_new_val(T_FUNCTION);
   val->function.is_native = true;
   val->function.native = func;
   return val;
 }
 
 char *
-jl_typeof(JLVALUE *value) 
+fh_typeof(JSVALUE *value) 
 {
   /* Per Table 20 of the ECMA5 spec: */
   switch(value->type) 
@@ -212,7 +212,7 @@ jl_typeof(JLVALUE *value)
 }
 
 char *
-jl_str_concat(char *dst, char *new)
+fh_str_concat(char *dst, char *new)
 {
   dst = realloc(dst, strlen(dst) + strlen(new) + sizeof(char));
   if (!dst) exit(1);
@@ -220,26 +220,26 @@ jl_str_concat(char *dst, char *new)
   return dst;
 }
 
-JLVALUE *
-jl_cast(JLVALUE *val, JLTYPE type)
+JSVALUE *
+fh_cast(JSVALUE *val, JSTYPE type)
 {
   if (val->type == type) return val;
-  if (type == T_NULL) return JLNULL();
-  if (type == T_UNDEF) return JLUNDEF();
+  if (type == T_NULL) return JSNULL();
+  if (type == T_UNDEF) return JSUNDEF();
 
   // Number => x
   if (val->type == T_NUMBER) {
     if (type == T_STRING) {
-      if (val->number.is_nan) return JLSTR("NaN");
-      if (val->number.is_inf) return JLSTR("Infinity");
+      if (val->number.is_nan) return JSSTR("NaN");
+      if (val->number.is_inf) return JSSTR("Infinity");
       char tmp[100];
       sprintf(tmp, "%g", val->number.val);
-      return JLSTR(tmp);
+      return JSSTR(tmp);
     }
     if (type == T_BOOLEAN) {
       // O is false, x < 0 & x > 0 true
-      if (val->number.val == 0) return JLBOOL(0);
-      return JLBOOL(1);
+      if (val->number.val == 0) return JSBOOL(0);
+      return JSBOOL(1);
     }
   }
 
@@ -248,66 +248,66 @@ jl_cast(JLVALUE *val, JLTYPE type)
     if (type == T_NUMBER) {
       char *err;
       double d = strtod(val->string.ptr, &err);
-      if (*err != 0) return JLNAN();
-      return JLNUM(d);
+      if (*err != 0) return JSNAN();
+      return JSNUM(d);
     }
     if (type == T_BOOLEAN) {
       // "" is false, all others true
-      if (val->string.len == 0) return JLBOOL(0);
-      return JLBOOL(1);
+      if (val->string.len == 0) return JSBOOL(0);
+      return JSBOOL(1);
     }
   }
 
   // Boolean => x
   if (val->type == T_BOOLEAN) {
     if (type == T_STRING) {
-      if (val->boolean.val == 1) return JLSTR("true");
-      return JLSTR("false");
+      if (val->boolean.val == 1) return JSSTR("true");
+      return JSSTR("false");
     }
     if (type == T_NUMBER) {
-      if (val->boolean.val == 1) return JLNUM(1);
-      return JLNUM(0);
+      if (val->boolean.val == 1) return JSNUM(1);
+      return JSNUM(0);
     }
   }
 
   // Object => x
   if (val->type == T_OBJECT) {
-    if (type == T_BOOLEAN) return JLBOOL(1);
-    if (type == T_NUMBER) return JLNAN();
+    if (type == T_BOOLEAN) return JSBOOL(1);
+    if (type == T_NUMBER) return JSNAN();
     // TODO: Call Object.toString()
-    if (type == T_STRING) return JLSTR("[Object object]");
+    if (type == T_STRING) return JSSTR("[Object object]");
   }
 
   // Function => x
   if (val->type == T_FUNCTION) {
-    if (type == T_BOOLEAN) return JLBOOL(1);
-    if (type == T_NUMBER) return JLNAN();
+    if (type == T_BOOLEAN) return JSBOOL(1);
+    if (type == T_NUMBER) return JSNAN();
     // TODO: Call Function.toString()
-    if (type == T_STRING) return JLSTR("[Function]");
+    if (type == T_STRING) return JSSTR("[Function]");
   }
 
   // null => x
   if (val->type == T_NULL) {
-    if (type == T_STRING) return JLSTR("null");
-    if (type == T_NUMBER) return JLNUM(0);
+    if (type == T_STRING) return JSSTR("null");
+    if (type == T_NUMBER) return JSNUM(0);
   }
 
   // undefined => x
   if (val->type == T_UNDEF) {
-    if (type == T_STRING) return JLSTR("undefined");
-    if (type == T_NUMBER) return JLNAN();
+    if (type == T_STRING) return JSSTR("undefined");
+    if (type == T_NUMBER) return JSNAN();
   }
 }
 
 void
-jl_debug_obj(JLVALUE *obj, int indent)
+fh_debug_obj(JSVALUE *obj, int indent)
 {
   if (HASH_COUNT(obj->object.map) == 0) {
     printf("{}");
     return;
   }
 
-  JLPROP *x, *tmp;
+  JSPROP *x, *tmp;
   int i;
   bool first = true;
 
@@ -325,36 +325,36 @@ jl_debug_obj(JLVALUE *obj, int indent)
     printf(" %s: ", x->name);
     x->circular ? 
       printf("[Circular]") : 
-      jl_debug((JLVALUE *)x->ptr, indent+3, false);
+      fh_debug((JSVALUE *)x->ptr, indent+3, false);
   };
   printf(" }");
 }
 
 void
-jl_debug_arr(JLVALUE *arr, int indent)
+fh_debug_arr(JSVALUE *arr, int indent)
 {
   if (HASH_COUNT(arr->object.map) == 0) {
     printf("[]");
     return;
   }
   bool first;
-  JLPROP *x, *tmp;
+  JSPROP *x, *tmp;
   printf("[ ");
   HASH_ITER(hh, arr->object.map, x, tmp) {
     if (!first) 
       printf(", ");
     else first = false;
-    jl_debug((JLVALUE *)x->ptr, 0, false);
+    fh_debug((JSVALUE *)x->ptr, 0, false);
   };
   printf(" ]");
 }
 
 void
-jl_debug(JLVALUE *val, int indent, bool newline)
+fh_debug(JSVALUE *val, int indent, bool newline)
 {
   switch(val->type)
   {
-    printf("%s", jl_typeof(val));
+    printf("%s", fh_typeof(val));
     case T_BOOLEAN:
       printf("%s", !val->boolean.val ? "false" : "true");
       break;
@@ -380,16 +380,16 @@ jl_debug(JLVALUE *val, int indent, bool newline)
       break;
     case T_OBJECT:
       if (val->object.is_array)
-        jl_debug_arr(val, indent);
+        fh_debug_arr(val, indent);
       else
-        jl_debug_obj(val, indent);
+        fh_debug_obj(val, indent);
       break;
   }
   if (newline) printf("\n");
 }
 
 void
-jl_debug_args(JLARGS *args)
+fh_debug_args(JSARGS *args)
 {
   bool first = true;
   while(first || args->next != NULL)
@@ -397,7 +397,7 @@ jl_debug_args(JLARGS *args)
     if (!first)
       args = args->next;
     if (args->arg != NULL)
-      JLDEBUG(args->arg);
+      JSDEBUG(args->arg);
     first = false;
   }
 }

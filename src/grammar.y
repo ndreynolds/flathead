@@ -32,7 +32,7 @@
   int yylex(void);
   int yydebug;
   FILE *yyin;
-  struct JLNode *root;
+  struct JSNODE *root;
 %}
 
 %error-verbose
@@ -78,7 +78,7 @@
   char * val;
   int intval;
   double floatval;
-  struct JLNode * node;
+  struct JSNODE * node;
 }
 
 %type<val> AssignmentOperator 
@@ -430,13 +430,13 @@ main(int argc, char *argv[])
   yyparse();
   if (print_parse_tree) PR(root);
 
-  JLVALUE *global = jl_bootstrap();
+  JSVALUE *global = fh_bootstrap();
 
   // Evaluate.
-  jl_eval(global, root);
+  fh_eval(global, root);
 
   // Debug.
-  if (yydebug) JLDEBUG(global);
+  if (yydebug) JSDEBUG(global);
 
   return 0;
 }

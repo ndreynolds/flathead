@@ -1,6 +1,6 @@
 # Makefile
 # --------
-# jslite 
+# flathead 
 
 COMPILER=gcc
 YACC=bison -y -d -t -v
@@ -8,7 +8,7 @@ LEX=flex
 
 SRC_FILES=src/nodes.c src/eval.c src/runtime.c  
 LIB_FILES=lib/console.c lib/Math.c lib/Number.c
-OUT_FILE=-o bin/jslite
+OUT_FILE=-o bin/fh
 GRAMMAR_FILE=src/grammar.y
 LEX_FILE=src/lexer.l
 
@@ -25,13 +25,13 @@ lexer:
 	$(LEX) $(LEX_FILE)
 
 clean:
-	rm -rf y.* lex.yy.c bin/jslite* a.out
+	rm -rf y.* lex.yy.c bin/fh* a.out
 
 debug: grammar lexer
-	$(COMPILER) -g $(OUT_FILE) y.tab.c lex.yy.c src/jslite.c $(LIB_FILES) $(SRC_FILES)
+	$(COMPILER) -g $(OUT_FILE) y.tab.c lex.yy.c src/flathead.c $(LIB_FILES) $(SRC_FILES)
 
 install: default
-	cp bin/jslite /usr/local/bin/
+	cp bin/fh /usr/local/bin/
 	
 default: grammar lexer
-	$(COMPILER) $(OUT_FILE) y.tab.c lex.yy.c src/jslite.c $(LIB_FILES) $(SRC_FILES)
+	$(COMPILER) $(OUT_FILE) y.tab.c lex.yy.c src/flathead.c $(LIB_FILES) $(SRC_FILES)

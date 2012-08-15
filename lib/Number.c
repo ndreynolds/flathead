@@ -4,16 +4,16 @@
 #include <float.h>
 #include "Number.h"
 
-JLVALUE *
+JSVALUE *
 bootstrap_number()
 {
-  JLVALUE *number = JLOBJ();
+  JSVALUE *number = JSOBJ();
 
-  jl_set(number, "MAX_VALUE", JLNUM(DBL_MAX));
-  jl_set(number, "MIN_VALUE", JLNUM(DBL_MIN));
-  jl_set(number, "NEGATIVE_INFINITY", JLINF()); // TODO: +/-
-  jl_set(number, "POSITIVE_INFINITY", JLINF());
-  jl_set(number, "NaN", JLNAN());
+  fh_set(number, "MAX_VALUE", JSNUM(DBL_MAX));
+  fh_set(number, "MIN_VALUE", JSNUM(DBL_MIN));
+  fh_set(number, "NEGATIVE_INFINITY", JSINF()); // TODO: +/-
+  fh_set(number, "POSITIVE_INFINITY", JSINF());
+  fh_set(number, "NaN", JSNAN());
 
   return number;
 }

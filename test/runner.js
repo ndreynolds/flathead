@@ -2,7 +2,7 @@
 
 // runner.js
 // ---------
-// Finds and runs the JavaScript test suite on jslite. 
+// Finds and runs the JavaScript test suite on flathead. 
 //
 // Run this script with NodeJS.
 //
@@ -16,7 +16,7 @@ var exec = require('child_process').exec,
 var testRunner = exports.testRunner = {
 
   options: {
-    cmd: __dirname + '/../bin/jslite',
+    cmd: __dirname + '/../bin/fh',
     files: []
   },
 

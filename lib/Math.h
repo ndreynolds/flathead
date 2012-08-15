@@ -1,24 +1,24 @@
 // Math.h
 // ------
 
-#include "../src/jslite.h"
+#include "../src/flathead.h"
 
-JLVALUE * math_abs(JLARGS *);
-JLVALUE * math_acos(JLARGS *);
-JLVALUE * math_asin(JLARGS *);
-JLVALUE * math_atan(JLARGS *);
-JLVALUE * math_atan2(JLARGS *);
-JLVALUE * math_ceil(JLARGS *);
-JLVALUE * math_cos(JLARGS *);
-JLVALUE * math_exp(JLARGS *);
-JLVALUE * math_floor(JLARGS *);
-JLVALUE * math_log(JLARGS *);
-JLVALUE * math_max(JLARGS *);
-JLVALUE * math_min(JLARGS *);
-JLVALUE * math_pow(JLARGS *);
-JLVALUE * math_random(JLARGS *);
-JLVALUE * math_round(JLARGS *);
-JLVALUE * math_sin(JLARGS *);
-JLVALUE * math_sqrt(JLARGS *);
-JLVALUE * math_tan(JLARGS *);
-JLVALUE * bootstrap_math(void);
+JSVALUE * math_abs(JSARGS *);
+JSVALUE * math_acos(JSARGS *);
+JSVALUE * math_asin(JSARGS *);
+JSVALUE * math_atan(JSARGS *);
+JSVALUE * math_atan2(JSARGS *);
+JSVALUE * math_ceil(JSARGS *);
+JSVALUE * math_cos(JSARGS *);
+JSVALUE * math_exp(JSARGS *);
+JSVALUE * math_floor(JSARGS *);
+JSVALUE * math_log(JSARGS *);
+JSVALUE * math_max(JSARGS *);
+JSVALUE * math_min(JSARGS *);
+JSVALUE * math_pow(JSARGS *);
+JSVALUE * math_random(JSARGS *);
+JSVALUE * math_round(JSARGS *);
+JSVALUE * math_sin(JSARGS *);
+JSVALUE * math_sqrt(JSARGS *);
+JSVALUE * math_tan(JSARGS *);
+JSVALUE * bootstrap_math(void);
