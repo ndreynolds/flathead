@@ -1,3 +1,7 @@
+// test_castinc.c
+// --------------
+// Tests for type coercion
+
 #include "test.h"
 #include "../src/flathead.h"
 #include "../src/flathead.c"

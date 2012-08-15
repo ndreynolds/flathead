@@ -1,5 +1,5 @@
 /*
- * jslite.c -- Memory management, casting, and debug helpers
+ * flathead.c -- Memory management, casting, and debug helpers
  *
  * Copyright (c) 2012 Nick Reynolds
  *  

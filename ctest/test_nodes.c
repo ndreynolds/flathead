@@ -1,3 +1,7 @@
+// test_nodes.c
+// ------------
+// Tests for the AST node representation and utilities.
+
 #include "test.h"
 #include "../src/flathead.h"
 #include "../src/nodes.c"

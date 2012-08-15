@@ -1,3 +1,7 @@
+// test_properties.c
+// -----------------
+// Tests for property sets and gets.
+
 #include "test.h"
 #include "../src/flathead.h"
 #include "../src/flathead.c"

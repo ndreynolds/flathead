@@ -124,7 +124,6 @@ Block:
 StatementList:
     Statement                                         { $$ = NEW_STMTLST($1, NULL); } 
     | StatementList Statement                         { $$ = NEW_STMTLST($2, $1); }
-    /* TODO: Are we evaluating statements in reverse? */
     ;
 
 VariableStatement:
