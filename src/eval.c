@@ -21,7 +21,7 @@
 #include <math.h>
 
 JSVALUE * 
-fh_eval(JSVALUE *this, JSNODE *node)
+fh_eval(JSVALUE *ctx, JSNODE *node)
 {
   JSVALUE *result = JSUNDEF();
   switch(node->type) {
@@ -30,57 +30,57 @@ fh_eval(JSVALUE *this, JSNODE *node)
     case NODE_NUM: return JSNUM(node->val);
     case NODE_NULL: return JSNULL();
     case NODE_FUNC: return JSFUNC(node);
-    case NODE_OBJ: return fh_obj(this, node);
-    case NODE_ARR: return fh_arr(this, node);
-    case NODE_CALL: return fh_call(this, node);
-    case NODE_MEMBER: return fh_member(this, node);
-    case NODE_IDENT: return fh_get_rec(this, node->sval);
-    case NODE_BLOCK: return fh_eval(this, node->e1);
-    case NODE_STMT_LST: return fh_stmt_lst(this, node);
-    case NODE_EXP_STMT: return fh_eval(this, node->e1);
+    case NODE_OBJ: return fh_obj(ctx, node);
+    case NODE_ARR: return fh_arr(ctx, node);
+    case NODE_CALL: return fh_call(ctx, node);
+    case NODE_MEMBER: return fh_member(ctx, node);
+    case NODE_IDENT: return fh_get_rec(ctx, node->sval);
+    case NODE_BLOCK: return fh_eval(ctx, node->e1);
+    case NODE_STMT_LST: return fh_stmt_lst(ctx, node);
+    case NODE_EXP_STMT: return fh_eval(ctx, node->e1);
     case NODE_EMPT_STMT: break;
     case NODE_EXP:
       if (node->sub_type == NODE_UNARY_POST) 
-        return fh_eval_postfix_exp(this, node);
+        return fh_eval_postfix_exp(ctx, node);
       else if (node->sub_type == NODE_UNARY_PRE)
-        return fh_eval_prefix_exp(this, node);
+        return fh_eval_prefix_exp(ctx, node);
       else
-        return fh_eval_bin_exp(this, node);
+        return fh_eval_bin_exp(ctx, node);
     case NODE_ASGN:
       // TODO: This assumes the Node at e1 is an ident, which won't
       // always be true. 
       fh_assign(
-        this, 
+        ctx, 
         node->e1->sval,
-        fh_eval(this, node->e2),
+        fh_eval(ctx, node->e2),
         node->sval
       );
-      return fh_eval(this, node->e2);
+      return fh_eval(ctx, node->e2);
     case NODE_IF:
-      if (JSCAST(fh_eval(this, node->e1), T_BOOLEAN)->boolean.val)
-        return fh_eval(this, node->e2);
+      if (JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val)
+        return fh_eval(ctx, node->e2);
       else if (node->e3 != NULL) 
-        return fh_eval(this, node->e3);
+        return fh_eval(ctx, node->e3);
     case NODE_PROP_LST:
       rewind_node(node);
-      while(!node->visited) result = fh_eval(this, pop_node(node));
+      while(!node->visited) result = fh_eval(ctx, pop_node(node));
       break;
     case NODE_PROP:
-      fh_set(this, node->e1->sval, fh_eval(this, node->e2));
+      fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
       break;
     case NODE_VAR_STMT:
       if (node->e2 != NULL)
-        fh_set(this, node->e1->sval, fh_eval(this, node->e2));
+        fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
       else
-        fh_set(this, node->e1->sval, JSNULL());
+        fh_set(ctx, node->e1->sval, JSNULL());
       break;
     case NODE_WHILE:
-      fh_while(this, node->e1, node->e2);
+      fh_while(ctx, node->e1, node->e2);
       break;
     case NODE_RETURN:
-      result = node->e1 == NULL ? JSUNDEF() : fh_eval(this, node->e1);
+      result = node->e1 == NULL ? JSUNDEF() : fh_eval(ctx, node->e1);
       if (result->type == T_FUNCTION) 
-        result->function.closure = this;
+        result->function.closure = ctx;
       return result;
     default:
       fprintf(stderr, "Unsupported syntax type (%d)\n", node->type);
@@ -90,7 +90,7 @@ fh_eval(JSVALUE *this, JSNODE *node)
 }
 
 JSVALUE *
-fh_stmt_lst(JSVALUE *this, JSNODE *node)
+fh_stmt_lst(JSVALUE *ctx, JSNODE *node)
 {
   JSVALUE *result;
   JSNODE *child;
@@ -99,34 +99,34 @@ fh_stmt_lst(JSVALUE *this, JSNODE *node)
     child = pop_node(node);
     if (child->type == NODE_RETURN) {
       if (child->e1 == NULL) return JSUNDEF();
-      JSVALUE *val = fh_eval(this, child);
-      if (val->type == T_FUNCTION) val->function.closure = this;
+      JSVALUE *val = fh_eval(ctx, child);
+      if (val->type == T_FUNCTION) val->function.closure = ctx;
       return val;
     }
-    result = fh_eval(this, child);
+    result = fh_eval(ctx, child);
   }
   return result;
 }
 
 void
-fh_while(JSVALUE *this, JSNODE *cnd, JSNODE *block)
+fh_while(JSVALUE *ctx, JSNODE *cnd, JSNODE *block)
 {
-  while(JSCAST(fh_eval(this, cnd), T_BOOLEAN)->boolean.val) {
-    fh_eval(this, block);
+  while(JSCAST(fh_eval(ctx, cnd), T_BOOLEAN)->boolean.val) {
+    fh_eval(ctx, block);
   }
 }
 
 JSVALUE *
-fh_obj(JSVALUE *this, JSNODE *node)
+fh_obj(JSVALUE *ctx, JSNODE *node)
 {
   JSVALUE *obj = JSOBJ();
-  obj->object.parent = this;
+  obj->object.parent = ctx;
   if (node->e1 != NULL) fh_eval(obj, node->e1);
   return obj;
 }
 
 JSVALUE *
-fh_arr(JSVALUE *this, JSNODE *node)
+fh_arr(JSVALUE *ctx, JSNODE *node)
 {
   JSVALUE *obj = JSOBJ();
   obj->object.is_array = true;
@@ -135,7 +135,7 @@ fh_arr(JSVALUE *this, JSNODE *node)
     JSVALUE *str;
     while(!node->e1->visited) {
       str = JSCAST(JSNUM(i), T_STRING);
-      fh_set(obj, str->string.ptr, fh_eval(this, pop_node(node->e1)));
+      fh_set(obj, str->string.ptr, fh_eval(ctx, pop_node(node->e1)));
       i++;
     }
   }
@@ -143,13 +143,13 @@ fh_arr(JSVALUE *this, JSNODE *node)
 }
 
 JSVALUE *
-fh_member(JSVALUE *this, JSNODE *member)
+fh_member(JSVALUE *ctx, JSNODE *member)
 {
   // Similar to an Identifier node, we have to retrieve a value
   // from an object. The difference here is that we need to recurse
   // to retrieve sub-members as instructed.
   // TODO
-  JSVALUE *a = fh_get(this, member->e2->sval);
+  JSVALUE *a = fh_get(ctx, member->e2->sval);
   JSVALUE *b = fh_get(a, member->e1->sval);
   return b;
 }
@@ -168,34 +168,34 @@ fh_assign(JSVALUE *obj, char *name, JSVALUE *val, char *op)
 }
 
 JSVALUE *
-fh_call(JSVALUE *this, JSNODE *call)
+fh_call(JSVALUE *ctx, JSNODE *call)
 {
-  JSVALUE *maybe_func = fh_eval(this, call->e1);
+  JSVALUE *maybe_func = fh_eval(ctx, call->e1);
   if (maybe_func->type != T_FUNCTION) {
     fprintf(stderr, "TypeError: %s is not a function\n", fh_typeof(maybe_func));
     exit(1);
   }
-  return fh_function_call(this, maybe_func, call->e2);
+  return fh_function_call(ctx, maybe_func, call->e2);
 }
 
 JSARGS *
-fh_build_args(JSVALUE *this, JSNODE *args_node)
+fh_build_args(JSVALUE *ctx, JSNODE *args_node)
 {
   JSARGS *args = malloc(sizeof(JSARGS));
   if (args_node->e1 == NULL) return args;
   if (!args_node->visited) {
-    args->arg = fh_eval(this, pop_node(args_node));
+    args->arg = fh_eval(ctx, pop_node(args_node));
     if (!args_node->visited)
-      args->next = fh_build_args(this, args_node);
+      args->next = fh_build_args(ctx, args_node);
   }
   rewind_node(args_node);
   return args;
 }
 
 JSVALUE *
-fh_function_call(JSVALUE *this, JSVALUE *func, JSNODE *args_node)
+fh_function_call(JSVALUE *ctx, JSVALUE *func, JSNODE *args_node)
 {
-  JSARGS *args = fh_build_args(this, args_node);
+  JSARGS *args = fh_build_args(ctx, args_node);
 
   if (func->function.is_native) {
     // Native functions are C functions referenced by pointer.
@@ -205,12 +205,12 @@ fh_function_call(JSVALUE *this, JSVALUE *func, JSNODE *args_node)
   }
 
   rewind_node(func->function.node);
-  JSVALUE *func_scope = fh_setup_func_env(this, func, args);
+  JSVALUE *func_scope = fh_setup_func_env(ctx, func, args);
   return fh_eval(func_scope, ((JSNODE *)func->function.node)->e2);
 }
 
 JSVALUE *
-fh_setup_func_env(JSVALUE *this, JSVALUE *func, JSARGS *args)
+fh_setup_func_env(JSVALUE *ctx, JSVALUE *func, JSARGS *args)
 {
   JSVALUE *arguments = JSOBJ();
   JSNODE *func_node = (JSNODE *)func->function.node;
@@ -218,7 +218,7 @@ fh_setup_func_env(JSVALUE *this, JSVALUE *func, JSARGS *args)
 
   if (scope == NULL) 
     scope = JSOBJ();
-  scope->object.parent = this;
+  scope->object.parent = ctx;
   fh_set(scope, "arguments", arguments);
   if (func_node->sval != NULL)
     fh_set(scope, func_node->sval, func);
@@ -262,59 +262,59 @@ fh_setup_func_env(JSVALUE *this, JSVALUE *func, JSARGS *args)
 }
 
 JSVALUE *
-fh_eval_postfix_exp(JSVALUE *this, JSNODE *node)
+fh_eval_postfix_exp(JSVALUE *ctx, JSNODE *node)
 {
-  JSVALUE *old_val = JSCAST(fh_eval(this, node->e1), T_NUMBER);
+  JSVALUE *old_val = JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
   char *op = node->sval;
   if (STREQ(op, "++")) {
-    fh_set(this, node->e1->sval, fh_add(old_val, JSNUM(1)));
+    fh_set(ctx, node->e1->sval, fh_add(old_val, JSNUM(1)));
     return old_val;
   }
   if (STREQ(op, "--")) {
-    fh_set(this, node->e1->sval, fh_sub(old_val, JSNUM(1)));
+    fh_set(ctx, node->e1->sval, fh_sub(old_val, JSNUM(1)));
     return old_val;
   }
 }
 
 JSVALUE *
-fh_eval_prefix_exp(JSVALUE *this, JSNODE *node)
+fh_eval_prefix_exp(JSVALUE *ctx, JSNODE *node)
 {
   char *op = node->sval;
   if (STREQ(op, "+"))
-    return JSCAST(fh_eval(this, node->e1), T_NUMBER);
+    return JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
   if (STREQ(op, "-"))
-    return JSNUM(-1 * JSCAST(fh_eval(this, node->e1), T_NUMBER)->number.val);
+    return JSNUM(-1 * JSCAST(fh_eval(ctx, node->e1), T_NUMBER)->number.val);
   if (STREQ(op, "!"))
-    return JSCAST(fh_eval(this, node->e1), T_BOOLEAN)->boolean.val == 1 ? 
+    return JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val == 1 ? 
       JSBOOL(0) : JSBOOL(1);
 
   // Increment and decrement.
-  JSVALUE *old_val = JSCAST(fh_eval(this, node->e1), T_NUMBER);
+  JSVALUE *old_val = JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
   JSVALUE *new_val;
   if (STREQ(op, "++")) {
     new_val = fh_add(old_val, JSNUM(1));
-    fh_set(this, node->e1->sval, new_val);
+    fh_set(ctx, node->e1->sval, new_val);
     return new_val;
   }
   if (STREQ(op, "--")) {
     new_val = fh_sub(old_val, JSNUM(1));
-    fh_set(this, node->e1->sval, new_val);
+    fh_set(ctx, node->e1->sval, new_val);
     return new_val;
   }
 }
 
 JSVALUE *
-fh_eval_bin_exp(JSVALUE *this, JSNODE *node)
+fh_eval_bin_exp(JSVALUE *ctx, JSNODE *node)
 {
   char *op = node->sval;
 
   // Logical (must short-circuit)
-  if (STREQ(op, "&&")) return fh_and(this, node->e1, node->e2);
-  if (STREQ(op, "||")) return fh_or(this, node->e1, node->e2);
+  if (STREQ(op, "&&")) return fh_and(ctx, node->e1, node->e2);
+  if (STREQ(op, "||")) return fh_or(ctx, node->e1, node->e2);
 
   // At this point, we can safely evaluate both expressions.
-  JSVALUE *a = fh_eval(this, node->e1);
-  JSVALUE *b = fh_eval(this, node->e2);
+  JSVALUE *a = fh_eval(ctx, node->e1);
+  JSVALUE *b = fh_eval(ctx, node->e2);
 
   // Arithmetic and string operations
   if (STREQ(op, "+")) return fh_add(a, b);
@@ -473,19 +473,19 @@ fh_lt(JSVALUE *a, JSVALUE *b)
 }
 
 JSVALUE *
-fh_and(JSVALUE *this, JSNODE *a, JSNODE *b)
+fh_and(JSVALUE *ctx, JSNODE *a, JSNODE *b)
 {
   // && operator returns the first false value, or the second true value. 
-  JSVALUE *aval = fh_eval(this, a);
-  if (JSCAST(aval, T_BOOLEAN)->boolean.val) return fh_eval(this, b);
+  JSVALUE *aval = fh_eval(ctx, a);
+  if (JSCAST(aval, T_BOOLEAN)->boolean.val) return fh_eval(ctx, b);
   return aval;
 }
 
 JSVALUE *
-fh_or(JSVALUE *this, JSNODE *a, JSNODE *b)
+fh_or(JSVALUE *ctx, JSNODE *a, JSNODE *b)
 {
   // || returns the first true value, or the second false value.
-  JSVALUE *aval = fh_eval(this, a);
+  JSVALUE *aval = fh_eval(ctx, a);
   if (JSCAST(aval, T_BOOLEAN)->boolean.val) return aval;
-  return fh_eval(this, b);
+  return fh_eval(ctx, b);
 }
