@@ -77,6 +77,7 @@ struct JLArray {
 };
 
 struct JLObject {
+  bool is_array;
   void *proto;
   void *parent;
   JLPROP *map;
@@ -125,6 +126,7 @@ JLVALUE * jl_cast(JLVALUE *, JLTYPE);
 char * jl_typeof(JLVALUE *);
 char * jl_str_concat(char *, char *);
 void jl_debug_obj(JLVALUE *, int);
+void jl_debug_arr(JLVALUE *, int);
 void jl_debug_args(JLARGS *);
 void jl_debug(JLVALUE *, int, bool);
 
@@ -141,5 +143,7 @@ void jl_debug(JLVALUE *, int, bool);
 
 #define JLCAST(x, t)  jl_cast((x), (t))
 #define JLDEBUG(x)    jl_debug((x),0,1);
+
+#define GETARG(args)  ((args)->arg == NULL ? JLUNDEF() : (args)->arg)       
 
 #endif

@@ -19,11 +19,13 @@
 #include <math.h>
 #include "runtime.h"
 #include "../lib/console.h"
+#include "../lib/Math.h"
+#include "../lib/Number.h"
 
 JLVALUE *
 jl_is_nan(JLARGS *args)
 {
-  if (args->arg != 0) {
+  if (args->arg != NULL) {
     JLVALUE *num = JLCAST((JLVALUE *)args->arg, T_NUMBER);
     if (num->number.is_nan) return JLBOOL(1);
     return JLBOOL(0);
@@ -35,7 +37,7 @@ jl_is_nan(JLARGS *args)
 JLVALUE *
 jl_is_finite(JLARGS *args)
 {
-  JLVALUE *num = JLCAST(args->arg == 0 ? JLUNDEF() : args->arg, T_NUMBER);
+  JLVALUE *num = JLCAST(args->arg == NULL ? JLUNDEF() : args->arg, T_NUMBER);
   if (num->number.is_nan || num->number.is_inf) return JLBOOL(0);
   return JLBOOL(1);
 }
@@ -45,14 +47,15 @@ jl_parse_int(JLARGS *args)
 {
   // Ecma 15.1.2.2
   // TODO: use radix argument, strip whitespace.
-  JLVALUE *num = JLCAST(args->arg == 0 ? JLUNDEF() : args->arg, T_NUMBER);
+  JLVALUE *num = JLCAST(args->arg == NULL ? JLUNDEF() : args->arg, T_NUMBER);
+  if (num->number.is_nan) return JLNAN();
   return JLNUM(floor(num->number.val));
 }
 
 JLVALUE *
 jl_parse_float(JLARGS *args)
 {
-  return JLCAST(args->arg == 0 ? JLUNDEF() : args->arg, T_NUMBER);
+  return JLCAST(args->arg == NULL ? JLUNDEF() : args->arg, T_NUMBER);
 }
 
 JLVALUE *
@@ -61,6 +64,8 @@ jl_bootstrap()
   JLVALUE *global = JLOBJ();
 
   jl_set(global, "console", bootstrap_console());
+  jl_set(global, "Math", bootstrap_math());
+  jl_set(global, "Number", bootstrap_number());
   jl_set(global, "NaN", JLNAN());
   jl_set(global, "Infinity", JLINF());
   jl_set(global, "isNaN", JLNFUNC((JLNATVFUNC)&jl_is_nan));

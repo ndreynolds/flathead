@@ -195,16 +195,25 @@ print_node(JLNode *node, bool rec, int depth)
     case NODE_PARAM_LST:
       printf("parameter list\n");
       break;
+    case NODE_ARR:
+      printf("array literal\n");
+      break;
+    case NODE_EL_LST:
+      printf("element list\n");
+      break;
+    case NODE_ELISION:
+      printf("elision\n");
+      break;
     default:
       printf("unknown type: %d\n", node->type);
   }
 
   if (!rec) return;
-  if (node->sval != 0) {
+  if (node->sval != NULL) {
     print_indent(depth+2);
     printf("%s\n", node->sval);
   }
-  if (node->e1 != 0) print_node(node->e1, rec, depth+2);
-  if (node->e2 != 0) print_node(node->e2, rec, depth+2);
-  if (node->e3 != 0) print_node(node->e3, rec, depth+2);
+  if (node->e1 != NULL) print_node(node->e1, rec, depth+2);
+  if (node->e2 != NULL) print_node(node->e2, rec, depth+2);
+  if (node->e3 != NULL) print_node(node->e3, rec, depth+2);
 }

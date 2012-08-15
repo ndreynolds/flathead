@@ -7,7 +7,7 @@ YACC=bison -y -d -t -v
 LEX=flex
 
 SRC_FILES=src/nodes.c src/eval.c src/runtime.c  
-LIB_FILES=lib/console.c
+LIB_FILES=lib/console.c lib/Math.c lib/Number.c
 OUT_FILE=-o bin/jslite
 GRAMMAR_FILE=src/grammar.y
 LEX_FILE=src/lexer.l

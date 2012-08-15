@@ -29,7 +29,7 @@ jl_get(JLVALUE *obj, char *prop_name)
   }
   JLPROP *prop = jl_get_prop(obj, prop_name);
   // But we'll happily return undefined if a property doesn't exist.
-  if (prop == 0) return JLUNDEF();
+  if (prop == NULL) return JLUNDEF();
   return prop->ptr;
 }
 
@@ -220,19 +220,6 @@ jl_str_concat(char *dst, char *new)
   return dst;
 }
 
-/*
-JLVALUE *
-jl_merge_objects(JLVALUE *a, JLVALUE *b)
-{
-  // Override properties of a with properties of b, then return a.
-  HASH_ITER(hh, b->object.map, x, tmp) {
-    if (prop != NULL && prop->ptr != NULL)
-      jl_set(a, prop->name, prop->ptr);
-  }
-  return a;
-}
-*/
-
 JLVALUE *
 jl_cast(JLVALUE *val, JLTYPE type)
 {
@@ -344,6 +331,25 @@ jl_debug_obj(JLVALUE *obj, int indent)
 }
 
 void
+jl_debug_arr(JLVALUE *arr, int indent)
+{
+  if (HASH_COUNT(arr->object.map) == 0) {
+    printf("[]");
+    return;
+  }
+  bool first;
+  JLPROP *x, *tmp;
+  printf("[ ");
+  HASH_ITER(hh, arr->object.map, x, tmp) {
+    if (!first) 
+      printf(", ");
+    else first = false;
+    jl_debug((JLVALUE *)x->ptr, 0, false);
+  };
+  printf(" ]");
+}
+
+void
 jl_debug(JLVALUE *val, int indent, bool newline)
 {
   switch(val->type)
@@ -373,7 +379,10 @@ jl_debug(JLVALUE *val, int indent, bool newline)
       printf("undefined");
       break;
     case T_OBJECT:
-      jl_debug_obj(val, indent);
+      if (val->object.is_array)
+        jl_debug_arr(val, indent);
+      else
+        jl_debug_obj(val, indent);
       break;
   }
   if (newline) printf("\n");
@@ -383,11 +392,11 @@ void
 jl_debug_args(JLARGS *args)
 {
   bool first = true;
-  while(first || args->next != 0)
+  while(first || args->next != NULL)
   {
     if (!first)
       args = args->next;
-    if (args->arg != 0)
+    if (args->arg != NULL)
       JLDEBUG(args->arg);
     first = false;
   }

@@ -44,10 +44,11 @@ typedef enum JLNodeType {
   NODE_THIS,
   NODE_BLOCK,
   NODE_ARR,
+  NODE_EL_LST,
+  NODE_ELISION,
   NODE_OBJ,
   NODE_PROP,
   NODE_PROP_LST,
-  NODE_EL_LST,
   NODE_UNARY_POST,
   NODE_UNARY_PRE,
   NODE_CALL,
@@ -99,7 +100,8 @@ bool empty_node(JLNode *);
 #define NEW_UNPRE(a,op)            new_node(NODE_UNARY_PRE,a,0,0,0,op)
 #define NEW_EXPSTMT(exp)           new_node(NODE_EXP_STMT,exp,0,0,0,0)
 #define NEW_ASGN(a,b,op)           new_node(NODE_ASGN,a,b,0,0,op)
-#define NEW_ARR()                  new_node(NODE_ARR,0,0,0,0,0)
+#define NEW_ARR(ellst)             new_node(NODE_ARR,ellst,0,0,0,0)
+#define NEW_ELLST(head,tail)       new_node(NODE_EL_LST,head,tail,0,0,0)
 #define NEW_OBJ(proplst)           new_node(NODE_OBJ,proplst,0,0,0,0)
 #define NEW_PROP(name,exp)         new_node(NODE_PROP,name,exp,0,0,0)
 #define NEW_PROPLST(head,tail)     new_node(NODE_PROP_LST,head,tail,0,0,0)
@@ -110,6 +112,7 @@ bool empty_node(JLNode *);
 #define NEW_FUNC(params,body,id)   new_node(NODE_FUNC,params,body,id,0,0)
 #define NEW_FUNCDL(params,body,id) new_node(NODE_FUNC_DECL,params,body,id,0,0)
 #define NEW_PARAMLST(head,tail)    new_node(NODE_PARAM_LST,head,tail,0,0,0)
+#define NEW_ELISION()              new_node(NODE_ELISION,0,0,0,0,0)
 
 void print_indent(int); 
 void print_node(JLNode *, bool, int);

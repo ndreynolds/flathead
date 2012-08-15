@@ -173,19 +173,23 @@ Literal:
     ;
 
 ArrayLiteral:
-    '[' Elision ']'                                 { $$ = NEW_ARR(); }
-    | '[' ElementList ']'                           { $$ = NEW_ARR(); }
-    | '[' ElementList ',' Elision ']'               { $$ = NEW_ARR(); }
-    ;
-
-ElementList:
-    | Elision AssignmentExpression                  { $$ = NEW_ARR(); }
-    | ElementList ',' Elision AssignmentExpression  { $$ = NEW_ARR(); }
+    '[' ']'                            { $$ = NEW_ARR(NULL); }
+    | '[' Elision ']'                  { $$ = NEW_ARR(NULL); }
+    | '[' ElementList ']'              { $$ = NEW_ARR($2); }
+    | '[' ElementList ',' ']'          { $$ = NEW_ARR($2); }
+    | '[' ElementList ',' Elision ']'  { $$ = NEW_ARR($2); }
     ;
 
 Elision:
-    ','                   { $$ = NEW_ARR(); }
-    | Elision ','         { $$ = NEW_ARR(); }
+    ','                                { $$ = NEW_ELISION(); }
+    | Elision ','                      { $$ = NEW_ELISION(); }
+    ;
+
+ElementList:
+    AssignmentExpression                            { $$ = NEW_ELLST($1, NULL); }
+    | Elision AssignmentExpression                  { $$ = NEW_ELLST($2, NULL); }
+    | ElementList ',' AssignmentExpression          { $$ = NEW_ELLST($3, $1); }
+    | ElementList ',' Elision AssignmentExpression  { $$ = NEW_ELLST($4, $1); }
     ;
 
 BooleanLiteral:
