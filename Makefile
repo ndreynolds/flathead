@@ -6,11 +6,14 @@ COMPILER=gcc
 YACC=bison -y -d -t -v
 LEX=flex
 
-SRC_FILES=src/nodes.c src/eval.c src/runtime.c  
+MAIN=src/flathead.c
+SRC_FILES=src/nodes.c src/eval.c src/runtime.c
 LIB_FILES=lib/console.c lib/Math.c lib/Number.c
 OUT_FILE=-o bin/fh
 GRAMMAR_FILE=src/grammar.y
 LEX_FILE=src/lexer.l
+LEX_OUT=lex.yy.c
+YACC_OUT=y.tab.c
 
 all: clean default
 
@@ -28,10 +31,10 @@ clean:
 	rm -rf y.* lex.yy.c bin/fh* a.out
 
 debug: grammar lexer
-	$(COMPILER) -g $(OUT_FILE) y.tab.c lex.yy.c src/flathead.c $(LIB_FILES) $(SRC_FILES)
+	$(COMPILER) -g $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(MAIN) $(LIB_FILES) $(SRC_FILES) -lm
 
 install: default
 	cp bin/fh /usr/local/bin/
 	
 default: grammar lexer
-	$(COMPILER) $(OUT_FILE) y.tab.c lex.yy.c src/flathead.c $(LIB_FILES) $(SRC_FILES)
+	$(COMPILER) $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(MAIN) $(LIB_FILES) $(SRC_FILES) -lm

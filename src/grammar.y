@@ -28,7 +28,7 @@
   #define PR(x) print_node(x, true, 0)
   #define O(s)  puts(s)
 
-  void yyerror(char *);
+  void yyerror(const char *);
   int yylex(void);
   int yydebug;
   FILE *yyin;
@@ -397,7 +397,7 @@ ArgumentList:
 %%
 
 void 
-yyerror(char *s) 
+yyerror(const char *s) 
 {
   fprintf(stderr, "%s haha\n", s);
 }
