@@ -22,9 +22,15 @@
 #define T_XOR(a,b,t1,t2)   (a->type == t1 && b->type == t2 || a->type == t2 && b->type == t1)
 
 void fh_while(JSVALUE *, JSNODE *, JSNODE *);
-void fh_assign(JSVALUE *, char *, JSVALUE *, char *);
+void fh_var_stmt(JSVALUE *, JSNODE *);
+void fh_do_assign(JSVALUE *, char *, JSVALUE *, char *);
 JSARGS * fh_build_args(JSVALUE *, JSNODE *);
 JSVALUE * fh_eval(JSVALUE *, JSNODE *);
+JSVALUE * fh_exp(JSVALUE *, JSNODE *);
+JSVALUE * fh_if(JSVALUE *, JSNODE *);
+JSVALUE * fh_assign(JSVALUE *, JSNODE *);
+JSVALUE * fh_return(JSVALUE *, JSNODE *);
+JSVALUE * fh_prop_lst(JSVALUE *, JSNODE *);
 JSVALUE * fh_stmt_lst(JSVALUE *, JSNODE *);
 JSVALUE * fh_obj(JSVALUE *, JSNODE *);
 JSVALUE * fh_arr(JSVALUE *, JSNODE *);

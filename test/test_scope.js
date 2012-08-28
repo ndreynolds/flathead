@@ -22,6 +22,7 @@ var x = 1;
       assert(z == 3);
       // Nested scopes can set outer scope vars
       x = 5;
+      // TODO: add var decl lifts
 
       (function() {
         // Variable shadowing

@@ -81,7 +81,7 @@ assert((2 + 2) === 4);
 assert((3 - 7) === -4);
 assert((10 * 16) === 160);
 assert((9 / 3) === 3);
-assert((10 % 7) == 3);
+assert((10 % 7) === 3);
 
 
 // Logical

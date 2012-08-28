@@ -57,7 +57,8 @@ var testRunner = exports.testRunner = {
   onTestFail: function(fileName, err, stderr) {
     this.stats.failed++;
     console.log(this.colors.failure + '✖ ' + fileName + this.colors.reset);
-    console.error(err, '\n', stderr);
+    console.error(err);
+    console.error(stderr);
     if (this.stats.done()) this.finish();
   },
 

@@ -11,7 +11,7 @@ var f1 = function() {
 };
 
 var f2 = f1();
-assert(f2() == 42);
+assert(f2() === 42);
 
 // Return a function, access outer scope vars.
 var f3 = function() {
@@ -22,7 +22,7 @@ var f3 = function() {
 };
 
 var f4 = f3();
-assert(f4() == "vuvuzela");
+assert(f4() === "vuvuzela");
 
 // Return a function, modify outer scope vars.
 var f5 = function() {
@@ -33,9 +33,9 @@ var f5 = function() {
 };
 
 var f6 = f5();
-assert(f6() == 2);
-assert(f6() == 3);
-assert(f6() == 4);
+assert(f6() === 2);
+assert(f6() === 3);
+assert(f6() === 4);
 
 // Return an object of functions, assert they ref the same values. (hard mode)
 var f7 = function() {

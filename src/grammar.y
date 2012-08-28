@@ -36,6 +36,7 @@
 %}
 
 %error-verbose
+%locations
 
 /* LITERALS */
 
@@ -67,7 +68,7 @@
 /* Control */
 %token<val> BREAK CONTINUE RETURN
 /* Misc */
-%token<val> VAR THIS NULLT FUNCTION NEW
+%token<val> VAR THIS NULLT FUNCTION NEW DELETE
 
 
 /* ASSOCIATIVITY */
@@ -399,7 +400,8 @@ ArgumentList:
 void 
 yyerror(char *s) 
 {
-  fprintf(stderr, "%s haha\n", s);
+  fprintf(stderr, "%s\n  at Line %d:%d\n", s, yylloc.first_line, yylloc.first_column);
+  exit(1);
 }
 
 int 

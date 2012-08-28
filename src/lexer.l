@@ -3,9 +3,14 @@
 %{
   #include "y.tab.h"
   #include <stdlib.h>
-  void lyyerror(char *, char *);
+  void yyerror_alt(char *, char *);
+  int yycolumn = 1;
+  void yyuseraction(void);
   char * extract_string(char *);
+  #define YY_USER_ACTION yyuseraction();
 %}
+
+%option yylineno
 
 %%
 
@@ -19,6 +24,7 @@
 "continue"  return CONTINUE;
 "return"    return RETURN;
 "function"  return FUNCTION;
+"delete"    return DELETE;
 "new"       return NEW;
 "var"       return VAR;
 "null"      return NULLT;
@@ -55,16 +61,17 @@ L?'(\\.|[^\\'])*'            { yylval.val = extract_string(yytext); return STRIN
 "!=="       return STNE;
 
 [-+()\[\]=*/%<>,.:;!{}]  return *yytext;
-[ \t\n]     ; /* skip whitespace, newlines (until we do ASI) */
-<<EOF>>     return EOF;
-.           lyyerror("Parse error", yytext);
+[ \t\v\f]   ;
+\n          yycolumn = 0;
+<<EOF>>     { yycolumn = 0; return EOF; }
+.           yyerror_alt("Parse error", yytext);
 
 %%
   
 void
-lyyerror(char * error, char * val)
+yyerror_alt(char * error, char * val)
 {
-  fprintf(stderr, "%s: %s\n", error, val);
+  fprintf(stderr, "Line %d, %s: %s\n", yylloc.first_line, error, val);
 }
 
 int 
@@ -73,10 +80,19 @@ yywrap(void)
   return 1;
 }
 
+void
+yyuseraction(void)
+{
+  yylloc.first_line = yylloc.last_line = yylineno;
+  yylloc.first_column = yycolumn; 
+  yylloc.last_column = yycolumn + yyleng - 1;
+  yycolumn += yyleng; 
+}
+
 char *
 extract_string(char * src)
 {
-  char *dest = malloc(sizeof(char));
+  char *dest = malloc((strlen(src) - 1) * sizeof(char));
   int len = strlen(src);
   snprintf(dest, len - 1, "%.*s\n", len - 2, src + 1);
   return dest;

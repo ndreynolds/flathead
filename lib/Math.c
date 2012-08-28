@@ -1,7 +1,7 @@
 // Math.c
 // ------
 // Implementation of the Math object methods -- light wrappers 
-// around C library functions.
+// around math.h library functions.
 
 #include <math.h>
 #include "Math.h"

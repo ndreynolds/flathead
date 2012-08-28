@@ -36,7 +36,6 @@ fh_get(JSVALUE *obj, char *prop_name)
 JSPROP *
 fh_get_prop(JSVALUE *obj, char *name)
 {
-  //printf("GET PROP: %s\n", name);
   JSPROP *prop = NULL;
   HASH_FIND_STR(obj->object.map, name, prop);
   return prop;
@@ -273,7 +272,10 @@ fh_cast(JSVALUE *val, JSTYPE type)
   // Object => x
   if (val->type == T_OBJECT) {
     if (type == T_BOOLEAN) return JSBOOL(1);
-    if (type == T_NUMBER) return JSNAN();
+    if (type == T_NUMBER) {
+      if (val->object.is_array) return JSNUM(0);
+      return JSNAN();
+    }
     // TODO: Call Object.toString()
     if (type == T_STRING) return JSSTR("[Object object]");
   }

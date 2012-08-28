@@ -38,54 +38,68 @@ fh_eval(JSVALUE *ctx, JSNODE *node)
     case NODE_BLOCK: return fh_eval(ctx, node->e1);
     case NODE_STMT_LST: return fh_stmt_lst(ctx, node);
     case NODE_EXP_STMT: return fh_eval(ctx, node->e1);
+    case NODE_EXP: return fh_exp(ctx, node);
+    case NODE_IF: return fh_if(ctx, node);
+    case NODE_ASGN: return fh_assign(ctx, node);
+    case NODE_RETURN: return fh_return(ctx, node);
+    case NODE_PROP_LST: return fh_prop_lst(ctx, node);
+    case NODE_PROP: fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2)); break;
+    case NODE_WHILE: fh_while(ctx, node->e1, node->e2); break;
+    case NODE_VAR_STMT: fh_var_stmt(ctx, node); break;
     case NODE_EMPT_STMT: break;
-    case NODE_EXP:
-      if (node->sub_type == NODE_UNARY_POST) 
-        return fh_eval_postfix_exp(ctx, node);
-      else if (node->sub_type == NODE_UNARY_PRE)
-        return fh_eval_prefix_exp(ctx, node);
-      else
-        return fh_eval_bin_exp(ctx, node);
-    case NODE_ASGN:
-      // TODO: This assumes the Node at e1 is an ident, which won't
-      // always be true. 
-      fh_assign(
-        ctx, 
-        node->e1->sval,
-        fh_eval(ctx, node->e2),
-        node->sval
-      );
-      return fh_eval(ctx, node->e2);
-    case NODE_IF:
-      if (JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val)
-        return fh_eval(ctx, node->e2);
-      else if (node->e3 != NULL) 
-        return fh_eval(ctx, node->e3);
-    case NODE_PROP_LST:
-      rewind_node(node);
-      while(!node->visited) result = fh_eval(ctx, pop_node(node));
-      break;
-    case NODE_PROP:
-      fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
-      break;
-    case NODE_VAR_STMT:
-      if (node->e2 != NULL)
-        fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
-      else
-        fh_set(ctx, node->e1->sval, JSNULL());
-      break;
-    case NODE_WHILE:
-      fh_while(ctx, node->e1, node->e2);
-      break;
-    case NODE_RETURN:
-      result = node->e1 == NULL ? JSUNDEF() : fh_eval(ctx, node->e1);
-      if (result->type == T_FUNCTION) 
-        result->function.closure = ctx;
-      return result;
     default:
       fprintf(stderr, "Unsupported syntax type (%d)\n", node->type);
       exit(1);
   }
+  return result;
+}
+
+JSVALUE *
+fh_exp(JSVALUE *ctx, JSNODE *node)
+{
+  switch (node->sub_type) {
+    case NODE_UNARY_POST: 
+      return fh_eval_postfix_exp(ctx, node);
+    case NODE_UNARY_PRE:
+      return fh_eval_prefix_exp(ctx, node);
+    default:
+      return fh_eval_bin_exp(ctx, node);
+  }
+}
+
+JSVALUE *
+fh_if(JSVALUE *ctx, JSNODE *node)
+{
+  if (JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val)
+    return fh_eval(ctx, node->e2);
+  else if (node->e3 != NULL) 
+    return fh_eval(ctx, node->e3);
+}
+
+JSVALUE *
+fh_return(JSVALUE *ctx, JSNODE *node)
+{
+  JSVALUE *result = node->e1 == NULL ? JSUNDEF() : fh_eval(ctx, node->e1);
+  if (result->type == T_FUNCTION) 
+    result->function.closure = ctx;
+  return result;
+}
+
+void
+fh_var_stmt(JSVALUE *ctx, JSNODE *node)
+{
+  if (node->e2 != NULL)
+    fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
+  else
+    fh_set(ctx, node->e1->sval, JSNULL());
+}
+
+JSVALUE *
+fh_prop_lst(JSVALUE *ctx, JSNODE *node)
+{
+  JSVALUE *result;
+  rewind_node(node);
+  while(!node->visited) result = fh_eval(ctx, pop_node(node));
   return result;
 }
 
@@ -154,8 +168,20 @@ fh_member(JSVALUE *ctx, JSNODE *member)
   return b;
 }
 
+JSVALUE *
+fh_assign(JSVALUE *ctx, JSNODE *node)
+{
+  fh_do_assign(
+    ctx, 
+    node->e1->sval,
+    fh_eval(ctx, node->e2),
+    node->sval
+  );
+  return fh_eval(ctx, node->e2);
+}
+
 void 
-fh_assign(JSVALUE *obj, char *name, JSVALUE *val, char *op)
+fh_do_assign(JSVALUE *obj, char *name, JSVALUE *val, char *op)
 {
   if (STREQ(op, "=")) return fh_set_rec(obj, name, val);
 
