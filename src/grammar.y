@@ -83,317 +83,411 @@
 }
 
 %type<val> AssignmentOperator 
-%type<node> Program Statement Block VariableStatement EmptyStatement ExpressionStatement 
-IfStatement IterationStatement ContinueStatement BreakStatement ReturnStatement
-Literal NumericLiteral BooleanLiteral StringLiteral NullLiteral ArrayLiteral ObjectLiteral
-Identifier Expression PrimaryExpression LeftHandSideExpression UnaryExpression 
-PostfixExpression ShiftExpression RelationalExpression AdditiveExpression EqualityExpression
-BitwiseANDExpression BitwiseORExpression BitwiseXORExpression LogicalORExpression
-LogicalANDExpression MultiplicativeExpression ConditionalExpression StatementList
-AssignmentExpression ElementList SourceElements PropertyName PropertyAssignment PropertyNameAndValueList
-FunctionDeclaration FunctionBody FunctionExpression FormalParameterList CallExpression 
-MemberExpression NewExpression Arguments ArgumentList Elision
+
+%type<node> Program Statement Block VariableStatement EmptyStatement 
+%type<node> ExpressionStatement IfStatement IterationStatement ContinueStatement 
+%type<node> BreakStatement ReturnStatement Literal NumericLiteral BooleanLiteral 
+%type<node> StringLiteral NullLiteral ArrayLiteral ObjectLiteral Identifier 
+%type<node> Expression PrimaryExpression LeftHandSideExpression UnaryExpression 
+%type<node> PostfixExpression ShiftExpression RelationalExpression 
+%type<node> AdditiveExpression EqualityExpression BitwiseANDExpression 
+%type<node> BitwiseORExpression BitwiseXORExpression LogicalORExpression
+%type<node> LogicalANDExpression MultiplicativeExpression ConditionalExpression 
+%type<node> StatementList AssignmentExpression ElementList SourceElements 
+%type<node> PropertyName PropertyAssignment PropertyNameAndValueList 
+%type<node> FunctionDeclaration FunctionBody FunctionExpression 
+%type<node> FormalParameterList CallExpression MemberExpression NewExpression 
+%type<node> Arguments ArgumentList Elision
 
 %%
 
-Program:
-    SourceElements                                    { root = $1; }
-    ;
+Program                  : SourceElements                                    
+                             { root = $1; }
+                         ;
 
-SourceElements:
-    StatementList                                     { $$ = $1; }
-    | Block                                           { $$ = $1; }
-    | FunctionDeclaration                             { $$ = $1; }
-    ;
+SourceElements           : StatementList                                     
+                             { $$ = $1; }
+                         | Block                                           
+                             { $$ = $1; }
+                         | FunctionDeclaration                             
+                             { $$ = $1; }
+                         ;
 
-Statement:
-    Block                                             { $$ = $1; }
-    | VariableStatement                               { $$ = $1; }
-    | EmptyStatement                                  { $$ = $1; }
-    | ExpressionStatement                             { $$ = $1; }
-    | IfStatement                                     { $$ = $1; }
-    | IterationStatement                              { $$ = $1; }
-    | ContinueStatement                               { $$ = $1; }
-    | BreakStatement                                  { $$ = $1; }
-    | ReturnStatement                                 { $$ = $1; }
-    ;
+Statement                : Block                                             
+                             { $$ = $1; }
+                         | VariableStatement                               
+                             { $$ = $1; }
+                         | EmptyStatement                                  
+                             { $$ = $1; }
+                         | ExpressionStatement                             
+                             { $$ = $1; }
+                         | IfStatement                                     
+                             { $$ = $1; }
+                         | IterationStatement                              
+                             { $$ = $1; }
+                         | ContinueStatement                               
+                             { $$ = $1; }
+                         | BreakStatement                                  
+                             { $$ = $1; }
+                         | ReturnStatement                                 
+                             { $$ = $1; }
+                         ;
 
-Block:
-    '{' StatementList '}'                             { $$ = NEW_BLOCK($2); }
-    ;
+Block                    : '{' StatementList '}'                             
+                             { $$ = NEW_BLOCK($2); }
+                         ;
 
-StatementList:
-    Statement                                         { $$ = NEW_STMTLST($1, NULL); } 
-    | StatementList Statement                         { $$ = NEW_STMTLST($2, $1); }
-    ;
+StatementList            : Statement                                         
+                             { $$ = NEW_STMTLST($1, NULL); } 
+                         | StatementList Statement                         
+                             { $$ = NEW_STMTLST($2, $1); }
+                         ;
 
-VariableStatement:
-    VAR Identifier ';'                                { $$ = NEW_VARSTMT($2, NULL); }
-    | VAR Identifier '=' AssignmentExpression ';'     { $$ = NEW_VARSTMT($2, $4); }
-    ;
+VariableStatement        : VAR Identifier ';'                                
+                             { $$ = NEW_VARSTMT($2, NULL); }
+                         | VAR Identifier '=' AssignmentExpression ';'     
+                             { $$ = NEW_VARSTMT($2, $4); }
+                         ;
 
-EmptyStatement:
-    ';'                                               { $$ = NEW_EMPTSTMT(); }
-    ;
+EmptyStatement           : ';'                                               
+                             { $$ = NEW_EMPTSTMT(); }
+                         ;
 
-ExpressionStatement:
-    Expression ';'                                    { $$ = NEW_EXPSTMT($1); }
-    ;
+ExpressionStatement      : Expression ';'                                    
+                             { $$ = NEW_EXPSTMT($1); }
+                         ;
 
-IfStatement:
-    IF '(' Expression ')' Statement ELSE Statement    { $$ = NEW_IF($3, $5, $7); }
-    | IF '(' Expression ')' Statement                 { $$ = NEW_IF($3, $5, NULL); }
-    ;
+IfStatement              : IF '(' Expression ')' Statement ELSE Statement    
+                             { $$ = NEW_IF($3, $5, $7); }
+                         | IF '(' Expression ')' Statement                 
+                             { $$ = NEW_IF($3, $5, NULL); }
+                         ;
 
-IterationStatement:
-    DO Statement WHILE '(' Expression ')'                               { $$ = NEW_DOWHILE($2, $5); }
-    | WHILE '(' Expression ')' Statement                                { $$ = NEW_WHILE($3, $5); }
-    | FOR '(' Expression ';' Expression ';' Expression ')' Statement    { $$ = NEW_FOR($3, $5, $7); }
-    ;
+IterationStatement       : DO Statement WHILE '(' Expression ')'                               
+                             { $$ = NEW_DOWHILE($2, $5); }
+                         | WHILE '(' Expression ')' Statement                                
+                             { $$ = NEW_WHILE($3, $5); }
+                         | FOR '(' Expression ';' Expression ';' Expression ')' Statement    
+                             { $$ = NEW_FOR($3, $5, $7); }
+                         ;
 
-ContinueStatement:
-    CONTINUE ';'                       { $$ = NEW_CONT(); }
-    ;
+ContinueStatement        : CONTINUE ';'                       
+                             { $$ = NEW_CONT(); }
+                         ;
 
-BreakStatement:
-    BREAK ';'                          { $$ = NEW_BREAK(); }
-    ;
+BreakStatement           : BREAK ';'                          
+                             { $$ = NEW_BREAK(); }
+                         ;
 
-ReturnStatement:
-    RETURN ';'                         { $$ = NEW_RETURN(NULL); }
-    | RETURN Expression ';'            { $$ = NEW_RETURN($2); }
-    ;
+ReturnStatement          : RETURN ';'                         
+                             { $$ = NEW_RETURN(NULL); }
+                         | RETURN Expression ';'            
+                             { $$ = NEW_RETURN($2); }
+                         ;
 
-Literal:
-    NullLiteral                        { $$ = $1; }
-    | BooleanLiteral                   { $$ = $1; }
-    | NumericLiteral                   { $$ = $1; }
-    | StringLiteral                    { $$ = $1; }
-    | ObjectLiteral                    { $$ = $1; }
-    ;
+Literal                  : NullLiteral                        
+                             { $$ = $1; }
+                         | BooleanLiteral                   
+                             { $$ = $1; }
+                         | NumericLiteral                   
+                             { $$ = $1; }
+                         | StringLiteral                    
+                             { $$ = $1; }
+                         | ObjectLiteral                    
+                             { $$ = $1; }
+                         ;
 
-ArrayLiteral:
-    '[' ']'                            { $$ = NEW_ARR(NULL); }
-    | '[' Elision ']'                  { $$ = NEW_ARR(NULL); }
-    | '[' ElementList ']'              { $$ = NEW_ARR($2); }
-    | '[' ElementList ',' ']'          { $$ = NEW_ARR($2); }
-    | '[' ElementList ',' Elision ']'  { $$ = NEW_ARR($2); }
-    ;
+ArrayLiteral             : '[' ']'                            
+                             { $$ = NEW_ARR(NULL); }
+                         | '[' Elision ']'                  
+                             { $$ = NEW_ARR(NULL); }
+                         | '[' ElementList ']'              
+                             { $$ = NEW_ARR($2); }
+                         | '[' ElementList ',' ']'          
+                             { $$ = NEW_ARR($2); }
+                         | '[' ElementList ',' Elision ']'  
+                             { $$ = NEW_ARR($2); }
+                         ;
 
-Elision:
-    ','                                { $$ = NEW_ELISION(); }
-    | Elision ','                      { $$ = NEW_ELISION(); }
-    ;
+Elision                  : ','                                
+                             { $$ = NEW_ELISION(); }
+                         | Elision ','                      
+                             { $$ = NEW_ELISION(); }
+                         ;
 
-ElementList:
-    AssignmentExpression                            { $$ = NEW_ELLST($1, NULL); }
-    | Elision AssignmentExpression                  { $$ = NEW_ELLST($2, NULL); }
-    | ElementList ',' AssignmentExpression          { $$ = NEW_ELLST($3, $1); }
-    | ElementList ',' Elision AssignmentExpression  { $$ = NEW_ELLST($4, $1); }
-    ;
+ElementList              : AssignmentExpression                            
+                             { $$ = NEW_ELLST($1, NULL); }
+                         | Elision AssignmentExpression                  
+                             { $$ = NEW_ELLST($2, NULL); }
+                         | ElementList ',' AssignmentExpression          
+                             { $$ = NEW_ELLST($3, $1); }
+                         | ElementList ',' Elision AssignmentExpression  
+                             { $$ = NEW_ELLST($4, $1); }
+                         ;
 
-BooleanLiteral:
-    TRUE                  { $$ = NEW_BOOL(1); }
-    | FALSE               { $$ = NEW_BOOL(0); }
-    ;
+BooleanLiteral           : TRUE                  
+                             { $$ = NEW_BOOL(1); }
+                         | FALSE               
+                             { $$ = NEW_BOOL(0); }
+                         ;
 
-StringLiteral:
-    STRING                { $$ = NEW_STR($1); }
-    ;
+StringLiteral            : STRING                
+                             { $$ = NEW_STR($1); }
+                         ;
 
-NullLiteral:
-    NULLT                 { $$ = NEW_NULL(); }
-    ;
+NullLiteral              : NULLT                 
+                             { $$ = NEW_NULL(); }
+                         ;
 
-NumericLiteral:
-    INTEGER               { $$ = NEW_NUM((double)$1); }
-    | FLOAT               { $$ = NEW_NUM($1); }
-    ;
+NumericLiteral           : INTEGER               
+                             { $$ = NEW_NUM((double)$1); }
+                         | FLOAT               
+                             { $$ = NEW_NUM($1); }
+                         ;
 
-ObjectLiteral:
-    '{' '}'                                { $$ = NEW_OBJ(NULL); }
-    | '{' PropertyNameAndValueList '}'     { $$ = NEW_OBJ($2); }
-    | '{' PropertyNameAndValueList ',' '}' { $$ = NEW_OBJ($2); }
-    ;
-       
-PropertyNameAndValueList:
-    PropertyAssignment                                 { $$ = NEW_PROPLST($1, NULL); }
-    | PropertyNameAndValueList ',' PropertyAssignment  { $$ = NEW_PROPLST($3, $1); }
-    ;
+ObjectLiteral            : '{' '}'                                
+                             { $$ = NEW_OBJ(NULL); }
+                         | '{' PropertyNameAndValueList '}'     
+                             { $$ = NEW_OBJ($2); }
+                         | '{' PropertyNameAndValueList ',' '}' 
+                             { $$ = NEW_OBJ($2); }
+                         ;
+                           
+PropertyNameAndValueList : PropertyAssignment                                 
+                             { $$ = NEW_PROPLST($1, NULL); }
+                         | PropertyNameAndValueList ',' PropertyAssignment  
+                             { $$ = NEW_PROPLST($3, $1); }
+                         ;
 
-PropertyAssignment:
-    PropertyName ':' AssignmentExpression  { $$ = NEW_PROP($1, $3); }
-    ;
+PropertyAssignment       : PropertyName ':' AssignmentExpression  
+                             { $$ = NEW_PROP($1, $3); }
+                         ;
 
-PropertyName:
-    Identifier                    { $$ = $1; }
-    | StringLiteral               { $$ = $1; }
-    | NumericLiteral              { $$ = $1; }
-    ;
+PropertyName             : Identifier                    
+                             { $$ = $1; }
+                         | StringLiteral               
+                             { $$ = $1; }
+                         | NumericLiteral              
+                             { $$ = $1; }
+                         ;
 
-FunctionDeclaration:
-    FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}'   { $$ = NEW_FUNCDL($4, $7, $2); }
-    ;
+FunctionDeclaration      : FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}'   
+                             { $$ = NEW_FUNCDL($4, $7, $2); }
+                         ;
 
-FunctionExpression:
-    FUNCTION '(' FormalParameterList ')' '{' FunctionBody '}'              { $$ = NEW_FUNC($3, $6, NULL); }
-    | FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}' { $$ = NEW_FUNC($4, $7, $2); }
-    | FUNCTION Identifier '(' ')' '{' FunctionBody '}'                     { $$ = NEW_FUNC(NULL, $6, $2); }
-    | FUNCTION '(' ')' '{' FunctionBody '}'                                { $$ = NEW_FUNC(NULL, $5, NULL); }
-    ;
+FunctionExpression       : FUNCTION '(' FormalParameterList ')' '{' FunctionBody '}'              
+                             { $$ = NEW_FUNC($3, $6, NULL); }
+                         | FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}' 
+                             { $$ = NEW_FUNC($4, $7, $2); }
+                         | FUNCTION Identifier '(' ')' '{' FunctionBody '}'                     
+                             { $$ = NEW_FUNC(NULL, $6, $2); }
+                         | FUNCTION '(' ')' '{' FunctionBody '}'                                
+                             { $$ = NEW_FUNC(NULL, $5, NULL); }
+                         ;
 
-FormalParameterList:
-    Identifier                             { $$ = NEW_PARAMLST($1, NULL); }
-    | FormalParameterList ',' Identifier   { $$ = NEW_PARAMLST($3, $1); }
-    ;
+FormalParameterList      : Identifier                             
+                             { $$ = NEW_PARAMLST($1, NULL); }
+                         | FormalParameterList ',' Identifier   
+                             { $$ = NEW_PARAMLST($3, $1); }
+                         ;
 
-FunctionBody:
-    SourceElements        { $$ = $1; }
-    ;
+FunctionBody             : SourceElements        
+                             { $$ = $1; }
+                         ;
 
-Identifier:
-    IDENT                 { $$ = NEW_IDENT($1); }
-    ;
+Identifier               : IDENT                 
+                             { $$ = NEW_IDENT($1); }
+                         ;
 
-PrimaryExpression:
-    THIS                  { $$ = NEW_THIS(); }
-    | Identifier          { $$ = $1; }
-    | Literal             { $$ = $1; }
-    | ArrayLiteral        { $$ = $1; }
-    | '(' Expression ')'  { $$ = $2; }
-    ;
+PrimaryExpression        : THIS                  
+                             { $$ = NEW_THIS(); }
+                         | Identifier          
+                             { $$ = $1; }
+                         | Literal             
+                             { $$ = $1; }
+                         | ArrayLiteral        
+                             { $$ = $1; }
+                         | '(' Expression ')'  
+                             { $$ = $2; }
+                         ;
 
-ConditionalExpression:
-    LogicalORExpression                                  { $$ = $1; }
-    ;
+ConditionalExpression    : LogicalORExpression                                  
+                             { $$ = $1; }
+                         ;
 
-LogicalORExpression:
-    LogicalANDExpression                                 { $$ = $1; }
-    | LogicalORExpression OR LogicalANDExpression        { $$ = NEW_EXP($1, $3, "||"); }
-    ;
+LogicalORExpression      : LogicalANDExpression                                 
+                             { $$ = $1; }
+                         | LogicalORExpression OR LogicalANDExpression        
+                             { $$ = NEW_EXP($1, $3, "||"); }
+                         ;
 
-LogicalANDExpression:
-    BitwiseORExpression                                  { $$ = $1; }
-    | LogicalANDExpression AND BitwiseORExpression       { $$ = NEW_EXP($1, $3, "&&"); }
-    ;
+LogicalANDExpression     : BitwiseORExpression                                  
+                             { $$ = $1; }
+                         | LogicalANDExpression AND BitwiseORExpression       
+                             { $$ = NEW_EXP($1, $3, "&&"); }
+                         ;
 
-BitwiseORExpression:
-    BitwiseXORExpression                                 { $$ = $1; }
-    | BitwiseORExpression '|' BitwiseXORExpression       { $$ = NEW_EXP($1, $3, "|"); }
-    ;
+BitwiseORExpression      : BitwiseXORExpression                                 
+                             { $$ = $1; }
+                         | BitwiseORExpression '|' BitwiseXORExpression       
+                             { $$ = NEW_EXP($1, $3, "|"); }
+                         ;
 
-BitwiseXORExpression:
-    BitwiseANDExpression                                 { $$ = $1; }
-    | BitwiseXORExpression '^' BitwiseANDExpression      { $$ = NEW_EXP($1, $3, "^"); }
-    ;
+BitwiseXORExpression     : BitwiseANDExpression                                 
+                             { $$ = $1; }
+                         | BitwiseXORExpression '^' BitwiseANDExpression      
+                             { $$ = NEW_EXP($1, $3, "^"); }
+                         ;
 
-BitwiseANDExpression:
-    EqualityExpression                                   { $$ = $1; }
-    | BitwiseANDExpression '&' EqualityExpression        { $$ = NEW_EXP($1, $3, "&"); }
-    ;
+BitwiseANDExpression     : EqualityExpression                                   
+                             { $$ = $1; }
+                         | BitwiseANDExpression '&' EqualityExpression        
+                             { $$ = NEW_EXP($1, $3, "&"); }
+                         ;
 
-EqualityExpression:
-    RelationalExpression                                 { $$ = $1; }
-    | EqualityExpression EQEQ RelationalExpression       { $$ = NEW_EXP($1, $3, "=="); }
-    | EqualityExpression NE RelationalExpression         { $$ = NEW_EXP($1, $3, "!="); }
-    | EqualityExpression STEQ RelationalExpression       { $$ = NEW_EXP($1, $3, "==="); }
-    | EqualityExpression STNE RelationalExpression       { $$ = NEW_EXP($1, $3, "!=="); }
-    ;
+EqualityExpression       : RelationalExpression                                 
+                             { $$ = $1; }
+                         | EqualityExpression EQEQ RelationalExpression       
+                             { $$ = NEW_EXP($1, $3, "=="); }
+                         | EqualityExpression NE RelationalExpression         
+                             { $$ = NEW_EXP($1, $3, "!="); }
+                         | EqualityExpression STEQ RelationalExpression       
+                             { $$ = NEW_EXP($1, $3, "==="); }
+                         | EqualityExpression STNE RelationalExpression       
+                             { $$ = NEW_EXP($1, $3, "!=="); }
+                         ;
 
-RelationalExpression: 
-    ShiftExpression                                      { $$ = $1; }
-    | RelationalExpression '<' ShiftExpression           { $$ = NEW_EXP($1, $3, "<"); }
-    | RelationalExpression '>' ShiftExpression           { $$ = NEW_EXP($1, $3, ">"); }
-    | RelationalExpression LTE ShiftExpression           { $$ = NEW_EXP($1, $3, "<="); }
-    | RelationalExpression GTE ShiftExpression           { $$ = NEW_EXP($1, $3, ">="); }
+RelationalExpression     : ShiftExpression
+                             { $$ = $1; }
+                         | RelationalExpression '<' ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, "<"); }
+                         | RelationalExpression '>' ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, ">"); }
+                         | RelationalExpression LTE ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, "<="); }
+                         | RelationalExpression GTE ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, ">="); }
+                         ;
 
-ShiftExpression:
-    AdditiveExpression                                   { $$ = $1; }
-    | ShiftExpression LSHIFT AdditiveExpression          { $$ = NEW_EXP($1, $3, $2); }
-    | ShiftExpression RSHIFT AdditiveExpression          { $$ = NEW_EXP($1, $3, $2); }
-    ;
+ShiftExpression          : AdditiveExpression  
+                             { $$ = $1; }
+                         | ShiftExpression LSHIFT AdditiveExpression          
+                             { $$ = NEW_EXP($1, $3, $2); }
+                         | ShiftExpression RSHIFT AdditiveExpression          
+                             { $$ = NEW_EXP($1, $3, $2); }
+                         ;
 
-AdditiveExpression:
-    MultiplicativeExpression                             { $$ = $1; }
-    | AdditiveExpression '+' MultiplicativeExpression    { $$ = NEW_EXP($1, $3, "+"); }
-    | AdditiveExpression '-' MultiplicativeExpression    { $$ = NEW_EXP($1, $3, "-"); }
-    ;
+AdditiveExpression       : MultiplicativeExpression                             
+                             { $$ = $1; }
+                         | AdditiveExpression '+' MultiplicativeExpression    
+                             { $$ = NEW_EXP($1, $3, "+"); }
+                         | AdditiveExpression '-' MultiplicativeExpression    
+                             { $$ = NEW_EXP($1, $3, "-"); }
+                         ;
 
-MultiplicativeExpression:
-    UnaryExpression                                      { $$ = $1; }
-    | MultiplicativeExpression '*' UnaryExpression       { $$ = NEW_EXP($1, $3, "*"); }
-    | MultiplicativeExpression '/' UnaryExpression       { $$ = NEW_EXP($1, $3, "/"); }
-    | MultiplicativeExpression '%' UnaryExpression       { $$ = NEW_EXP($1, $3, "%"); }
-    ;
+MultiplicativeExpression : UnaryExpression
+                             { $$ = $1; }
+                         | MultiplicativeExpression '*' UnaryExpression       
+                             { $$ = NEW_EXP($1, $3, "*"); }
+                         | MultiplicativeExpression '/' UnaryExpression       
+                             { $$ = NEW_EXP($1, $3, "/"); }
+                         | MultiplicativeExpression '%' UnaryExpression       
+                             { $$ = NEW_EXP($1, $3, "%"); }
+                         ;
 
-UnaryExpression:
-    PostfixExpression                                    { $$ = $1; }
-    | PLUSPLUS UnaryExpression                           { $$ = NEW_UNPRE($2, "++"); }
-    | MINUSMINUS UnaryExpression                         { $$ = NEW_UNPRE($2, "--"); }
-    | '+' UnaryExpression                                { $$ = NEW_UNPRE($2, "+"); }
-    | '-' UnaryExpression                                { $$ = NEW_UNPRE($2, "-"); }
-    | '!' UnaryExpression                                { $$ = NEW_UNPRE($2, "!"); }
-    ;
+UnaryExpression          : PostfixExpression                                    
+                             { $$ = $1; }
+                         | PLUSPLUS UnaryExpression                           
+                             { $$ = NEW_UNPRE($2, "++"); }
+                         | MINUSMINUS UnaryExpression                         
+                             { $$ = NEW_UNPRE($2, "--"); }
+                         | '+' UnaryExpression                                
+                             { $$ = NEW_UNPRE($2, "+"); }
+                         | '-' UnaryExpression                                
+                             { $$ = NEW_UNPRE($2, "-"); }
+                         | '!' UnaryExpression                                
+                             { $$ = NEW_UNPRE($2, "!"); }
+                         ;
 
-PostfixExpression:
-    LeftHandSideExpression                               { $$ = $1; }
-    | LeftHandSideExpression PLUSPLUS                    { $$ = NEW_UNPOST($1, "++"); }
-    | LeftHandSideExpression MINUSMINUS                  { $$ = NEW_UNPOST($1, "--"); }
-    ;
+PostfixExpression        : LeftHandSideExpression                               
+                             { $$ = $1; }
+                         | LeftHandSideExpression PLUSPLUS                    
+                             { $$ = NEW_UNPOST($1, "++"); }
+                         | LeftHandSideExpression MINUSMINUS                  
+                             { $$ = NEW_UNPOST($1, "--"); }
+                         ;
 
-Expression:
-    AssignmentExpression                                 { $$ = $1; }
-    | Expression ',' AssignmentExpression                { $$ = NEW_ASGN($1, $3, 0); }
-    ;
+Expression               : AssignmentExpression                                 
+                             { $$ = $1; }
+                         | Expression ',' AssignmentExpression                
+                             { $$ = NEW_ASGN($1, $3, 0); }
+                         ;
 
-AssignmentExpression:
-    ConditionalExpression                                                 { $$ = $1; }
-    | LeftHandSideExpression '=' AssignmentExpression                     { $$ = NEW_ASGN($1, $3, "="); }
-    | LeftHandSideExpression AssignmentOperator AssignmentExpression      { $$ = NEW_ASGN($1, $3, $2); }
-    ;
+AssignmentExpression     : ConditionalExpression                                                 
+                             { $$ = $1; }
+                         | LeftHandSideExpression '=' AssignmentExpression                     
+                             { $$ = NEW_ASGN($1, $3, "="); }
+                         | LeftHandSideExpression AssignmentOperator AssignmentExpression      
+                             { $$ = NEW_ASGN($1, $3, $2); }
+                         ;
 
-AssignmentOperator:
-    PLUSEQ                                    { $$ = "+="; }
-    | MINUSEQ                                 { $$ = "-="; }
-    | MULTEQ                                  { $$ = "*="; }
-    | DIVEQ                                   { $$ = "/="; }
-    | MODEQ                                   { $$ = "%="; }
-    ;
+AssignmentOperator       : PLUSEQ                                    
+                             { $$ = "+="; }
+                         | MINUSEQ                                 
+                             { $$ = "-="; }
+                         | MULTEQ                                  
+                             { $$ = "*="; }
+                         | DIVEQ                                   
+                             { $$ = "/="; }
+                         | MODEQ                                   
+                             { $$ = "%="; }
+                         ;
 
-LeftHandSideExpression:
-    NewExpression                             { $$ = $1; }
-    | CallExpression                          { $$ = $1; }
-    ;
+LeftHandSideExpression   : NewExpression                             
+                             { $$ = $1; }
+                         | CallExpression                          
+                             { $$ = $1; }
+                         ;
 
-CallExpression:
-    MemberExpression Arguments                { $$ = NEW_CALL($1, $2); }
-    | CallExpression Arguments                { $$ = NEW_CALL($1, $2); }
-    | CallExpression '[' Expression ']'       { $$ = NEW_CALL($1, $3); }
-    | CallExpression '.' Identifier           { $$ = NEW_CALL($1, $3); }
-    ;
+CallExpression           : MemberExpression Arguments                
+                             { $$ = NEW_CALL($1, $2); }
+                         | CallExpression Arguments                
+                             { $$ = NEW_CALL($1, $2); }
+                         | CallExpression '[' Expression ']'       
+                             { $$ = NEW_CALL($1, $3); }
+                         | CallExpression '.' Identifier           
+                             { $$ = NEW_CALL($1, $3); }
+                         ;
 
-NewExpression:
-    MemberExpression                          { $$ = $1; }
-    | NEW NewExpression                       { $$ = NEW_NEW($2); }
-    ;
+NewExpression            : MemberExpression                          
+                             { $$ = $1; }
+                         | NEW NewExpression                       
+                             { $$ = NEW_NEW($2); }
+                         ;
 
-MemberExpression:
-    PrimaryExpression                         { $$ = $1; }
-    | FunctionExpression                      { $$ = $1; }
-    | MemberExpression '[' Expression ']'     { $$ = NEW_MEMBER($3, $1); }
-    | MemberExpression '.' Identifier         { $$ = NEW_MEMBER($3, $1); }
-    | NEW MemberExpression Arguments          { $$ = NEW_NEW(NEW_MEMBER($3, $2)); }
-    ;
+MemberExpression         : PrimaryExpression                         
+                             { $$ = $1; }
+                         | FunctionExpression                      
+                             { $$ = $1; }
+                         | MemberExpression '[' Expression ']'     
+                             { $$ = NEW_MEMBER($3, $1); }
+                         | MemberExpression '.' Identifier         
+                             { $$ = NEW_MEMBER($3, $1); }
+                         | NEW MemberExpression Arguments          
+                             { $$ = NEW_NEW(NEW_MEMBER($3, $2)); }
+                         ;
 
-Arguments:
-    '(' ')'                                   { $$ = NEW_ARGLST(NULL, NULL); }
-    | '(' ArgumentList ')'                    { $$ = $2; }
-    ;
+Arguments                : '(' ')'                                   
+                             { $$ = NEW_ARGLST(NULL, NULL); }
+                         | '(' ArgumentList ')'                    
+                             { $$ = $2; }
+                         ;
 
-ArgumentList:
-    AssignmentExpression                      { $$ = NEW_ARGLST($1, NULL); }
-    | ArgumentList ',' AssignmentExpression   { $$ = NEW_ARGLST($3, $1); }
-    ;
+ArgumentList             : AssignmentExpression                      
+                             { $$ = NEW_ARGLST($1, NULL); }
+                         | ArgumentList ',' AssignmentExpression   
+                             { $$ = NEW_ARGLST($3, $1); }
+                         ;
 
 %%
 
