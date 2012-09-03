@@ -403,3 +403,30 @@ fh_debug_args(JSARGS *args)
     first = false;
   }
 }
+
+JSVALUE *
+fh_get_arg(JSARGS *args, int n)
+{
+  int i;
+  for (i=0; i<=n; i++) {
+    if (i == n) 
+      return args->arg != NULL ? args->arg : JSNULL();
+    if (args->next == NULL) 
+      break;
+    args = args->next;
+  }
+  return JSNULL();
+}
+
+int
+fh_arg_len(JSARGS *args)
+{
+  int i = 0;
+  while(1)
+  {
+    if (args->arg != NULL) i++;
+    if (args->next == NULL) break;
+    args = args->next;
+  }
+  return i;
+}

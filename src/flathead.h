@@ -31,7 +31,11 @@ bool fhdebug;
 
 #define STREQ(a,b)  (strcmp((a),(b)) == 0)
 
-typedef enum JSTYPE {
+#define JSARGS        JSArgs
+#define JSPROP        JSProp
+#define JSTYPE        JSType
+
+typedef enum JSType {
   T_NUMBER,
   T_STRING,
   T_BOOLEAN,
@@ -39,14 +43,14 @@ typedef enum JSTYPE {
   T_FUNCTION,
   T_NULL,
   T_UNDEF
-} JSTYPE;
+} JSType;
 
-typedef struct JSARGS {
+typedef struct JSArgs {
   void *arg;
   void *next;
-} JSARGS;
+} JSArgs;
 
-typedef struct JSPROP {
+typedef struct JSProp {
   char *name;
   bool writable;
   bool enumerable;
@@ -54,7 +58,7 @@ typedef struct JSPROP {
   bool circular;
   void *ptr;
   UT_hash_handle hh;
-} JSPROP;
+} JSProp;
 
 struct JSNumber {
   double val;
@@ -121,6 +125,7 @@ JSVALUE * fh_new_object();
 JSVALUE * fh_new_function(void *);
 JSVALUE * fh_new_native_function(JSNATVFUNC);
 JSARGS * fh_new_args();
+JSVALUE * fh_get_arg(JSARGS*, int);
 
 JSVALUE * fh_cast(JSVALUE *, JSTYPE);
 char * fh_typeof(JSVALUE *);
@@ -129,6 +134,7 @@ void fh_debug_obj(JSVALUE *, int);
 void fh_debug_arr(JSVALUE *, int);
 void fh_debug_args(JSARGS *);
 void fh_debug(JSVALUE *, int, bool);
+int fh_arg_len(JSARGS*);
 
 #define JSBOOL(x)     fh_new_boolean((x))
 #define JSSTR(x)      fh_new_string((x))
@@ -144,6 +150,8 @@ void fh_debug(JSVALUE *, int, bool);
 #define JSCAST(x, t)  fh_cast((x), (t))
 #define JSDEBUG(x)    fh_debug((x),0,1);
 
-#define GETARG(args)  ((args)->arg == NULL ? JSUNDEF() : (args)->arg)       
+#define GETARG(args)      ((args)->arg == NULL ? JSUNDEF() : (args)->arg)       
+#define GETARGN(args, n)  fh_get_arg((args), (n))
+#define ARGLEN(args)      fh_arg_len((args))
 
 #endif

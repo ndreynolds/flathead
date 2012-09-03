@@ -32,6 +32,7 @@ clean:
 
 debug: grammar lexer
 	$(COMPILER) -g $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(MAIN) $(LIB_FILES) $(SRC_FILES) -lm
+	gdb bin/fh
 
 install: default
 	cp bin/fh /usr/local/bin/
