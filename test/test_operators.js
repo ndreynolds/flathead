@@ -121,3 +121,6 @@ assert(1.00000001 > 1);
 assert(2 >= 2);
 var x = 1;
 assert(x < 2);
+
+assert("a" < "b" && "b" > "a");
+assert("aardvark" < "aardwolf" && "aardwolf" > "aardvark");

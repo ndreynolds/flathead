@@ -309,8 +309,7 @@ fh_eval_prefix_exp(JSVALUE *ctx, JSNODE *node)
   if (STREQ(op, "+"))
     return JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
   if (STREQ(op, "!"))
-    return JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val == 1 ? 
-      JSBOOL(0) : JSBOOL(1);
+    return JSBOOL(!JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val);
   if (STREQ(op, "-")) {
     JSVALUE *x = JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
     if (x->number.is_inf) return JSNINF();
@@ -363,11 +362,9 @@ fh_eval_bin_exp(JSVALUE *ctx, JSNODE *node)
   if (STREQ(op, "<")) return fh_lt(a, b);
   if (STREQ(op, ">")) return fh_gt(a, b);
   if (STREQ(op, "<=")) 
-    return fh_lt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val ?
-      JSBOOL(1) : JSBOOL(0);
+    return JSBOOL(fh_lt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val);
   if (STREQ(op, ">="))
-    return fh_gt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val ?
-      JSBOOL(1) : JSBOOL(0);
+    return JSBOOL(fh_gt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val);
 }
 
 JSVALUE *
@@ -459,7 +456,7 @@ fh_eq(JSVALUE *a, JSVALUE *b, bool strict)
   if (T_XOR(a, b, T_UNDEF, T_NULL)) return JSBOOL(1);
   if (T_BOTH(a, b, T_NULL) || T_BOTH(a, b, T_UNDEF)) return JSBOOL(1);
   if (T_BOTH(a, b, T_STRING))
-    return STREQ(a->string.ptr, b->string.ptr) ? JSBOOL(1) : JSBOOL(0);
+    return JSBOOL(STREQ(a->string.ptr, b->string.ptr));
   if (T_BOTH(a, b, T_NUMBER)) {
     // Nothing equals NaN
     if (a->number.is_nan || b->number.is_nan) return JSBOOL(0);
@@ -469,11 +466,11 @@ fh_eq(JSVALUE *a, JSVALUE *b, bool strict)
         return JSBOOL(1);
       return JSBOOL(0);
     }
-    return a->number.val == b->number.val ? JSBOOL(1) : JSBOOL(0);
+    return JSBOOL(a->number.val == b->number.val);
   }
   // Objects are equal if they occupy the same memory address
   if (T_BOTH(a, b, T_OBJECT))
-    return a == b ? JSBOOL(1) : JSBOOL(0);
+    return JSBOOL(a == b);
 
   return fh_eq(JSCAST(a, T_NUMBER), JSCAST(b, T_NUMBER), false);
 }
@@ -482,7 +479,7 @@ JSVALUE *
 fh_neq(JSVALUE *a, JSVALUE *b, bool strict)
 {
   // Invert the result of fh_eq
-  return fh_eq(a, b, strict)->boolean.val ? JSBOOL(0) : JSBOOL(1);
+  return JSBOOL(!fh_eq(a, b, strict)->boolean.val);
 }
 
 JSVALUE *
@@ -493,19 +490,17 @@ fh_gt(JSVALUE *a, JSVALUE *b)
     if (a->number.is_nan || b->number.is_nan) return JSBOOL(0);
     if (a->number.is_inf) return JSBOOL(1);
     if (b->number.is_inf) return JSBOOL(0);
-    return a->number.val > b->number.val ? JSBOOL(1) : JSBOOL(0);
+    return JSBOOL(a->number.val > b->number.val);
   }
-  if (T_BOTH(a, b, T_STRING)) {
-    // TODO: Lexicographic comparison
-  }
+  if (T_BOTH(a, b, T_STRING)) 
+    return JSBOOL(strcmp(a->string.ptr, b->string.ptr) > 0);
 }
 
 JSVALUE *
 fh_lt(JSVALUE *a, JSVALUE *b)
 {
   // !(a > b || a == b)
-  return fh_gt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val ?
-    JSBOOL(0) : JSBOOL(1);
+  return JSBOOL(!(fh_gt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val));
 }
 
 JSVALUE *
