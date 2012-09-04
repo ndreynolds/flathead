@@ -64,6 +64,7 @@ struct JSNumber {
   double val;
   bool is_nan;
   bool is_inf;
+  bool is_neg;
 };
 
 struct JSString {
@@ -118,7 +119,7 @@ JSVALUE * fh_get_rec(JSVALUE *, char *);
 
 JSVALUE * fh_alloc_val();
 JSVALUE * fh_new_val(JSTYPE);
-JSVALUE * fh_new_number(double, bool, bool);
+JSVALUE * fh_new_number(double, bool, bool, bool);
 JSVALUE * fh_new_string(char *);
 JSVALUE * fh_new_boolean(bool);
 JSVALUE * fh_new_object();
@@ -136,22 +137,23 @@ void fh_debug_args(JSARGS *);
 void fh_debug(JSVALUE *, int, bool);
 int fh_arg_len(JSARGS*);
 
-#define JSBOOL(x)     fh_new_boolean((x))
-#define JSSTR(x)      fh_new_string((x))
+#define JSBOOL(x)     fh_new_boolean(x)
+#define JSSTR(x)      fh_new_string(x)
 #define JSNULL()      fh_new_val(T_NULL)
 #define JSUNDEF()     fh_new_val(T_UNDEF)
-#define JSNUM(x)      fh_new_number((x),0,0)
-#define JSNAN()       fh_new_number(0,1,0)
-#define JSINF()       fh_new_number(0,0,1)
+#define JSNUM(x)      fh_new_number(x,0,0,0)
+#define JSNAN()       fh_new_number(0,1,0,0)
+#define JSINF(n)      fh_new_number(0,0,1,0)
+#define JSNINF(n)     fh_new_number(0,0,1,1)
 #define JSOBJ()       fh_new_object()
 #define JSFUNC(x)     fh_new_function(x)
 #define JSNFUNC(x)    fh_new_native_function(x)
 
-#define JSCAST(x, t)  fh_cast((x), (t))
-#define JSDEBUG(x)    fh_debug((x),0,1);
+#define JSCAST(x,t)   fh_cast(x,t)
+#define JSDEBUG(x)    fh_debug(x,0,1);
 
 #define GETARG(args)      ((args)->arg == NULL ? JSUNDEF() : (args)->arg)       
-#define GETARGN(args, n)  fh_get_arg((args), (n))
-#define ARGLEN(args)      fh_arg_len((args))
+#define GETARGN(args, n)  fh_get_arg(args, n)
+#define ARGLEN(args)      fh_arg_len(args)
 
 #endif

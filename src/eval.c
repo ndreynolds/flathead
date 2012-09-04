@@ -308,11 +308,15 @@ fh_eval_prefix_exp(JSVALUE *ctx, JSNODE *node)
   char *op = node->sval;
   if (STREQ(op, "+"))
     return JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
-  if (STREQ(op, "-"))
-    return JSNUM(-1 * JSCAST(fh_eval(ctx, node->e1), T_NUMBER)->number.val);
   if (STREQ(op, "!"))
     return JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val == 1 ? 
       JSBOOL(0) : JSBOOL(1);
+  if (STREQ(op, "-")) {
+    JSVALUE *x = JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
+    if (x->number.is_inf) return JSNINF();
+    if (x->number.is_nan) return JSNAN();
+    return JSNUM(-1 * x->number.val);
+  }
 
   // Increment and decrement.
   JSVALUE *old_val = JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
@@ -456,9 +460,15 @@ fh_eq(JSVALUE *a, JSVALUE *b, bool strict)
   if (T_BOTH(a, b, T_NULL) || T_BOTH(a, b, T_UNDEF)) return JSBOOL(1);
   if (T_BOTH(a, b, T_STRING))
     return STREQ(a->string.ptr, b->string.ptr) ? JSBOOL(1) : JSBOOL(0);
-  if (T_BOTH(a, b, T_NUMBER)) { 
+  if (T_BOTH(a, b, T_NUMBER)) {
     // Nothing equals NaN
     if (a->number.is_nan || b->number.is_nan) return JSBOOL(0);
+    if (a->number.is_inf || b->number.is_inf) {
+      if (a->number.is_inf && b->number.is_inf && 
+          a->number.is_neg == b->number.is_neg) 
+        return JSBOOL(1);
+      return JSBOOL(0);
+    }
     return a->number.val == b->number.val ? JSBOOL(1) : JSBOOL(0);
   }
   // Objects are equal if they occupy the same memory address

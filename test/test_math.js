@@ -142,7 +142,7 @@ assertEquals(1, Math.round(1.1));
 assertEquals(1, Math.round(1.49999));
 assertEquals(-1, Math.round(-0.7));
 assertEquals(-1, Math.round(-1.5));
-// TODO: assertEquals(-0, Math.round(-0.5));
+assertEquals(-0, Math.round(-0.5));
 
 // Math.sin
 assertEquals(0, Math.sin(0));

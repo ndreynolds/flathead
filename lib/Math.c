@@ -14,6 +14,7 @@ math_abs(JSARGS *args)
 {
   JSVALUE *x = JSCAST(GETARG(args), T_NUMBER);
   if (x->number.is_nan) return JSNAN();
+  if (x->number.is_inf) return JSINF();
   return JSNUM(fabs(x->number.val));
 }
 
@@ -55,6 +56,8 @@ JSVALUE *
 math_ceil(JSARGS *args)
 {
   JSVALUE *x = JSCAST(GETARG(args), T_NUMBER);
+  if (x->number.is_inf) 
+    return x->number.is_neg ? JSNINF() : JSINF();
   return JSNUM(ceil(x->number.val));
 }
 
@@ -79,6 +82,8 @@ JSVALUE *
 math_floor(JSARGS *args)
 {
   JSVALUE *x = JSCAST(GETARG(args), T_NUMBER);
+  if (x->number.is_inf) 
+    return x->number.is_neg ? JSNINF() : JSINF();
   return JSNUM(floor(x->number.val));
 }
 
@@ -95,7 +100,7 @@ JSVALUE *
 math_max(JSARGS *args)
 {
   int length = ARGLEN(args);
-  if (length == 0) return JSINF();
+  if (length == 0) return JSNINF();
   if (length == 2) {
     JSVALUE *x = JSCAST(GETARGN(args, 0), T_NUMBER),
             *y = JSCAST(GETARGN(args, 1), T_NUMBER);

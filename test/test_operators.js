@@ -17,6 +17,7 @@ var numString = "3.14";
 
 assert(+numString === 3.14);
 assert(-numString === -3.14);
+assert(-Infinity !== Infinity);
 assert(!numString === false);
 assert(!!numString === true);
 assert(!false === true);

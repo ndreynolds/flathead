@@ -11,7 +11,7 @@ bootstrap_number()
 
   fh_set(number, "MAX_VALUE", JSNUM(DBL_MAX));
   fh_set(number, "MIN_VALUE", JSNUM(DBL_MIN));
-  fh_set(number, "NEGATIVE_INFINITY", JSINF()); // TODO: +/-
+  fh_set(number, "NEGATIVE_INFINITY", JSNINF());
   fh_set(number, "POSITIVE_INFINITY", JSINF());
   fh_set(number, "NaN", JSNAN());
 

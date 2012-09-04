@@ -135,12 +135,13 @@ fh_new_val(JSTYPE type)
 }
 
 JSVALUE *
-fh_new_number(double x, bool is_nan, bool is_inf)
+fh_new_number(double x, bool is_nan, bool is_inf, bool is_neg)
 {
   JSVALUE *val = fh_new_val(T_NUMBER);
   val->number.val = x;
   val->number.is_nan = is_nan;
   val->number.is_inf = is_inf;
+  val->number.is_neg = is_neg;
   return val;
 }
 
@@ -361,10 +362,10 @@ fh_debug(JSVALUE *val, int indent, bool newline)
       printf("%s", !val->boolean.val ? "false" : "true");
       break;
     case T_NUMBER:
-      if (val->number.is_nan) 
+      if (val->number.is_nan)
         printf("NaN");
       else if (val->number.is_inf) 
-        printf("Infinity");
+        printf("%sInfinity", val->number.is_neg ? "-" : "");
       else 
         printf("%g", val->number.val);
       break;
