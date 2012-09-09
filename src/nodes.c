@@ -18,21 +18,22 @@
 
 #include "nodes.h"
 
-JSNODE *
+Node *
 alloc_node()
 {
   // Allocate and return a new node
-  struct JSNODE *node = malloc(sizeof(struct JSNODE));
+  struct Node *node = malloc(sizeof(struct Node));
   node->type = NODE_UNKNOWN;
   node->sub_type = NODE_UNKNOWN;
   node->visited = false;
   return node;
 }
 
-JSNODE *
-new_node(enum JSNodeType type, JSNODE *e1, JSNODE *e2, JSNODE *e3, double x, char *s)
+Node *
+new_node(enum NodeType type, Node *e1, Node *e2, Node *e3, 
+         double x, char *s, int line, int column)
 {
-  JSNODE *node = alloc_node();
+  Node *node = alloc_node();
 
   // Assign expression subtypes
   if (type == NODE_UNARY_POST || type == NODE_UNARY_PRE) {
@@ -48,6 +49,9 @@ new_node(enum JSNodeType type, JSNODE *e1, JSNODE *e2, JSNODE *e3, double x, cha
   node->e2 = e2;
   node->e3 = e3;
 
+  node->line = line;
+  node->column = column;
+
   if (type == NODE_NUM || type == NODE_BOOL) node->val = x;
   if (s != 0) {
     node->sval = malloc((strlen(s) + 1) * sizeof(char));
@@ -56,8 +60,8 @@ new_node(enum JSNodeType type, JSNODE *e1, JSNODE *e2, JSNODE *e3, double x, cha
   return node;
 }
 
-JSNODE *
-pop_node(JSNODE *node)
+Node *
+pop_node(Node *node)
 {
   // Several of our AST nodes follow the pattern:
   //  
@@ -75,13 +79,13 @@ pop_node(JSNODE *node)
 }
 
 bool
-empty_node(JSNODE *node)
+empty_node(Node *node)
 {
   return node->visited;
 }
 
 void
-rewind_node(JSNODE *node)
+rewind_node(Node *node)
 {
   // Unset visited on a node linked list.
   if (node->e1 == 0) return;
@@ -97,7 +101,7 @@ print_indent(int indent)
 }
 
 void 
-print_node(JSNODE *node, bool rec, int depth)
+print_node(Node *node, bool rec, int depth)
 {
   print_indent(depth); 
   switch(node->type)

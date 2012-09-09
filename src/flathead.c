@@ -16,39 +16,37 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdio.h>
 #include "flathead.h"
 
-JSVALUE *
-fh_get(JSVALUE *obj, char *prop_name)
+JSValue *
+fh_get(JSValue *obj, char *prop_name)
 {
   // We can't read properties from undefined.
-  if (obj->type == T_UNDEF) {
-    fprintf(stderr, "TypeError: Cannot read property '%s' of undefined\n", prop_name);
-    exit(1);
-  }
-  JSPROP *prop = fh_get_prop(obj, prop_name);
+  if (obj->type == T_UNDEF)
+    fh_error(NULL, "TypeError: Cannot read property '%s' of undefined", prop_name);
+
+  JSProp *prop = fh_get_prop(obj, prop_name);
   // But we'll happily return undefined if a property doesn't exist.
   if (prop == NULL) return JSUNDEF();
   return prop->ptr;
 }
 
-JSPROP *
-fh_get_prop(JSVALUE *obj, char *name)
+JSProp *
+fh_get_prop(JSValue *obj, char *name)
 {
-  JSPROP *prop = NULL;
+  JSProp *prop = NULL;
   HASH_FIND_STR(obj->object.map, name, prop);
   return prop;
 }
 
 void
-fh_set(JSVALUE *obj, char *name, JSVALUE *val)
+fh_set(JSValue *obj, char *name, JSValue *val)
 {
   // TODO: Handle undeclared assignment properly; set prop flags
   bool add = false;
-  JSPROP *prop = fh_get_prop(obj, name);
+  JSProp *prop = fh_get_prop(obj, name);
   if (prop == NULL) {
-    prop = malloc(sizeof(JSPROP));
+    prop = malloc(sizeof(JSProp));
     add = true;
   }
   prop->name = malloc((strlen(name) + 1) * sizeof(char));
@@ -65,17 +63,17 @@ fh_set(JSVALUE *obj, char *name, JSVALUE *val)
  * Look for a property on an object and return its value, 
  * checking parent scopes.
  */
-JSVALUE *
-fh_get_rec(JSVALUE *obj, char *name) 
+JSValue *
+fh_get_rec(JSValue *obj, char *name) 
 {
-  JSPROP *prop = fh_get_prop_rec(obj, name);
-  return prop == NULL ?  JSUNDEF() : (JSVALUE *)prop->ptr;
+  JSProp *prop = fh_get_prop_rec(obj, name);
+  return prop == NULL ?  JSUNDEF() : prop->ptr;
 }
 
-JSPROP *
-fh_get_prop_rec(JSVALUE *obj, char *name)
+JSProp *
+fh_get_prop_rec(JSValue *obj, char *name)
 {
-  JSPROP *prop = fh_get_prop(obj, name);
+  JSProp *prop = fh_get_prop(obj, name);
   // If not found here, check the parent object.
   if (prop == NULL && obj->object.parent != NULL)
     return fh_get_prop_rec(obj->object.parent, name);
@@ -90,16 +88,16 @@ fh_get_prop_rec(JSVALUE *obj, char *name)
  * This is used in undeclared assignment.
  */
 void
-fh_set_rec(JSVALUE *obj, char *name, JSVALUE *val)
+fh_set_rec(JSValue *obj, char *name, JSValue *val)
 {
-  JSVALUE *scope_to_set = obj;
-  JSVALUE *parent;
+  JSValue *scope_to_set = obj;
+  JSValue *parent;
 
   // Try and find the property in a parent scope.
-  JSPROP *prop = fh_get_prop(obj, name);
+  JSProp *prop = fh_get_prop(obj, name);
   while(prop == NULL) {
     if (obj->object.parent != NULL) {
-      parent = (JSVALUE *)obj->object.parent;
+      parent = obj->object.parent;
       prop = fh_get_prop(parent, name);
       obj = parent;
       continue;
@@ -118,26 +116,26 @@ fh_gc()
   // TODO: Mark and Sweep
 }
 
-JSVALUE *
+JSValue *
 fh_alloc_val()
 {
-  JSVALUE *val = malloc(sizeof(JSVALUE));
+  JSValue *val = malloc(sizeof(JSValue));
   val->type = T_NULL;
   return val;
 }
 
-JSVALUE *
-fh_new_val(JSTYPE type)
+JSValue *
+fh_new_val(JSType type)
 {
-  JSVALUE *val = malloc(sizeof(JSVALUE));
+  JSValue *val = malloc(sizeof(JSValue));
   val->type = type;
   return val;
 }
 
-JSVALUE *
+JSValue *
 fh_new_number(double x, bool is_nan, bool is_inf, bool is_neg)
 {
-  JSVALUE *val = fh_new_val(T_NUMBER);
+  JSValue *val = fh_new_val(T_NUMBER);
   val->number.val = x;
   val->number.is_nan = is_nan;
   val->number.is_inf = is_inf;
@@ -145,52 +143,61 @@ fh_new_number(double x, bool is_nan, bool is_inf, bool is_neg)
   return val;
 }
 
-JSVALUE *
+JSValue *
 fh_new_string(char *x)
 {
-  JSVALUE *val = fh_new_val(T_STRING);
+  JSValue *val = fh_new_val(T_STRING);
   val->string.ptr = malloc((strlen(x) + 1) * sizeof(char));
   strcpy(val->string.ptr, x);
   val->string.len = strlen(x);
   return val;
 }
 
-JSVALUE *
+JSValue *
 fh_new_boolean(bool x)
 {
-  JSVALUE *val = fh_new_val(T_BOOLEAN);
+  JSValue *val = fh_new_val(T_BOOLEAN);
   val->boolean.val = x;
   return val;
 }
 
-JSVALUE *
+JSValue *
 fh_new_object()
 {
-  JSVALUE *val = fh_new_val(T_OBJECT);
-  JSPROP *map = NULL;
+  JSValue *val = fh_new_val(T_OBJECT);
+  JSProp *map = NULL;
   val->object.map = map;
   return val;
 }
 
-JSVALUE *
-fh_new_function(void *node)
+JSValue *
+fh_new_function(struct Node *node)
 {
-  JSVALUE *val = fh_new_val(T_FUNCTION);
+  JSValue *val = fh_new_val(T_FUNCTION);
   val->function.node = node;
   return val;
 }
 
-JSVALUE *
-fh_new_native_function(JSNATVFUNC func)
+JSValue *
+fh_new_native_function(JSNativeFunction func)
 {
-  JSVALUE *val = fh_new_val(T_FUNCTION);
+  JSValue *val = fh_new_val(T_FUNCTION);
   val->function.is_native = true;
   val->function.native = func;
   return val;
 }
 
+State *
+fh_new_state(int line, int column)
+{
+  State *state = malloc(sizeof(State));
+  state->line = line;
+  state->column = column;
+  return state;
+}
+
 char *
-fh_typeof(JSVALUE *value) 
+fh_typeof(JSValue *value) 
 {
   /* Per Table 20 of the ECMA5 spec: */
   switch(value->type) 
@@ -220,8 +227,8 @@ fh_str_concat(char *dst, char *new)
   return dst;
 }
 
-JSVALUE *
-fh_cast(JSVALUE *val, JSTYPE type)
+JSValue *
+fh_cast(JSValue *val, JSType type)
 {
   if (val->type == type) return val;
   if (type == T_NULL) return JSNULL();
@@ -303,14 +310,25 @@ fh_cast(JSVALUE *val, JSTYPE type)
 }
 
 void
-fh_debug_obj(JSVALUE *obj, int indent)
+fh_error(State *state, const char *tpl, ...)
+{
+  va_list ap;
+  va_start(ap, tpl);
+  vfprintf(stderr, tpl, ap);
+  va_end(ap);
+  fprintf(stderr, "\n  at Line %d:%d", state->line, state->column);
+  exit(1);
+}
+
+void
+fh_debug_obj(JSValue *obj, int indent)
 {
   if (HASH_COUNT(obj->object.map) == 0) {
     printf("{}");
     return;
   }
 
-  JSPROP *x, *tmp;
+  JSProp *x, *tmp;
   int i;
   bool first = true;
 
@@ -328,32 +346,32 @@ fh_debug_obj(JSVALUE *obj, int indent)
     printf(" %s: ", x->name);
     x->circular ? 
       printf("[Circular]") : 
-      fh_debug((JSVALUE *)x->ptr, indent+3, false);
+      fh_debug(x->ptr, indent+3, false);
   };
   printf(" }");
 }
 
 void
-fh_debug_arr(JSVALUE *arr, int indent)
+fh_debug_arr(JSValue *arr, int indent)
 {
   if (HASH_COUNT(arr->object.map) == 0) {
     printf("[]");
     return;
   }
   bool first;
-  JSPROP *x, *tmp;
+  JSProp *x, *tmp;
   printf("[ ");
   HASH_ITER(hh, arr->object.map, x, tmp) {
     if (!first) 
       printf(", ");
     else first = false;
-    fh_debug((JSVALUE *)x->ptr, 0, false);
+    fh_debug(x->ptr, 0, false);
   };
   printf(" ]");
 }
 
 void
-fh_debug(JSVALUE *val, int indent, bool newline)
+fh_debug(JSValue *val, int indent, bool newline)
 {
   switch(val->type)
   {
@@ -392,7 +410,7 @@ fh_debug(JSVALUE *val, int indent, bool newline)
 }
 
 void
-fh_debug_args(JSARGS *args)
+fh_debug_args(JSArgs *args)
 {
   bool first = true;
   while(first || args->next != NULL)
@@ -405,8 +423,8 @@ fh_debug_args(JSARGS *args)
   }
 }
 
-JSVALUE *
-fh_get_arg(JSARGS *args, int n)
+JSValue *
+fh_get_arg(JSArgs *args, int n)
 {
   int i;
   for (i=0; i<=n; i++) {
@@ -420,7 +438,7 @@ fh_get_arg(JSARGS *args, int n)
 }
 
 int
-fh_arg_len(JSARGS *args)
+fh_arg_len(JSArgs *args)
 {
   int i = 0;
   while(1)

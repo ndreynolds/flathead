@@ -60,6 +60,14 @@ assert(NaN != NaN && NaN !== NaN);
 assert(Infinity == Infinity && Infinity === Infinity);
 assert(2 == '2' && 2 !== '2');
 
+assert('' != '0');
+assert(0 == '');
+assert(0 == '0');
+assert(false != 'false');
+assert(false == '0');
+assert(false != undefined);
+assert(false != null);
+
 var obj = {};
 var differentObj = {};
 assert(obj == obj && obj === obj);
@@ -91,14 +99,14 @@ assert(0 || 12);
 assert("A" && "B");
 
 // From developer.mozilla.org/en-US/docs/JavaScript/Guide/Expressions_and_Operators:
-assert((true && true) === true);   
+assert((true && true) === true);
 assert((true && false) === false);
 assert((false && true) === false);
 assert((false && (3 == 4)) === false);
 assert(("Cat" && "Dog") === "Dog");
 assert((false && "Cat") === false);
 assert(("Cat" && false) === false);
-assert((true || true) === true); 
+assert((true || true) === true);
 assert((false || true) === true);
 assert((true || false) === true);
 assert((false || (3 == 4)) === false);
@@ -119,8 +127,7 @@ assert(2 <= 2);
 assert(2 > 1);
 assert(1.00000001 > 1);
 assert(2 >= 2);
-var x = 1;
-assert(x < 2);
-
 assert("a" < "b" && "b" > "a");
 assert("aardvark" < "aardwolf" && "aardwolf" > "aardvark");
+var x = 1;
+assert(x < 2);

@@ -9,21 +9,21 @@
 void
 test_values_can_be_set_as_a_property_on_an_object()
 {
-  JSVALUE *val = JSNUM(1);
-  JSVALUE *obj = JSOBJ();
+  JSValue *val = JSNUM(1);
+  JSValue *obj = JSOBJ();
 
   // Assign the value to the object under the property name "my_number"
   fh_set(obj, "my_number", val);
 
   // Retrieve the property from the object.
-  JSPROP *prop = fh_get_prop(obj, "my_number");
+  JSProp *prop = fh_get_prop(obj, "my_number");
 
   TEST(prop != 0);
   TEST(prop->ptr == val);
   TEST(STREQ(prop->name, "my_number"));
 
   // Retrieve the value directly
-  JSVALUE *found_val = fh_get(obj, "my_number");
+  JSValue *found_val = fh_get(obj, "my_number");
 
   TEST(found_val == val);
 }
@@ -31,15 +31,15 @@ test_values_can_be_set_as_a_property_on_an_object()
 void
 test_multiple_properties_can_be_set_on_an_object()
 {
-  JSVALUE *val1 = JSBOOL(1);
-  JSVALUE *val2 = JSBOOL(0);
-  JSVALUE *obj = JSOBJ();
+  JSValue *val1 = JSBOOL(1);
+  JSValue *val2 = JSBOOL(0);
+  JSValue *obj = JSOBJ();
 
   fh_set(obj, "my_true", val1);
   fh_set(obj, "my_false", val2);
   
-  JSVALUE *found1 = fh_get(obj, "my_true");
-  JSVALUE *found2 = fh_get(obj, "my_false");
+  JSValue *found1 = fh_get(obj, "my_true");
+  JSValue *found2 = fh_get(obj, "my_false");
 
   TEST(found1 == val1);
   TEST(found2 == val2);
@@ -48,10 +48,10 @@ test_multiple_properties_can_be_set_on_an_object()
 void
 test_looking_up_an_undefined_property_returns_undefined()
 {
-  JSVALUE *obj = JSOBJ();
+  JSValue *obj = JSOBJ();
 
-  JSPROP *prop = fh_get_prop(obj, "foobar"); 
-  JSVALUE *val = fh_get(obj, "foobar");
+  JSProp *prop = fh_get_prop(obj, "foobar"); 
+  JSValue *val = fh_get(obj, "foobar");
 
   TEST(prop == NULL);
   TEST(val->type == T_UNDEF);
@@ -60,9 +60,9 @@ test_looking_up_an_undefined_property_returns_undefined()
 void
 test_property_values_can_be_reassigned_to_an_object()
 {
-  JSVALUE *some_number = JSNUM(15);
-  JSVALUE *some_string = JSSTR("the string");
-  JSVALUE *obj = JSOBJ();
+  JSValue *some_number = JSNUM(15);
+  JSValue *some_string = JSSTR("the string");
+  JSValue *obj = JSOBJ();
 
   // First assign 15 to obj.x
   fh_set(obj, "x", some_number);
@@ -76,11 +76,11 @@ test_property_values_can_be_reassigned_to_an_object()
 void
 test_circular_references_are_handled()
 {
-  JSVALUE *obj = JSOBJ();
+  JSValue *obj = JSOBJ();
 
   fh_set(obj, "this", obj);
 
-  JSVALUE *found = fh_get_rec(obj, "this");
+  JSValue *found = fh_get_rec(obj, "this");
 
   TEST(found == obj);
 }
@@ -88,11 +88,11 @@ test_circular_references_are_handled()
 void
 test_recursive_property_gets_retrieve_a_property_from_parent_scope()
 {
-  JSVALUE *grandparent = JSOBJ();
-  JSVALUE *parent = JSOBJ();
-  JSVALUE *child = JSOBJ();
+  JSValue *grandparent = JSOBJ();
+  JSValue *parent = JSOBJ();
+  JSValue *child = JSOBJ();
 
-  JSVALUE *val = JSSTR("Jack"); 
+  JSValue *val = JSSTR("Jack"); 
 
   parent->object.parent = grandparent;
   child->object.parent = parent;
@@ -108,10 +108,10 @@ test_recursive_property_gets_retrieve_a_property_from_parent_scope()
 void
 test_undeclared_assignment_checks_parent_scope()
 {
-  JSVALUE *some_number = JSNUM(42);
-  JSVALUE *another_number = JSNUM(24);
-  JSVALUE *parent = JSOBJ();
-  JSVALUE *child = JSOBJ();
+  JSValue *some_number = JSNUM(42);
+  JSValue *another_number = JSNUM(24);
+  JSValue *parent = JSOBJ();
+  JSValue *child = JSOBJ();
 
   // Set up x on the parent object, and link the child to the parent.
   fh_set(parent, "x", some_number);

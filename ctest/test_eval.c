@@ -118,7 +118,7 @@ test_equality()
   TEST(fh_eq(JSBOOL(1), JSBOOL(1), false)->boolean.val == 1);
   TEST(fh_eq(JSBOOL(1), JSNUM(1), false)->boolean.val == 1);
 
-  JSVALUE *obj = JSOBJ();
+  JSValue *obj = JSOBJ();
   TEST(fh_eq(obj, obj, false)->boolean.val == 1);
 
   // NaN still doesn't equal NaN
@@ -137,7 +137,7 @@ test_strict_equality()
   TEST(fh_eq(JSNUM(42), JSNUM(42), true)->boolean.val == 1);
   TEST(fh_eq(JSNAN(), JSNAN(), true)->boolean.val == 0);
 
-  JSVALUE *obj = JSOBJ();
+  JSValue *obj = JSOBJ();
   TEST(fh_eq(obj, obj, true)->boolean.val == 1);
 }
 

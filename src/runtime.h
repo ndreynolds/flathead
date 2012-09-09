@@ -18,6 +18,8 @@
 
 #include "flathead.h"
 
-JSVALUE * fh_bootstrap(void);
-JSVALUE * fh_is_nan(JSARGS *);
-JSVALUE * fh_is_finite(JSARGS *);
+JSValue * is_nan(JSArgs *, State *);
+JSValue * is_finite(JSArgs *, State *);
+JSValue * parse_float(JSArgs *, State *);
+JSValue * parse_int(JSArgs *, State *);
+JSValue * fh_bootstrap(void);

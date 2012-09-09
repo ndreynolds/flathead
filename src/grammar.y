@@ -24,15 +24,49 @@
   #include "src/runtime.h"
 
   #define YYDEBUG 0
-  #define P(x)  print_node(x, false, 0)
-  #define PR(x) print_node(x, true, 0)
-  #define O(s)  puts(s)
+
+  #define NEW_NODE(t,e1,e2,e3,d,s)   new_node(t,e1,e2,e3,d,s,yylloc.first_line,yylloc.first_column)
+  #define NEW_IDENT(name)            NEW_NODE(NODE_IDENT,0,0,0,0,name)
+  #define NEW_VARSTMT(ident,exp)     NEW_NODE(NODE_VAR_STMT,ident,exp,0,0,0)
+  #define NEW_WHILE(cnd,blck)        NEW_NODE(NODE_WHILE,cnd,blck,0,0,0)
+  #define NEW_DOWHILE(cnd,blck)      NEW_NODE(NODE_DOWHILE,cnd,blck,0,0,0)
+  #define NEW_BLOCK(stmtlst)         NEW_NODE(NODE_BLOCK,stmtlst,0,0,0,0)
+  #define NEW_STMTLST(head,tail)     NEW_NODE(NODE_STMT_LST,head,tail,0,0,0)
+  #define NEW_IF(cnd,ifb,elseb)      NEW_NODE(NODE_IF,cnd,ifb,elseb,0,0)
+  #define NEW_FOR(init,cnd,post)     NEW_NODE(NODE_FOR,init,cnd,post,0,0)
+  #define NEW_NUM(x)                 NEW_NODE(NODE_NUM,0,0,0,x,0)
+  #define NEW_BOOL(x)                NEW_NODE(NODE_BOOL,0,0,0,x,0)
+  #define NEW_STR(x)                 NEW_NODE(NODE_STR,0,0,0,0,x)
+  #define NEW_NULL()                 NEW_NODE(NODE_NULL,0,0,0,0,0)
+  #define NEW_RETURN(exp)            NEW_NODE(NODE_RETURN,exp,0,0,0,0)
+  #define NEW_CONT()                 NEW_NODE(NODE_CONT,0,0,0,0,0)
+  #define NEW_BREAK()                NEW_NODE(NODE_BREAK,0,0,0,0,0)
+  #define NEW_THIS()                 NEW_NODE(NODE_THIS,0,0,0,0,0)
+  #define NEW_EMPTSTMT()             NEW_NODE(NODE_EMPT_STMT,0,0,0,0,0)
+  #define NEW_EXP(a,b,op)            NEW_NODE(NODE_EXP,a,b,0,0,op)
+  #define NEW_UNPOST(a,op)           NEW_NODE(NODE_UNARY_POST,a,0,0,0,op)
+  #define NEW_UNPRE(a,op)            NEW_NODE(NODE_UNARY_PRE,a,0,0,0,op)
+  #define NEW_EXPSTMT(exp)           NEW_NODE(NODE_EXP_STMT,exp,0,0,0,0)
+  #define NEW_ASGN(a,b,op)           NEW_NODE(NODE_ASGN,a,b,0,0,op)
+  #define NEW_ARR(ellst)             NEW_NODE(NODE_ARR,ellst,0,0,0,0)
+  #define NEW_ELLST(head,tail)       NEW_NODE(NODE_EL_LST,head,tail,0,0,0)
+  #define NEW_OBJ(proplst)           NEW_NODE(NODE_OBJ,proplst,0,0,0,0)
+  #define NEW_PROP(name,exp)         NEW_NODE(NODE_PROP,name,exp,0,0,0)
+  #define NEW_PROPLST(head,tail)     NEW_NODE(NODE_PROP_LST,head,tail,0,0,0)
+  #define NEW_ARGLST(head,tail)      NEW_NODE(NODE_ARG_LST,head,tail,0,0,0)
+  #define NEW_CALL(call,args)        NEW_NODE(NODE_CALL,call,args,0,0,0);
+  #define NEW_NEW(exp)               NEW_NODE(NODE_NEW,exp,0,0,0,0);
+  #define NEW_MEMBER(head,tail)      NEW_NODE(NODE_MEMBER,head,tail,0,0,0)
+  #define NEW_FUNC(params,body,id)   NEW_NODE(NODE_FUNC,params,body,id,0,0)
+  #define NEW_FUNCDL(params,body,id) NEW_NODE(NODE_FUNC_DECL,params,body,id,0,0)
+  #define NEW_PARAMLST(head,tail)    NEW_NODE(NODE_PARAM_LST,head,tail,0,0,0)
+  #define NEW_ELISION()              NEW_NODE(NODE_ELISION,0,0,0,0,0)
 
   void yyerror(const char *);
   int yylex(void);
   int yydebug;
   FILE *yyin;
-  struct JSNODE *root;
+  Node *root;
 %}
 
 %error-verbose
@@ -76,10 +110,10 @@
 %left '+' '-' '*' '%' '/' AND OR
 
 %union {
-  char * val;
+  char *val;
   int intval;
   double floatval;
-  struct JSNODE * node;
+  struct Node *node;
 }
 
 %type<val> AssignmentOperator 
@@ -494,15 +528,13 @@ ArgumentList             : AssignmentExpression
 void 
 yyerror(const char *s) 
 {
-  fprintf(stderr, "%s\n  at Line %d:%d\n", s, yylloc.first_line, yylloc.first_column);
-  exit(1);
+  fh_error(fh_new_state(yylloc.first_line, yylloc.first_column), s);
 }
 
 int 
 main(int argc, char *argv[]) 
 {
-  int c;
-  int print_parse_tree = 0;
+  int c, print_parse_tree = 0;
 
   while((c = getopt(argc, argv, "vp")) != -1) {
     switch(c) {
@@ -523,15 +555,18 @@ main(int argc, char *argv[])
 
   // Parse it.
   yyparse();
-  if (print_parse_tree) PR(root);
 
-  JSVALUE *global = fh_bootstrap();
+  if (print_parse_tree) 
+    print_node(root, true, 0);
+
+  JSValue *global = fh_bootstrap();
 
   // Evaluate.
   fh_eval(global, root);
 
   // Debug.
-  if (yydebug) JSDEBUG(global);
+  if (yydebug) 
+    JSDEBUG(global);
 
   return 0;
 }

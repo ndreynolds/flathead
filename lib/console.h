@@ -3,8 +3,8 @@
 
 #include "../src/flathead.h"
 
-JSVALUE * console_log(JSARGS *);
-JSVALUE * console_error(JSARGS *);
-JSVALUE * console_time(JSARGS *);
-JSVALUE * console_assert(JSARGS *);
-JSVALUE * bootstrap_console(void);
+JSValue * console_log(JSArgs *, State *);
+JSValue * console_error(JSArgs *, State *);
+JSValue * console_assert(JSArgs *, State *);
+JSValue * console_time(JSArgs *, State *);
+JSValue * bootstrap_console(void);

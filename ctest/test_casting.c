@@ -9,8 +9,8 @@
 void
 test_numeric_strings_are_correctly_cast()
 {
-  JSVALUE *float_str = JSSTR("3.14");
-  JSVALUE *int_str = JSSTR("42");
+  JSValue *float_str = JSSTR("3.14");
+  JSValue *int_str = JSSTR("42");
   
   TEST(JSCAST(float_str, T_NUMBER)->number.val == 3.14);
   TEST(JSCAST(float_str, T_BOOLEAN)->boolean.val == 1);
@@ -28,8 +28,8 @@ test_numeric_strings_are_correctly_cast()
 void
 test_non_numeric_strings_are_NaN_when_cast_to_num()
 {
-  JSVALUE *non_num1 = JSSTR("hello");
-  JSVALUE *non_num2 = JSSTR("12a");
+  JSValue *non_num1 = JSSTR("hello");
+  JSValue *non_num2 = JSSTR("12a");
 
   TEST(JSCAST(non_num1, T_NUMBER)->number.is_nan);
   TEST(JSCAST(non_num2, T_NUMBER)->number.is_nan);
@@ -38,8 +38,8 @@ test_non_numeric_strings_are_NaN_when_cast_to_num()
 void
 test_numbers_are_correctly_cast()
 {
-  JSVALUE *float_num = JSNUM(3.14);
-  JSVALUE *int_num = JSNUM(-568123);
+  JSValue *float_num = JSNUM(3.14);
+  JSValue *int_num = JSNUM(-568123);
 
   TEST(JSCAST(float_num, T_NUMBER) == float_num);
   TEST(JSCAST(float_num, T_BOOLEAN)->boolean.val == 1);
@@ -57,7 +57,7 @@ test_numbers_are_correctly_cast()
 void
 test_objects_are_correctly_cast()
 {
-  JSVALUE *obj = JSOBJ();
+  JSValue *obj = JSOBJ();
 
   TEST(JSCAST(obj, T_BOOLEAN)->boolean.val == 1);
   TEST(JSCAST(obj, T_NUMBER)->number.is_nan);
@@ -67,8 +67,8 @@ test_objects_are_correctly_cast()
 void
 test_functions_are_correctly_cast()
 {
-  void *fake_node = malloc(sizeof(void *));
-  JSVALUE *func = JSFUNC(fake_node);
+  void *fake_node = malloc(sizeof(void));
+  JSValue *func = JSFUNC(fake_node);
 
   TEST(JSCAST(func, T_BOOLEAN)->boolean.val == 1);
   TEST(JSCAST(func, T_NUMBER)->number.is_nan);
@@ -78,8 +78,8 @@ test_functions_are_correctly_cast()
 void
 test_zero_is_false_others_true()
 {
-  JSVALUE *zero = JSNUM(0);
-  JSVALUE *neg = JSNUM(-42);
+  JSValue *zero = JSNUM(0);
+  JSValue *neg = JSNUM(-42);
 
   TEST(JSCAST(zero, T_BOOLEAN)->boolean.val == 0);
   TEST(JSCAST(neg, T_BOOLEAN)->boolean.val == 1);

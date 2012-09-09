@@ -4,10 +4,10 @@
 #include <float.h>
 #include "Number.h"
 
-JSVALUE *
+JSValue *
 bootstrap_number()
 {
-  JSVALUE *number = JSOBJ();
+  JSValue *number = JSOBJ();
 
   fh_set(number, "MAX_VALUE", JSNUM(DBL_MAX));
   fh_set(number, "MIN_VALUE", JSNUM(DBL_MIN));

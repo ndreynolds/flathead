@@ -4,8 +4,8 @@
 
 #include "console.h"
 
-JSVALUE *
-console_log(JSARGS *args)
+JSValue *
+console_log(JSArgs *args, State *state)
 {
   // https://developer.mozilla.org/en/DOM/console.log
   bool first = true;
@@ -20,45 +20,44 @@ console_log(JSARGS *args)
   return JSUNDEF();
 }
 
-JSVALUE *
-console_error(JSARGS *args)
+JSValue *
+console_error(JSArgs *args, State *state)
 {
   // https://developer.mozilla.org/en/DOM/console.error
   // TODO: Change JSDEBUG to accept an output stream
-  console_log(args);
+  console_log(args, state);
   return JSUNDEF();
 }
 
-JSVALUE *
-console_time(JSARGS *args)
+JSValue *
+console_assert(JSArgs *args, State *state)
+{
+  // Non-standard, found in new Webkit builds and Firebug
+
+  if (args->arg != 0) {
+    JSValue *result = JSCAST((JSValue *)args->arg, T_BOOLEAN);
+    if (result->boolean.val) return JSUNDEF();
+  }
+  fh_error(state, "AssertionError");
+}
+
+JSValue *
+console_time(JSArgs *args, State *state)
 {
   // https://developer.mozilla.org/en/DOM/console.time
   // TODO
   return JSUNDEF();
 }
 
-JSVALUE *
-console_assert(JSARGS *args)
-{
-  // Non-standard, found in new Webkit builds and Firebug
-
-  if (args->arg != 0) {
-    JSVALUE *result = JSCAST((JSVALUE *)args->arg, T_BOOLEAN);
-    if (result->boolean.val) return JSUNDEF();
-  }
-  fprintf(stderr, "Assertion failed!");
-  exit(1);
-}
-
-JSVALUE *
+JSValue *
 bootstrap_console()
 {
-  JSVALUE *console = JSOBJ();
+  JSValue *console = JSOBJ();
 
-  fh_set(console, "log", JSNFUNC((JSNATVFUNC)&console_log));
-  fh_set(console, "error", JSNFUNC((JSNATVFUNC)&console_error));
-  fh_set(console, "time", JSNFUNC((JSNATVFUNC)&console_time));
-  fh_set(console, "assert", JSNFUNC((JSNATVFUNC)&console_assert));
+  fh_set(console, "log", JSNFUNC(&console_log));
+  fh_set(console, "error", JSNFUNC(&console_error));
+  fh_set(console, "assert", JSNFUNC(&console_assert));
+  fh_set(console, "time", JSNFUNC(&console_time));
 
   return console;
 }

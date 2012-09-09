@@ -22,56 +22,54 @@
 #include "../lib/Math.h"
 #include "../lib/Number.h"
 
-JSVALUE *
-fh_is_nan(JSARGS *args)
+JSValue *
+is_nan(JSArgs *args, State *state)
 {
   if (args->arg != NULL) {
-    JSVALUE *num = JSCAST((JSVALUE *)args->arg, T_NUMBER);
-    if (num->number.is_nan) return JSBOOL(1);
-    return JSBOOL(0);
+    JSValue *num = JSCAST((JSValue *)args->arg, T_NUMBER);
+    return JSBOOL(num->number.is_nan);
   }
   // undefined also coerces to NaN.
   return JSBOOL(1);
 }
 
-JSVALUE *
-fh_is_finite(JSARGS *args)
+JSValue *
+is_finite(JSArgs *args, State *state)
 {
-  JSVALUE *num = JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
-  if (num->number.is_nan || num->number.is_inf) return JSBOOL(0);
-  return JSBOOL(1);
+  JSValue *num = JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
+  return JSBOOL(!(num->number.is_nan || num->number.is_inf));
 }
 
-JSVALUE *
-fh_parse_int(JSARGS *args)
+JSValue *
+parse_int(JSArgs *args, State *state)
 {
   // Ecma 15.1.2.2
   // TODO: use radix argument, strip whitespace.
-  JSVALUE *num = JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
+  JSValue *num = JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
   if (num->number.is_nan) return JSNAN();
   return JSNUM(floor(num->number.val));
 }
 
-JSVALUE *
-fh_parse_float(JSARGS *args)
+JSValue *
+parse_float(JSArgs *args, State *state)
 {
   return JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
 }
 
-JSVALUE *
+JSValue *
 fh_bootstrap()
 {
-  JSVALUE *global = JSOBJ();
+  JSValue *global = JSOBJ();
 
   fh_set(global, "console", bootstrap_console());
   fh_set(global, "Math", bootstrap_math());
   fh_set(global, "Number", bootstrap_number());
   fh_set(global, "NaN", JSNAN());
   fh_set(global, "Infinity", JSINF());
-  fh_set(global, "isNaN", JSNFUNC((JSNATVFUNC)&fh_is_nan));
-  fh_set(global, "isFinite", JSNFUNC((JSNATVFUNC)&fh_is_finite));
-  fh_set(global, "parseInt", JSNFUNC((JSNATVFUNC)&fh_parse_int));
-  fh_set(global, "parseFloat", JSNFUNC((JSNATVFUNC)&fh_parse_float));
+  fh_set(global, "isNaN", JSNFUNC(&is_nan));
+  fh_set(global, "isFinite", JSNFUNC(&is_finite));
+  fh_set(global, "parseInt", JSNFUNC(&parse_int));
+  fh_set(global, "parseFloat", JSNFUNC(&parse_float));
   fh_set(global, "undefined", JSUNDEF());
   fh_set(global, "this", global);
 

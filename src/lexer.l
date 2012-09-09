@@ -3,7 +3,7 @@
 %{
   #include "y.tab.h"
   #include <stdlib.h>
-  void yyerror_alt(char *, char *);
+  void parse_error(char *);
   int yycolumn = 1;
   void yyuseraction(void);
   char * extract_string(char *);
@@ -64,14 +64,17 @@ L?'(\\.|[^\\'])*'            { yylval.val = extract_string(yytext); return STRIN
 [ \t\v\f]   ;
 \n          yycolumn = 0;
 <<EOF>>     { yycolumn = 0; return EOF; }
-.           yyerror_alt("Parse error", yytext);
+.           parse_error(yytext);
 
 %%
   
 void
-yyerror_alt(char * error, char * val)
+parse_error(char * val)
 {
-  fprintf(stderr, "Line %d, %s: %s\n", yylloc.first_line, error, val);
+  fprintf(
+    stderr, "ParseError: unexpected '%s'\n  at Line %d:%d\n", 
+    val, yylloc.first_line, yylloc.first_column
+  );
 }
 
 int 

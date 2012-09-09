@@ -9,75 +9,75 @@
 void
 test_pop_node_returns_the_last_node_in_a_linked_list()
 {
-  JSNODE *a = NEW_STMTLST(NEW_NUM(1), NULL);
-  JSNODE *b = NEW_STMTLST(NEW_NUM(2), a);
-  JSNODE *c = NEW_STMTLST(NEW_NUM(3), b);
-  JSNODE *d = NEW_STMTLST(NEW_NUM(4), c);
+  Node *a = NEW_STMTLST(NEW_NUM(1), NULL);
+  Node *b = NEW_STMTLST(NEW_NUM(2), a);
+  Node *c = NEW_STMTLST(NEW_NUM(3), b);
+  Node *d = NEW_STMTLST(NEW_NUM(4), c);
 
-  JSNODE *found1 = pop_node(d);
+  Node *found1 = pop_node(d);
   TEST(found1->val == 1);
 
-  JSNODE *found2 = pop_node(d);
+  Node *found2 = pop_node(d);
   TEST(found2->val == 2);
 
-  JSNODE *found3 = pop_node(d);
+  Node *found3 = pop_node(d);
   TEST(found3->val == 3);
 
-  JSNODE *found4 = pop_node(d);
+  Node *found4 = pop_node(d);
   TEST(found4->val == 4);
 }
 
 void
 test_rewind_node_resets_a_previous_sequence_of_pops()
 {
-  JSNODE *a = NEW_STMTLST(NEW_NUM(1), NULL);
-  JSNODE *b = NEW_STMTLST(NEW_NUM(2), a);
-  JSNODE *c = NEW_STMTLST(NEW_NUM(3), b);
-  JSNODE *d = NEW_STMTLST(NEW_NUM(4), c);
+  Node *a = NEW_STMTLST(NEW_NUM(1), NULL);
+  Node *b = NEW_STMTLST(NEW_NUM(2), a);
+  Node *c = NEW_STMTLST(NEW_NUM(3), b);
+  Node *d = NEW_STMTLST(NEW_NUM(4), c);
 
-  JSNODE *found1 = pop_node(d);
+  Node *found1 = pop_node(d);
   TEST(found1->val == 1);
 
-  JSNODE *found2 = pop_node(d);
+  Node *found2 = pop_node(d);
   TEST(found2->val == 2);
 
-  JSNODE *found3 = pop_node(d);
+  Node *found3 = pop_node(d);
   TEST(found3->val == 3);
 
-  JSNODE *found4 = pop_node(d);
+  Node *found4 = pop_node(d);
   TEST(found4->val == 4);
 
   // Now rewind, and start over.
   rewind_node(d);
 
-  JSNODE *found5 = pop_node(d);
+  Node *found5 = pop_node(d);
   TEST(found5->val == 1);
 
-  JSNODE *found6 = pop_node(d);
+  Node *found6 = pop_node(d);
   TEST(found6->val == 2);
 
-  JSNODE *found7 = pop_node(d);
+  Node *found7 = pop_node(d);
   TEST(found7->val == 3);
 
-  JSNODE *found8 = pop_node(d);
+  Node *found8 = pop_node(d);
   TEST(found8->val == 4);
 }
 
 void
 test_empty_returns_true_on_an_emptied_list()
 {
-  JSNODE *a = NEW_STMTLST(NEW_NUM(1), NULL);
-  JSNODE *b = NEW_STMTLST(NEW_NUM(2), a);
-  JSNODE *c = NEW_STMTLST(NEW_NUM(3), b);
-  JSNODE *d = NEW_STMTLST(NEW_NUM(4), c);
+  Node *a = NEW_STMTLST(NEW_NUM(1), NULL);
+  Node *b = NEW_STMTLST(NEW_NUM(2), a);
+  Node *c = NEW_STMTLST(NEW_NUM(3), b);
+  Node *d = NEW_STMTLST(NEW_NUM(4), c);
 
   TEST(empty_node(d) == false);
 
-  JSNODE *found1 = pop_node(d);
-  JSNODE *found2 = pop_node(d);
-  JSNODE *found3 = pop_node(d);
+  Node *found1 = pop_node(d);
+  Node *found2 = pop_node(d);
+  Node *found3 = pop_node(d);
   TEST(empty_node(d) == false);
-  JSNODE *found4 = pop_node(d);
+  Node *found4 = pop_node(d);
   TEST(found4->val == 4);
 
   TEST(empty_node(d) == true);
