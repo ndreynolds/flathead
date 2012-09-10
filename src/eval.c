@@ -452,6 +452,8 @@ fh_eq(JSValue *a, JSValue *b, bool strict)
   // Strict equality on different types is always false
   if (a->type != b->type && strict) return JSBOOL(0);
 
+  // false != null
+  if (T_XOR(a, b, T_NULL, T_BOOLEAN)) return JSBOOL(0);
   if (T_XOR(a, b, T_UNDEF, T_NULL)) return JSBOOL(1);
   if (T_BOTH(a, b, T_NULL) || T_BOTH(a, b, T_UNDEF)) return JSBOOL(1);
   if (T_BOTH(a, b, T_STRING))

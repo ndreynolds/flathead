@@ -2,3 +2,4 @@ bin/fh
 y.*
 lex.yy.c
 *.out
+tags
