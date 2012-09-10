@@ -321,10 +321,10 @@ fh_error(State *state, const char *tpl, ...)
 }
 
 void
-fh_debug_obj(JSValue *obj, int indent)
+fh_debug_obj(FILE *stream, JSValue *obj, int indent)
 {
   if (HASH_COUNT(obj->object.map) == 0) {
-    printf("{}");
+    fprintf(stream, "{}");
     return;
   }
 
@@ -334,83 +334,83 @@ fh_debug_obj(JSValue *obj, int indent)
 
   HASH_ITER(hh, obj->object.map, x, tmp) {
     if (first) {
-      printf("\n");
-      for(i=0;i<(indent);i++) printf(" ");
-      printf("{");
+      fprintf(stream, "\n");
+      for(i=0;i<(indent);i++) fprintf(stream, " ");
+      fprintf(stream, "{");
       first = false;
     }
     else {
-      printf(",\n");
-      for(i=0;i<(indent+1);i++) printf(" ");
+      fprintf(stream, ",\n");
+      for(i=0;i<(indent+1);i++) fprintf(stream, " ");
     }
-    printf(" %s: ", x->name);
+    fprintf(stream, " %s: ", x->name);
     x->circular ? 
-      printf("[Circular]") : 
-      fh_debug(x->ptr, indent+3, false);
+      fprintf(stream, "[Circular]") : 
+      fh_debug(stream, x->ptr, indent+3, false);
   };
-  printf(" }");
+  fprintf(stream, " }");
 }
 
 void
-fh_debug_arr(JSValue *arr, int indent)
+fh_debug_arr(FILE *stream, JSValue *arr, int indent)
 {
   if (HASH_COUNT(arr->object.map) == 0) {
-    printf("[]");
+    fprintf(stream, "[]");
     return;
   }
   bool first;
   JSProp *x, *tmp;
-  printf("[ ");
+  fprintf(stream, "[ ");
   HASH_ITER(hh, arr->object.map, x, tmp) {
     if (!first) 
-      printf(", ");
+      fprintf(stream, ", ");
     else first = false;
-    fh_debug(x->ptr, 0, false);
+    fh_debug(stream, x->ptr, 0, false);
   };
-  printf(" ]");
+  fprintf(stream, " ]");
 }
 
 void
-fh_debug(JSValue *val, int indent, bool newline)
+fh_debug(FILE *stream, JSValue *val, int indent, bool newline)
 {
   switch(val->type)
   {
-    printf("%s", fh_typeof(val));
+    fprintf(stream, "%s", fh_typeof(val));
     case T_BOOLEAN:
-      printf("%s", !val->boolean.val ? "false" : "true");
+      fprintf(stream, "%s", !val->boolean.val ? "false" : "true");
       break;
     case T_NUMBER:
       if (val->number.is_nan)
-        printf("NaN");
+        fprintf(stream, "NaN");
       else if (val->number.is_inf) 
-        printf("%sInfinity", val->number.is_neg ? "-" : "");
+        fprintf(stream, "%sInfinity", val->number.is_neg ? "-" : "");
       else 
-        printf("%g", val->number.val);
+        fprintf(stream, "%g", val->number.val);
       break;
     case T_STRING:
-      printf("%s", val->string.ptr);
+      fprintf(stream, "%s", val->string.ptr);
       break;
     case T_NULL:
-      printf("null");
+      fprintf(stream, "null");
       break;
     case T_FUNCTION:
-      printf("[Function]");
+      fprintf(stream, "[Function]");
       break;
     case T_UNDEF:
-      printf("undefined");
+      fprintf(stream, "undefined");
       break;
     case T_OBJECT:
       if (val->object.is_array)
-        fh_debug_arr(val, indent);
+        fh_debug_arr(stream, val, indent);
       else
-        fh_debug_obj(val, indent);
+        fh_debug_obj(stream, val, indent);
       break;
   }
-  if (newline) printf("\n");
+  if (newline) fprintf(stream, "\n");
 }
 
 void
-fh_debug_args(JSArgs *args)
+fh_debug_args(FILE *stream, JSArgs *args)
 {
   bool first = true;
   while(first || args->next != NULL)
@@ -418,7 +418,7 @@ fh_debug_args(JSArgs *args)
     if (!first)
       args = args->next;
     if (args->arg != NULL)
-      JSDEBUG(args->arg);
+      fh_debug(stream, args->arg, 0, 1);
     first = false;
   }
 }

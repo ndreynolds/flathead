@@ -132,10 +132,10 @@ JSValue * fh_cast(JSValue *, JSType);
 char * fh_typeof(JSValue *);
 char * fh_str_concat(char *, char *);
 void fh_error(State *, const char *, ...);
-void fh_debug_obj(JSValue *, int);
-void fh_debug_arr(JSValue *, int);
-void fh_debug_args(JSArgs *);
-void fh_debug(JSValue *, int, bool);
+void fh_debug_obj(FILE *, JSValue *, int);
+void fh_debug_arr(FILE *, JSValue *, int);
+void fh_debug_args(FILE *, JSArgs *);
+void fh_debug(FILE *, JSValue *, int, bool);
 int fh_arg_len(JSArgs*);
 
 #define JSBOOL(x)     fh_new_boolean(x)
@@ -150,7 +150,7 @@ int fh_arg_len(JSArgs*);
 #define JSFUNC(x)     fh_new_function(x)
 #define JSNFUNC(x)    fh_new_native_function(x)
 #define JSCAST(x,t)   fh_cast(x,t)
-#define JSDEBUG(x)    fh_debug(x,0,1);
+#define JSDEBUG(x)    fh_debug(stdout,x,0,1);
 
 #define ARG0(args)    ((args)->arg == NULL ? JSUNDEF() : (args)->arg)       
 #define ARGN(args, n) fh_get_arg(args, n)
