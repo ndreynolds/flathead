@@ -6,6 +6,10 @@
 #include "../src/flathead.h"
 #include "../src/nodes.c"
 
+#define NEW_NODE(t,e1,e2,e3,d,s)   new_node(t,e1,e2,e3,d,s,0,0) 
+#define NEW_NUM(x)                 NEW_NODE(NODE_NUM,0,0,0,x,0)
+#define NEW_STMTLST(head,tail)     NEW_NODE(NODE_STMT_LST,head,tail,0,0,0)
+
 void
 test_pop_node_returns_the_last_node_in_a_linked_list()
 {

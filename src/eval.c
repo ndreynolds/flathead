@@ -48,7 +48,11 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_VAR_STMT: fh_var_stmt(ctx, node); break;
     case NODE_EMPT_STMT: break;
     default:
-      fh_error(NULL, "Unsupported syntax type (%d)", node->type);
+      fh_error(
+        fh_new_state(node->line, node->column), 
+        "Unsupported syntax type (%d)", 
+        node->type
+      );
   }
   return result;
 }
@@ -156,28 +160,31 @@ fh_arr(JSValue *ctx, Node *node)
 }
 
 JSValue *
+fh_str_from_ident(Node *ident)
+{
+  return ident->sval != NULL ?
+    JSSTR(ident->sval) :
+    JSCAST(JSNUM(ident->val), T_STRING);
+}
+
+JSValue *
 fh_member(JSValue *ctx, Node *member)
 {
-  // Similar to an Identifier node, we have to retrieve a value
-  // from an object. The difference here is that we need to recurse
-  // to retrieve sub-members as instructed.
-  // TODO
-  JSValue *a = fh_get(ctx, member->e2->sval);
-  JSValue *b = fh_get(a, member->e1->sval);
-  return b;
+  JSValue *id1, *id2, *parent;
+  id1 = fh_str_from_ident(member->e1);
+  id2 = fh_str_from_ident(member->e2);
+  parent = member->e2->type == NODE_MEMBER ? 
+    fh_member(ctx, member->e2) :
+    fh_get(ctx, id2->string.ptr);
+  return fh_get(parent, id1->string.ptr);
 }
 
 JSValue *
 fh_assign(JSValue *ctx, Node *node)
 {
-  // TODO: Don't evaluate the assignment expression twice. (Bad, bad, bad)
-  fh_do_assign(
-    ctx, 
-    node->e1->sval,
-    fh_eval(ctx, node->e2),
-    node->sval
-  );
-  return fh_eval(ctx, node->e2);
+  JSValue *val = fh_eval(ctx, node->e2);
+  fh_do_assign(ctx, node->e1->sval, val, node->sval);
+  return val;
 }
 
 void 
@@ -199,7 +206,7 @@ fh_call(JSValue *ctx, Node *call)
   JSValue *maybe_func = fh_eval(ctx, call->e1);
   State *state = fh_new_state(call->line, call->column);
   if (maybe_func->type != T_FUNCTION)
-    fh_error(NULL, "TypeError: %s is not a function", fh_typeof(maybe_func));
+    fh_error(state, "TypeError: %s is not a function", fh_typeof(maybe_func));
   return fh_function_call(ctx, state, maybe_func, call->e2);
 }
 
@@ -275,7 +282,10 @@ fh_setup_func_env(JSValue *ctx, JSValue *func, JSArgs *args)
     while(!params->visited) {
       if (args->arg != NULL) {
         fh_set(scope, pop_node(params)->sval, args->arg);
-        if (args->next != NULL) args = args->next;
+        if (args->next != NULL) 
+          args = args->next;
+        else
+          args->arg = NULL;
       }
       else {
         fh_set(scope, pop_node(params)->sval, JSUNDEF());

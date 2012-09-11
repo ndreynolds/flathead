@@ -25,7 +25,7 @@
 
   #define YYDEBUG 0
 
-  #define NEW_NODE(t,e1,e2,e3,d,s)   new_node(t,e1,e2,e3,d,s,yylloc.first_line,yylloc.first_column)
+  #define NEW_NODE(t,e1,e2,e3,d,s)   new_node(t,e1,e2,e3,d,s,yylloc.first_line,yylloc.first_column) 
   #define NEW_IDENT(name)            NEW_NODE(NODE_IDENT,0,0,0,0,name)
   #define NEW_VARSTMT(ident,exp)     NEW_NODE(NODE_VAR_STMT,ident,exp,0,0,0)
   #define NEW_WHILE(cnd,blck)        NEW_NODE(NODE_WHILE,cnd,blck,0,0,0)
