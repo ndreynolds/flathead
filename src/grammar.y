@@ -560,6 +560,7 @@ main(int argc, char *argv[])
     print_node(root, true, 0);
 
   JSValue *global = fh_bootstrap();
+  fh_gc_register_global(global);
 
   // Evaluate.
   fh_eval(global, root);

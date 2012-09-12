@@ -5,6 +5,7 @@
 #include "test.h"
 #include "../src/flathead.h"
 #include "../src/nodes.h"
+#include "../src/gc.c"
 #include "../src/flathead.c"
 #include "../src/nodes.c"
 #include "../src/eval.c"

@@ -7,7 +7,7 @@ YACC=bison -y -d -t -v
 LEX=flex
 
 MAIN=src/flathead.c
-SRC_FILES=src/nodes.c src/eval.c src/runtime.c
+SRC_FILES=src/nodes.c src/gc.c src/eval.c src/runtime.c
 LIB_FILES=lib/console.c lib/Math.c lib/Number.c
 OUT_FILE=-o bin/fh
 GRAMMAR_FILE=src/grammar.y

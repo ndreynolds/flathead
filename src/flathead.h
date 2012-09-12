@@ -108,7 +108,6 @@ typedef struct JSValue {
   bool marked;
 } JSValue;
 
-void fh_gc(void);
 void fh_set(JSValue *, char *, JSValue *);
 void fh_set_rec(JSValue *, char *, JSValue *);
 JSProp * fh_get_prop(JSValue *, char *);
@@ -116,7 +115,6 @@ JSProp * fh_get_prop_rec(JSValue *, char *);
 JSValue * fh_get(JSValue *, char *);
 JSValue * fh_get_rec(JSValue *, char *);
 
-JSValue * fh_alloc_val();
 JSValue * fh_new_val(JSType);
 JSValue * fh_new_number(double, bool, bool, bool);
 JSValue * fh_new_string(char *);

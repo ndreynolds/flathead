@@ -4,6 +4,7 @@
 
 #include "test.h"
 #include "../src/flathead.h"
+#include "../src/gc.c"
 #include "../src/flathead.c"
 
 void

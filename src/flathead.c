@@ -17,6 +17,7 @@
  */
 
 #include "flathead.h"
+#include "gc.h"
 
 JSValue *
 fh_get(JSValue *obj, char *prop_name)
@@ -110,24 +111,10 @@ fh_set_rec(JSValue *obj, char *name, JSValue *val)
   fh_set(scope_to_set, name, val);
 }
 
-void
-fh_gc() 
-{
-  // TODO: Mark and Sweep
-}
-
-JSValue *
-fh_alloc_val()
-{
-  JSValue *val = malloc(sizeof(JSValue));
-  val->type = T_NULL;
-  return val;
-}
-
 JSValue *
 fh_new_val(JSType type)
 {
-  JSValue *val = malloc(sizeof(JSValue));
+  JSValue *val = fh_malloc(true);
   val->type = type;
   return val;
 }
@@ -316,7 +303,9 @@ fh_error(State *state, const char *tpl, ...)
   va_start(ap, tpl);
   vfprintf(stderr, tpl, ap);
   va_end(ap);
-  fprintf(stderr, "\n  at Line %d:%d", state->line, state->column);
+  fprintf(stderr, "\n");
+  if (state != NULL)
+    fprintf(stderr, "  at Line %d:%d\n", state->line, state->column);
   exit(1);
 }
 
