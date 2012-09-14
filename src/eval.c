@@ -313,6 +313,19 @@ JSValue *
 fh_eval_prefix_exp(JSValue *ctx, Node *node)
 {
   char *op = node->sval;
+
+  if (STREQ(op, "delete")) {
+    // TODO: get a hold of the evaluation's parent object, if any
+    // and unset the property on the object.
+    return JSBOOL(1);
+  }
+  if (STREQ(op, "typeof"))
+    return JSSTR(fh_typeof(fh_eval(ctx, node->e1)));
+  if (STREQ(op, "void")) {
+    fh_eval(ctx, node->e1);
+    return JSUNDEF();
+  }
+
   if (STREQ(op, "+"))
     return JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
   if (STREQ(op, "!"))

@@ -85,7 +85,7 @@
 /* Boolean */
 %token<val> AND OR
 /* Unary */
-%token<val> PLUSPLUS MINUSMINUS
+%token<val> PLUSPLUS MINUSMINUS VOID DELETE TYPEOF
 /* Relational */
 %token<val> EQEQ GTE LTE NE STEQ STNE
 /* Bitwise */
@@ -103,7 +103,7 @@
 /* Control */
 %token<val> BREAK CONTINUE RETURN
 /* Misc */
-%token<val> VAR THIS NULLT FUNCTION NEW DELETE
+%token<val> VAR THIS NULLT FUNCTION NEW 
 
 
 /* ASSOCIATIVITY */
@@ -432,6 +432,12 @@ MultiplicativeExpression : UnaryExpression
 
 UnaryExpression          : PostfixExpression                                    
                              { $$ = $1; }
+                         | DELETE UnaryExpression
+                             { $$ = NEW_UNPRE($2, "delete"); }
+                         | VOID UnaryExpression
+                             { $$ = NEW_UNPRE($2, "void"); }
+                         | TYPEOF UnaryExpression
+                             { $$ = NEW_UNPRE($2, "typeof"); }
                          | PLUSPLUS UnaryExpression                           
                              { $$ = NEW_UNPRE($2, "++"); }
                          | MINUSMINUS UnaryExpression                         

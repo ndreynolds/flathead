@@ -2,6 +2,9 @@
 // -----------------
 
 var assert = console.assert;
+var assertEquals = function(a, b) {
+  assert(a === b);
+};
 
 // ------------------------------------------------------------------
 // UNARY PREFIX
@@ -30,6 +33,31 @@ assert(result >= 4.14 && result <= 4.14 + 0.0000001);
 
 var alphaString = "abc";
 assert(isNaN(++alphaString));
+
+// typeof operator
+assert(typeof "hello" === "string");
+assert(typeof 42 === "number");
+assert(typeof true === "boolean");
+assert(typeof null === "object");
+assert(typeof undefined === "undefined");
+assert(typeof {a: 12} === "object");
+assert(typeof [1, 2, 3] === "object");
+assert(typeof function() { return 42; } === "function");
+assert(typeof '1' + 12 === 'string12');
+
+// void operator
+assert(void 'boom' === undefined);
+assert(void 12 === undefined);
+
+var counter = 0;
+
+assert(void ++counter === undefined);
+assertEquals(counter, 1);
+assert(void (counter *= 4) === undefined);
+assertEquals(counter, 4);
+
+// delete operator
+// TODO
 
 
 // ------------------------------------------------------------------

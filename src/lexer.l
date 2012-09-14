@@ -25,6 +25,8 @@
 "return"    return RETURN;
 "function"  return FUNCTION;
 "delete"    return DELETE;
+"void"      return VOID;
+"typeof"    return TYPEOF;
 "new"       return NEW;
 "var"       return VAR;
 "null"      return NULLT;
