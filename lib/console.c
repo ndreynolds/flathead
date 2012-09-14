@@ -28,7 +28,7 @@ console_assert(JSArgs *args, State *state)
     JSValue *result = JSCAST((JSValue *)args->arg, T_BOOLEAN);
     if (result->boolean.val) return JSUNDEF();
   }
-  fh_error(state, "AssertionError");
+  fh_error(state, E_ASSERTION, "assertion failed");
 }
 
 JSValue *

@@ -18,8 +18,10 @@
 
 #include <math.h>
 #include "runtime.h"
+#include "gc.h"
 #include "../lib/console.h"
 #include "../lib/Math.h"
+#include "../lib/Object.h"
 #include "../lib/Number.h"
 
 JSValue *
@@ -61,9 +63,12 @@ fh_bootstrap()
 {
   JSValue *global = JSOBJ();
 
+  fh_gc_register_global(global);
+
   fh_set(global, "console", bootstrap_console());
   fh_set(global, "Math", bootstrap_math());
   fh_set(global, "Number", bootstrap_number());
+  fh_set(global, "Object", bootstrap_object());
   fh_set(global, "NaN", JSNAN());
   fh_set(global, "Infinity", JSINF());
   fh_set(global, "isNaN", JSNFUNC(&is_nan));

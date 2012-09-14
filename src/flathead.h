@@ -48,6 +48,17 @@ typedef enum JSType {
   T_UNDEF
 } JSType;
 
+typedef enum JSErrorType {
+  E_TYPE,
+  E_SYNTAX,
+  E_EVAL,
+  E_RANGE,
+  E_REFERENCE,
+  E_ASSERTION,
+  E_PARSE,
+  E_ERROR
+} JSErrorType;
+
 typedef struct JSArgs {
   struct JSValue *arg;
   struct JSArgs *next;
@@ -82,6 +93,9 @@ struct JSBoolean {
 
 struct JSObject {
   bool is_array;
+  bool frozen;
+  bool sealed;
+  bool extensible;
   struct JSValue *proto;
   struct JSValue *parent;
   JSProp *map;
@@ -129,7 +143,7 @@ State * fh_new_state(int, int);
 JSValue * fh_cast(JSValue *, JSType);
 char * fh_typeof(JSValue *);
 char * fh_str_concat(char *, char *);
-void fh_error(State *, const char *, ...);
+void fh_error(State *, JSErrorType, const char *, ...);
 void fh_debug_obj(FILE *, JSValue *, int);
 void fh_debug_arr(FILE *, JSValue *, int);
 void fh_debug_args(FILE *, JSArgs *);

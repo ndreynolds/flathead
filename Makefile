@@ -8,7 +8,7 @@ LEX=flex
 
 MAIN=src/flathead.c
 SRC_FILES=src/nodes.c src/gc.c src/eval.c src/runtime.c
-LIB_FILES=lib/console.c lib/Math.c lib/Number.c
+LIB_FILES=lib/console.c lib/Math.c lib/Number.c lib/Object.c
 OUT_FILE=-o bin/fh
 GRAMMAR_FILE=src/grammar.y
 LEX_FILE=src/lexer.l

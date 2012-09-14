@@ -49,9 +49,8 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_EMPT_STMT: break;
     default:
       fh_error(
-        fh_new_state(node->line, node->column), 
-        "Unsupported syntax type (%d)", 
-        node->type
+        fh_new_state(node->line, node->column), E_SYNTAX,
+        "Unsupported syntax type (%d)", node->type
       );
   }
   return result;
@@ -206,7 +205,7 @@ fh_call(JSValue *ctx, Node *call)
   JSValue *maybe_func = fh_eval(ctx, call->e1);
   State *state = fh_new_state(call->line, call->column);
   if (maybe_func->type != T_FUNCTION)
-    fh_error(state, "TypeError: %s is not a function", fh_typeof(maybe_func));
+    fh_error(state, E_TYPE, "%s is not a function", fh_typeof(maybe_func));
   return fh_function_call(ctx, state, maybe_func, call->e2);
 }
 
@@ -258,7 +257,6 @@ fh_setup_func_env(JSValue *ctx, JSValue *func, JSArgs *args)
   // Setup the (array-like) arguments object.
   fh_set(arguments, "callee", func);
   int i = 0;
-  char *s;
   bool first = true;
   JSArgs *tmp = args;
   while(first || args->next != NULL)
@@ -266,8 +264,8 @@ fh_setup_func_env(JSValue *ctx, JSValue *func, JSArgs *args)
     if (!first)
       args = args->next;
     if (args->arg != NULL) {
-      sprintf(s, "%d", i);
-      fh_set(arguments, s, args->arg);
+      JSValue *id = JSCAST(JSNUM(i), T_STRING);
+      fh_set(arguments, id->string.ptr, args->arg);
       i++;
     }
     first = false;

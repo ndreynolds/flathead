@@ -37,6 +37,7 @@ JSValue * fh_malloc(bool);
 void fh_gc(void);
 void fh_gc_register_global(JSValue *);
 void fh_gc_mark(JSValue *);
+void fh_gc_free_val(JSValue *);
 void fh_gc_sweep(ContainerMetadata *);
 
 #endif

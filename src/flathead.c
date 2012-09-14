@@ -24,7 +24,7 @@ fh_get(JSValue *obj, char *prop_name)
 {
   // We can't read properties from undefined.
   if (obj->type == T_UNDEF)
-    fh_error(NULL, "TypeError: Cannot read property '%s' of undefined", prop_name);
+    fh_error(NULL, E_TYPE, "Cannot read property '%s' of undefined", prop_name);
 
   JSProp *prop = fh_get_prop(obj, prop_name);
   // But we'll happily return undefined if a property doesn't exist.
@@ -297,13 +297,25 @@ fh_cast(JSValue *val, JSType type)
 }
 
 void
-fh_error(State *state, const char *tpl, ...)
+fh_error(State *state, JSErrorType type, const char *tpl, ...)
 {
+  char *name = type == E_TYPE ?  "TypeError" : 
+               type == E_SYNTAX ? "SyntaxError" :
+               type == E_EVAL ? "EvalError" :
+               type == E_RANGE ? "RangeError" :
+               type == E_ASSERTION ? "AssertionError" :
+               type == E_REFERENCE ? "ReferenceError" :
+               type == E_PARSE ? "ParseError" :
+               "Error";
+
+  fprintf(stderr, "%s: ", name);
+
   va_list ap;
   va_start(ap, tpl);
   vfprintf(stderr, tpl, ap);
   va_end(ap);
   fprintf(stderr, "\n");
+
   if (state != NULL)
     fprintf(stderr, "  at Line %d:%d\n", state->line, state->column);
   exit(1);

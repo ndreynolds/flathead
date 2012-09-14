@@ -67,6 +67,7 @@
   int yydebug;
   FILE *yyin;
   Node *root;
+  State *state;
 %}
 
 %error-verbose
@@ -528,7 +529,9 @@ ArgumentList             : AssignmentExpression
 void 
 yyerror(const char *s) 
 {
-  fh_error(fh_new_state(yylloc.first_line, yylloc.first_column), s);
+  char *trimmed = strndup(s + 14, strlen(s) - 14);
+  State *state = fh_new_state(yylloc.first_line, yylloc.first_column);
+  fh_error(state, E_SYNTAX, trimmed);
 }
 
 int 
@@ -549,8 +552,7 @@ main(int argc, char *argv[])
 
   yyin = optind < argc ? fopen(argv[optind], "r") : stdin;
   if (!yyin) {
-    fprintf(stderr, "Invalid input file.\n");
-    return 1;
+    fh_error(NULL, E_ERROR, "Invalid input file.");
   }
 
   // Parse it.
@@ -560,7 +562,6 @@ main(int argc, char *argv[])
     print_node(root, true, 0);
 
   JSValue *global = fh_bootstrap();
-  fh_gc_register_global(global);
 
   // Evaluate.
   fh_eval(global, root);

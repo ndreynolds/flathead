@@ -35,7 +35,7 @@ fh_malloc(bool first_attempt)
     fh_gc();
     return fh_malloc(false);
   } 
-  fh_error(NULL, "Error: No more memory");
+  fh_error(NULL, E_ERROR, "process out of memory");
 }
 
 ContainerMetadata *
@@ -97,7 +97,30 @@ fh_gc_sweep(ContainerMetadata *container)
     val = container->slots[i];
     if (!val.marked) {
       container->freelist[i] = false;
-      memset(&val, 0, sizeof(JSValue));
+      fh_gc_free_val(&val);
     }
   }
+}
+
+void
+fh_gc_free_val(JSValue *val)
+{
+  /*
+  printf("Freeing %s (%d)\n", fh_typeof(val), val->type);
+  // Free the object hashtable
+  if (val->type == T_OBJECT) {
+    JSProp *prop, *tmp;
+    HASH_ITER(hh, val->object.map, prop, tmp) {
+      HASH_DEL(val->object.map, prop);
+      if (prop != NULL) free(prop);
+    }
+  }
+  // Free any strings (dynamically alloc-ed outside slots)
+  if (val->string.ptr != NULL) {
+    printf("(String '%s')\n", val->string.ptr);
+    free(val->string.ptr);
+  }
+  */
+
+  memset(val, 0, sizeof(JSValue));
 }
