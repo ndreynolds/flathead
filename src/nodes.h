@@ -58,6 +58,7 @@ enum NodeType {
   NODE_FUNC,
   NODE_FUNC_DECL,
   NODE_PARAM_LST,
+  NODE_SRC_LST,
   NODE_UNKNOWN
 };
 

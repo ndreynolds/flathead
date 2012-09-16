@@ -59,9 +59,9 @@
   #define NEW_NEW(exp)               NEW_NODE(NODE_NEW,exp,0,0,0,0);
   #define NEW_MEMBER(head,tail)      NEW_NODE(NODE_MEMBER,head,tail,0,0,0)
   #define NEW_FUNC(params,body,id)   NEW_NODE(NODE_FUNC,params,body,id,0,0)
-  #define NEW_FUNCDL(params,body,id) NEW_NODE(NODE_FUNC_DECL,params,body,id,0,0)
   #define NEW_PARAMLST(head,tail)    NEW_NODE(NODE_PARAM_LST,head,tail,0,0,0)
   #define NEW_ELISION()              NEW_NODE(NODE_ELISION,0,0,0,0,0)
+  #define NEW_SRCLST(head,tail)      NEW_NODE(NODE_SRC_LST,head,tail,0,0,0)
 
   void yyerror(const char *);
   int yylex(void);
@@ -120,20 +120,20 @@
 
 %type<val> AssignmentOperator 
 
-%type<node> Program Statement Block VariableStatement EmptyStatement 
-%type<node> ExpressionStatement IfStatement IterationStatement ContinueStatement 
-%type<node> BreakStatement ReturnStatement Literal NumericLiteral BooleanLiteral 
-%type<node> StringLiteral NullLiteral ArrayLiteral ObjectLiteral Identifier 
-%type<node> Expression PrimaryExpression LeftHandSideExpression UnaryExpression 
-%type<node> PostfixExpression ShiftExpression RelationalExpression 
-%type<node> AdditiveExpression EqualityExpression BitwiseANDExpression 
-%type<node> BitwiseORExpression BitwiseXORExpression LogicalORExpression
-%type<node> LogicalANDExpression MultiplicativeExpression ConditionalExpression 
-%type<node> StatementList AssignmentExpression ElementList SourceElements 
-%type<node> PropertyName PropertyAssignment PropertyNameAndValueList 
-%type<node> FunctionDeclaration FunctionBody FunctionExpression 
+%type<node> Program SourceElements SourceElement Statement Block 
+%type<node> VariableStatement EmptyStatement ExpressionStatement IfStatement 
+%type<node> IterationStatement ContinueStatement BreakStatement ReturnStatement 
+%type<node> Literal NumericLiteral BooleanLiteral StringLiteral NullLiteral 
+%type<node> ArrayLiteral ObjectLiteral Identifier Expression PrimaryExpression 
+%type<node> LeftHandSideExpression UnaryExpression PostfixExpression 
+%type<node> ShiftExpression RelationalExpression AdditiveExpression 
+%type<node> EqualityExpression BitwiseANDExpression BitwiseORExpression 
+%type<node> BitwiseXORExpression LogicalORExpression LogicalANDExpression 
+%type<node> MultiplicativeExpression ConditionalExpression StatementList 
+%type<node> AssignmentExpression ElementList PropertyName PropertyAssignment 
+%type<node> PropertyNameAndValueList Function FunctionBody FunctionExpression 
 %type<node> FormalParameterList CallExpression MemberExpression NewExpression 
-%type<node> Arguments ArgumentList Elision
+%type<node> Arguments ArgumentList Elision 
 
 %%
 
@@ -141,11 +141,15 @@ Program                  : SourceElements
                              { root = $1; }
                          ;
 
-SourceElements           : StatementList                                     
+SourceElements           : SourceElement
+                             { $$ = NEW_SRCLST($1, NULL); }
+                         | SourceElements SourceElement
+                             { $$ = NEW_SRCLST($2, $1); } 
+                         ;
+
+SourceElement            : Statement
                              { $$ = $1; }
-                         | Block                                           
-                             { $$ = $1; }
-                         | FunctionDeclaration                             
+                         | Function
                              { $$ = $1; }
                          ;
 
@@ -167,7 +171,7 @@ Statement                : Block
                              { $$ = $1; }
                          | ReturnStatement                                 
                              { $$ = $1; }
-                         ;
+                         ; 
 
 Block                    : '{' StatementList '}'                             
                              { $$ = NEW_BLOCK($2); }
@@ -306,17 +310,18 @@ PropertyName             : Identifier
                          | NumericLiteral              
                              { $$ = $1; }
                          ;
-
-FunctionDeclaration      : FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}'   
-                             { $$ = NEW_FUNCDL($4, $7, $2); }
-                         ;
-
-FunctionExpression       : FUNCTION '(' FormalParameterList ')' '{' FunctionBody '}'              
-                             { $$ = NEW_FUNC($3, $6, NULL); }
-                         | FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}' 
+                         
+                         /* Whether a named function is a declaration or expression is ambiguous
+                            here. We'll decide that on evaluation. */
+Function                 : FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}'   
                              { $$ = NEW_FUNC($4, $7, $2); }
                          | FUNCTION Identifier '(' ')' '{' FunctionBody '}'                     
                              { $$ = NEW_FUNC(NULL, $6, $2); }
+                         ;
+
+                         /* Anonymous functions, OTOH, can readily be labled expressions. */
+FunctionExpression       : FUNCTION '(' FormalParameterList ')' '{' FunctionBody '}'              
+                             { $$ = NEW_FUNC($3, $6, NULL); }
                          | FUNCTION '(' ')' '{' FunctionBody '}'                                
                              { $$ = NEW_FUNC(NULL, $5, NULL); }
                          ;
@@ -327,8 +332,10 @@ FormalParameterList      : Identifier
                              { $$ = NEW_PARAMLST($3, $1); }
                          ;
 
-FunctionBody             : SourceElements        
+FunctionBody             : SourceElements
                              { $$ = $1; }
+                         |
+                             { $$ = NULL; }
                          ;
 
 Identifier               : IDENT                 

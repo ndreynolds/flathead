@@ -32,6 +32,7 @@ JSValue * fh_assign(JSValue *, Node *);
 JSValue * fh_return(JSValue *, Node *);
 JSValue * fh_prop_lst(JSValue *, Node *);
 JSValue * fh_stmt_lst(JSValue *, Node *);
+JSValue * fh_src_lst(JSValue *, Node *);
 JSValue * fh_obj(JSValue *, Node *);
 JSValue * fh_arr(JSValue *, Node *);
 JSValue * fh_call(JSValue *, Node *);

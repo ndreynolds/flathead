@@ -8,6 +8,9 @@ var assertEquals = function(a, b) {
   return assert(a === b);
 };
 
+// Syntax allows an empty function body.
+var f1 = function() {};
+
 // Statements after a return are not evaluated:
 (function() {
   return 12;

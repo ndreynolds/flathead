@@ -37,6 +37,7 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_IDENT: return fh_get_rec(ctx, node->sval);
     case NODE_BLOCK: return fh_eval(ctx, node->e1);
     case NODE_STMT_LST: return fh_stmt_lst(ctx, node);
+    case NODE_SRC_LST: return fh_src_lst(ctx, node);
     case NODE_EXP_STMT: return fh_eval(ctx, node->e1);
     case NODE_EXP: return fh_exp(ctx, node);
     case NODE_IF: return fh_if(ctx, node);
@@ -122,6 +123,16 @@ fh_stmt_lst(JSValue *ctx, Node *node)
     }
     result = fh_eval(ctx, child);
   }
+  return result;
+}
+
+JSValue *
+fh_src_lst(JSValue *ctx, Node *node)
+{
+  // TODO: first sweep for function declarations
+  JSValue *result;
+  rewind_node(node);
+  while(!node->visited) result = fh_eval(ctx, pop_node(node));
   return result;
 }
 
