@@ -34,7 +34,9 @@
   #define NEW_BLOCK(stmtlst)         NEW_NODE(NODE_BLOCK,stmtlst,0,0,0,0)
   #define NEW_STMTLST(head,tail)     NEW_NODE(NODE_STMT_LST,head,tail,0,0,0)
   #define NEW_IF(cnd,ifb,elseb)      NEW_NODE(NODE_IF,cnd,ifb,elseb,0,0)
-  #define NEW_FOR(init,cnd,post)     NEW_NODE(NODE_FOR,init,cnd,post,0,0)
+  #define NEW_FOR(exps,stmt)         NEW_NODE(NODE_FOR,exps,stmt,0,0,0)
+  #define NEW_FOREXPS(e1,e2,e3)      NEW_NODE(NODE_FOR,e1,e2,e3,0,0)
+  #define NEW_FORIN(lhs,in,stmt)     NEW_NODE(NODE_FORIN,lhs,in,stmt,0,0)
   #define NEW_NUM(x)                 NEW_NODE(NODE_NUM,0,0,0,x,0)
   #define NEW_BOOL(x)                NEW_NODE(NODE_BOOL,0,0,0,x,0)
   #define NEW_STR(x)                 NEW_NODE(NODE_STR,0,0,0,0,x)
@@ -104,7 +106,7 @@
 /* Control */
 %token<val> BREAK CONTINUE RETURN
 /* Misc */
-%token<val> VAR THIS NULLT FUNCTION NEW 
+%token<val> VAR IN THIS NULLT FUNCTION NEW 
 
 
 /* ASSOCIATIVITY */
@@ -203,12 +205,31 @@ IfStatement              : IF '(' Expression ')' Statement ELSE Statement
                              { $$ = NEW_IF($3, $5, NULL); }
                          ;
 
-IterationStatement       : DO Statement WHILE '(' Expression ')'                               
+IterationStatement       : DO Statement WHILE '(' Expression ')' ';'                              
                              { $$ = NEW_DOWHILE($2, $5); }
                          | WHILE '(' Expression ')' Statement                                
                              { $$ = NEW_WHILE($3, $5); }
+                         | FOR '(' LeftHandSideExpression IN Expression ')' Statement
+                             { $$ = NEW_FORIN($3, $5, $7); }
+
+                         /* for ( Expression ; Expresion ; Expression ) Statement */
+
                          | FOR '(' Expression ';' Expression ';' Expression ')' Statement    
-                             { $$ = NEW_FOR($3, $5, $7); }
+                             { $$ = NEW_FOR(NEW_FOREXPS($3, $5, $7), $9); }
+                         | FOR '(' Expression ';' Expression ';' ')' Statement    
+                             { $$ = NEW_FOR(NEW_FOREXPS($3, $5, NULL), $8); }
+                         | FOR '(' Expression ';' ';' Expression ')' Statement    
+                             { $$ = NEW_FOR(NEW_FOREXPS($3, NULL, $6), $8); }
+                         | FOR '(' Expression ';' ';' ')' Statement    
+                             { $$ = NEW_FOR(NEW_FOREXPS($3, NULL, NULL), $7); }
+                         | FOR '(' ';' Expression ';' Expression ')' Statement    
+                             { $$ = NEW_FOR(NEW_FOREXPS(NULL, $4, $6), $8); }
+                         | FOR '(' ';' Expression ';' ')' Statement    
+                             { $$ = NEW_FOR(NEW_FOREXPS(NULL, $4, NULL), $7); }
+                         | FOR '(' ';' ';' Expression ')' Statement    
+                             { $$ = NEW_FOR(NEW_FOREXPS(NULL, NULL, $5), $7); }
+                         | FOR '(' ';' ';' ')' Statement    
+                             { $$ = NEW_FOR(NEW_FOREXPS(NULL, NULL, NULL), $6); }
                          ;
 
 ContinueStatement        : CONTINUE ';'                       

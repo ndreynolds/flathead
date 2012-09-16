@@ -20,6 +20,7 @@
 "do"        return DO;
 "for"       return FOR;
 "if"        return IF;
+"in"        return IN;
 "else"      return ELSE;
 "break"     return BREAK;
 "continue"  return CONTINUE;
