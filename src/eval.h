@@ -19,7 +19,7 @@
 #include "nodes.h"
 
 #define T_BOTH(a,b,t)      (a->type == t && b->type == t)
-#define T_XOR(a,b,t1,t2)   (a->type == t1 && b->type == t2 || a->type == t2 && b->type == t1)
+#define T_XOR(a,b,t1,t2)   ((a->type == t1 && b->type == t2) || (a->type == t2 && b->type == t1))
 
 void fh_while(JSValue *, Node *, Node *);
 void fh_var_stmt(JSValue *, Node *);
@@ -37,7 +37,7 @@ JSValue * fh_arr(JSValue *, Node *);
 JSValue * fh_call(JSValue *, Node *);
 JSValue * fh_function_call(JSValue *, State *, JSValue *, Node *);
 JSValue * fh_setup_func_env(JSValue *, JSValue *, JSArgs *);
-JSValue * fh_str_from_ident(Node *);
+JSValue * fh_str_from_node(JSValue *, Node *);
 JSValue * fh_member(JSValue *, Node *);
 JSValue * fh_eval_postfix_exp(JSValue *, Node *);
 JSValue * fh_eval_prefix_exp(JSValue *, Node *);

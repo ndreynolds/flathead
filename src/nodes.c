@@ -53,7 +53,7 @@ new_node(enum NodeType type, Node *e1, Node *e2, Node *e3,
   node->column = column;
 
   if (type == NODE_NUM || type == NODE_BOOL) node->val = x;
-  if (s != 0) {
+  if (s != NULL) {
     node->sval = malloc((strlen(s) + 1) * sizeof(char));
     strcpy(node->sval, s);
   }
@@ -63,19 +63,10 @@ new_node(enum NodeType type, Node *e1, Node *e2, Node *e3,
 Node *
 pop_node(Node *node)
 {
-  // Several of our AST nodes follow the pattern:
-  //  
-  //  Head Tail
-  //       Head Tail
-  //            Head Tail
-  //                 Head `
-  // 
-  // ...where "Head" is e1 and "Tail" is e2.
-  
-  if (node->e2 != 0 && !node->e2->visited)
+  if (node->e2 != NULL && !node->e2->visited)
     return pop_node(node->e2);
   node->visited = true;
-  return node->e1 != 0 ? node->e1 : NULL;
+  return node->e1;
 }
 
 bool
@@ -90,7 +81,7 @@ rewind_node(Node *node)
   // Unset visited on a node linked list.
   if (node->e1 == 0) return;
   node->visited = false;
-  if (node->e2 != 0) rewind_node(node->e2);
+  if (node->e2 != NULL) rewind_node(node->e2);
 }
 
 void

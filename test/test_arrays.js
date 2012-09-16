@@ -32,3 +32,11 @@ assertEquals(12, a2[6].a);
 var a3 = [[[[[[1, 2]]]]]];
 assertEquals(1, a3[0][0][0][0][0][0]);
 assertEquals(2, a3[0][0][0][0][0][1]);
+
+// Calculated index
+var getIndex = function() {
+  return 1;
+};
+var a4 = ['a', 'b', 'c', 'd'];
+assertEquals('c', a4[4 - 2]);
+assertEquals('b', a4[getIndex()]);

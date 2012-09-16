@@ -9,6 +9,7 @@ JSValue *
 obj_create(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.defineProperty(obj, prop, descriptor)
@@ -16,6 +17,7 @@ JSValue *
 obj_define_property(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.defineProperties(obj, props)
@@ -23,6 +25,7 @@ JSValue *
 obj_define_properties(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.getOwnPropertyDescriptor(obj, prop)
@@ -30,6 +33,7 @@ JSValue *
 obj_get_own_property_descriptor(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.keys(obj)
@@ -37,6 +41,7 @@ JSValue *
 obj_keys(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.getOwnPropertyNames(obj)
@@ -44,6 +49,7 @@ JSValue *
 obj_get_own_property_names(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.getPrototypeOf(obj)
@@ -51,6 +57,7 @@ JSValue *
 obj_get_prototype_of(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.preventExtensions(obj)
@@ -58,6 +65,7 @@ JSValue *
 obj_prevent_extensions(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.isExtensible(obj)
@@ -65,6 +73,7 @@ JSValue *
 obj_is_extensible(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.seal(obj)
@@ -72,6 +81,7 @@ JSValue *
 obj_seal(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.isSealed(obj)
@@ -79,6 +89,7 @@ JSValue *
 obj_is_sealed(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.freeze(obj)
@@ -86,6 +97,7 @@ JSValue *
 obj_freeze(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.isFrozen(obj)
@@ -93,6 +105,7 @@ JSValue *
 obj_is_frozen(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.prototype.hasOwnProperty(prop)
@@ -100,6 +113,7 @@ JSValue *
 obj_proto_has_own_property(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.prototype.isPrototypeOf(object)
@@ -107,6 +121,7 @@ JSValue *
 obj_proto_is_prototype_of(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.prototype.propertyIsEnumerable(prop)
@@ -114,27 +129,29 @@ JSValue *
 obj_proto_property_is_enumerable(JSArgs *args, State *state)
 {
   // TODO: stub
+  return JSUNDEF();
 }
 
 // Object.prototype.toLocaleString()
 JSValue *
 obj_proto_to_locale_string(JSArgs *args, State *state)
 {
-  // TODO: stub
+  return obj_proto_to_string(args, state);
 }
 
 // Object.prototype.toString()
 JSValue *
 obj_proto_to_string(JSArgs *args, State *state)
 {
-  // TODO: stub
+  return JSSTR("[object Object]");
 }
 
 // Object.prototype.valueOf()
 JSValue *
 obj_proto_value_of(JSArgs *args, State *state)
 {
-  // TODO: stub
+  // TODO
+  return JSSTR("[object Object]");
 }
 
 JSValue *

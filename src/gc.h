@@ -33,6 +33,7 @@ typedef struct ContainerMetadata {
 
 ContainerMetadata * fh_new_container(void);
 ContainerMetadata * fh_get_container(void);
+JSValue * fh_global(void);
 JSValue * fh_malloc(bool);
 void fh_gc(void);
 void fh_gc_register_global(JSValue *);

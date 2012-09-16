@@ -76,6 +76,7 @@ fh_if(JSValue *ctx, Node *node)
     return fh_eval(ctx, node->e2);
   else if (node->e3 != NULL) 
     return fh_eval(ctx, node->e3);
+  return NULL;
 }
 
 JSValue *
@@ -159,23 +160,26 @@ fh_arr(JSValue *ctx, Node *node)
 }
 
 JSValue *
-fh_str_from_ident(Node *ident)
+fh_str_from_node(JSValue *ctx, Node *node)
 {
-  return ident->sval != NULL ?
-    JSSTR(ident->sval) :
-    JSCAST(JSNUM(ident->val), T_STRING);
+  // Need to evaluate the node to a string key.
+  // e.g. obj['a']  obj.a  arr[1]  arr[arr.length - 1]
+
+  if (node->type == NODE_IDENT)
+    return JSSTR(node->sval);
+  return JSCAST(fh_eval(ctx, node), T_STRING);
 }
 
 JSValue *
 fh_member(JSValue *ctx, Node *member)
 {
   JSValue *id1, *id2, *parent;
-  id1 = fh_str_from_ident(member->e1);
-  id2 = fh_str_from_ident(member->e2);
+  id1 = fh_str_from_node(ctx, member->e1);
+  id2 = fh_str_from_node(ctx, member->e2);
   parent = member->e2->type == NODE_MEMBER ? 
     fh_member(ctx, member->e2) :
     fh_get(ctx, id2->string.ptr);
-  return fh_get(parent, id1->string.ptr);
+  return fh_get_proto(parent, id1->string.ptr);
 }
 
 JSValue *
@@ -245,10 +249,8 @@ fh_setup_func_env(JSValue *ctx, JSValue *func, JSArgs *args)
 {
   JSValue *arguments = JSOBJ();
   Node *func_node = func->function.node;
-  JSValue *scope = func->function.closure;
+  JSValue *scope = func->function.closure ? func->function.closure : JSOBJ();
 
-  if (scope == NULL) 
-    scope = JSOBJ();
   scope->object.parent = ctx;
   fh_set(scope, "arguments", arguments);
   if (func_node->sval != NULL)
@@ -307,6 +309,7 @@ fh_eval_postfix_exp(JSValue *ctx, Node *node)
     fh_set(ctx, node->e1->sval, fh_sub(old_val, JSNUM(1)));
     return old_val;
   }
+  assert(0);
 }
 
 JSValue *
@@ -350,6 +353,8 @@ fh_eval_prefix_exp(JSValue *ctx, Node *node)
     fh_set(ctx, node->e1->sval, new_val);
     return new_val;
   }
+
+  assert(0);
 }
 
 JSValue *
@@ -385,6 +390,8 @@ fh_eval_bin_exp(JSValue *ctx, Node *node)
     return JSBOOL(fh_lt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val);
   if (STREQ(op, ">="))
     return JSBOOL(fh_gt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val);
+
+  assert(0);
 }
 
 JSValue *
@@ -418,6 +425,8 @@ fh_add(JSValue *a, JSValue *b)
   // Number and Boolean => Number
   if (T_XOR(a, b, T_NUMBER, T_BOOLEAN))
     return fh_add(JSCAST(a, T_NUMBER), JSCAST(b, T_NUMBER));
+
+  assert(0);
 }
 
 JSValue *
@@ -516,6 +525,8 @@ fh_gt(JSValue *a, JSValue *b)
   }
   if (T_BOTH(a, b, T_STRING)) 
     return JSBOOL(strcmp(a->string.ptr, b->string.ptr) > 0);
+
+  assert(0);
 }
 
 JSValue *

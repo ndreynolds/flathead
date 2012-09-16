@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <assert.h>
 #include <float.h>
 
 typedef int bool;
@@ -96,7 +97,6 @@ struct JSObject {
   bool frozen;
   bool sealed;
   bool extensible;
-  struct JSValue *proto;
   struct JSValue *parent;
   JSProp *map;
 };
@@ -107,6 +107,7 @@ struct JSFunction {
   bool is_native;
   struct Node *node; 
   struct JSValue *closure;
+  struct JSValue *prototype;
   JSNativeFunction native;
 };
 
@@ -119,6 +120,7 @@ typedef struct JSValue {
     struct JSFunction function;
   };
   JSType type;
+  struct JSValue *proto;
   bool marked;
 } JSValue;
 
@@ -126,7 +128,9 @@ void fh_set(JSValue *, char *, JSValue *);
 void fh_set_rec(JSValue *, char *, JSValue *);
 JSProp * fh_get_prop(JSValue *, char *);
 JSProp * fh_get_prop_rec(JSValue *, char *);
+JSProp * fh_get_prop_proto(JSValue *, char *);
 JSValue * fh_get(JSValue *, char *);
+JSValue * fh_get_proto(JSValue *, char *);
 JSValue * fh_get_rec(JSValue *, char *);
 
 JSValue * fh_new_val(JSType);

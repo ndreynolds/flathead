@@ -36,6 +36,7 @@ fh_malloc(bool first_attempt)
     return fh_malloc(false);
   } 
   fh_error(NULL, E_ERROR, "process out of memory");
+  assert(0);
 }
 
 ContainerMetadata *
@@ -55,6 +56,12 @@ fh_get_container()
   if (!container) 
     container = fh_new_container();
   return container;
+}
+
+JSValue *
+fh_global()
+{
+  return fh_get_container()->global;
 }
 
 void

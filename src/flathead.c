@@ -19,19 +19,45 @@
 #include "flathead.h"
 #include "gc.h"
 
+/**
+ * Lookup a property on an object, resolve the value, and return it.
+ */
 JSValue *
-fh_get(JSValue *obj, char *prop_name)
+fh_get(JSValue *obj, char *name)
 {
   // We can't read properties from undefined.
   if (obj->type == T_UNDEF)
-    fh_error(NULL, E_TYPE, "Cannot read property '%s' of undefined", prop_name);
+    fh_error(NULL, E_TYPE, "Cannot read property '%s' of undefined", name);
 
-  JSProp *prop = fh_get_prop(obj, prop_name);
+  JSProp *prop = fh_get_prop(obj, name);
   // But we'll happily return undefined if a property doesn't exist.
   if (prop == NULL) return JSUNDEF();
   return prop->ptr;
 }
 
+/**
+ * Same as `fh_get`, but recurse the scope chain.
+ */
+JSValue *
+fh_get_rec(JSValue *obj, char *name) 
+{
+  JSProp *prop = fh_get_prop_rec(obj, name);
+  return prop == NULL ?  JSUNDEF() : prop->ptr;
+}
+
+/**
+ * Same as `fh_get`, but recurse the prototype chain (if one exists).
+ */
+JSValue *
+fh_get_proto(JSValue *obj, char *name)
+{
+  JSProp *prop = fh_get_prop_proto(obj, name);
+  return prop == NULL ?  JSUNDEF() : prop->ptr;
+}
+
+/**
+ * Lookup a property on an object and return it.
+ */
 JSProp *
 fh_get_prop(JSValue *obj, char *name)
 {
@@ -60,17 +86,6 @@ fh_set(JSValue *obj, char *name, JSValue *val)
     HASH_ADD_KEYPTR(hh, obj->object.map, prop->name, strlen(prop->name), prop);
 }
 
-/*
- * Look for a property on an object and return its value, 
- * checking parent scopes.
- */
-JSValue *
-fh_get_rec(JSValue *obj, char *name) 
-{
-  JSProp *prop = fh_get_prop_rec(obj, name);
-  return prop == NULL ?  JSUNDEF() : prop->ptr;
-}
-
 JSProp *
 fh_get_prop_rec(JSValue *obj, char *name)
 {
@@ -78,6 +93,15 @@ fh_get_prop_rec(JSValue *obj, char *name)
   // If not found here, check the parent object.
   if (prop == NULL && obj->object.parent != NULL)
     return fh_get_prop_rec(obj->object.parent, name);
+  return prop;
+}
+
+JSProp *
+fh_get_prop_proto(JSValue *obj, char *name)
+{
+  JSProp *prop = fh_get_prop(obj, name);
+  if (prop == NULL && obj->proto != NULL)
+    return fh_get_prop_proto(obj->proto, name);
   return prop;
 }
 
@@ -112,6 +136,18 @@ fh_set_rec(JSValue *obj, char *name, JSValue *val)
 }
 
 JSValue *
+fh_try_get_proto(char *type)
+{
+  JSValue *global = fh_global();
+  if (global != NULL) {
+    JSValue *obj = fh_get(global, type);
+    if (obj->type != T_UNDEF)
+      return fh_get(obj, "prototype");
+  }
+  return NULL;
+}
+
+JSValue *
 fh_new_val(JSType type)
 {
   JSValue *val = fh_malloc(true);
@@ -127,6 +163,7 @@ fh_new_number(double x, bool is_nan, bool is_inf, bool is_neg)
   val->number.is_nan = is_nan;
   val->number.is_inf = is_inf;
   val->number.is_neg = is_neg;
+  val->proto = fh_try_get_proto("Number");
   return val;
 }
 
@@ -137,6 +174,7 @@ fh_new_string(char *x)
   val->string.ptr = malloc((strlen(x) + 1) * sizeof(char));
   strcpy(val->string.ptr, x);
   val->string.len = strlen(x);
+  //val->object.proto = fh_get(fh_get(fh_global(), "String"), "prototype");
   return val;
 }
 
@@ -145,6 +183,7 @@ fh_new_boolean(bool x)
 {
   JSValue *val = fh_new_val(T_BOOLEAN);
   val->boolean.val = x;
+  //val->object.proto = fh_get(fh_get(fh_global(), "Boolean"), "prototype");
   return val;
 }
 
@@ -154,6 +193,7 @@ fh_new_object()
   JSValue *val = fh_new_val(T_OBJECT);
   JSProp *map = NULL;
   val->object.map = map;
+  val->proto = fh_try_get_proto("Object");
   return val;
 }
 
@@ -294,6 +334,8 @@ fh_cast(JSValue *val, JSType type)
     if (type == T_STRING) return JSSTR("undefined");
     if (type == T_NUMBER) return JSNAN();
   }
+
+  assert(0);
 }
 
 void

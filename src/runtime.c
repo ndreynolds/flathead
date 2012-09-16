@@ -65,10 +65,11 @@ fh_bootstrap()
 
   fh_gc_register_global(global);
 
+  fh_set(global, "Object", bootstrap_object());
+  fh_set(global, "Number", bootstrap_number());
+
   fh_set(global, "console", bootstrap_console());
   fh_set(global, "Math", bootstrap_math());
-  fh_set(global, "Number", bootstrap_number());
-  fh_set(global, "Object", bootstrap_object());
   fh_set(global, "NaN", JSNAN());
   fh_set(global, "Infinity", JSINF());
   fh_set(global, "isNaN", JSNFUNC(&is_nan));

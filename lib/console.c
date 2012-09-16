@@ -29,6 +29,7 @@ console_assert(JSArgs *args, State *state)
     if (result->boolean.val) return JSUNDEF();
   }
   fh_error(state, E_ASSERTION, "assertion failed");
+  assert(0);
 }
 
 JSValue *
