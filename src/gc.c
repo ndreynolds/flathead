@@ -106,6 +106,7 @@ fh_gc_sweep(ContainerMetadata *container)
       container->freelist[i] = false;
       fh_gc_free_val(&val);
     }
+    val.marked = false;
   }
 }
 

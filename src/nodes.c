@@ -142,6 +142,12 @@ print_node(Node *node, bool rec, int depth)
     case NODE_FOR:
       printf("for\n");
       break;
+    case NODE_EXPGRP:
+      printf("expression group\n");
+      break;
+    case NODE_FORIN:
+      printf("for-in\n");
+      break;
     case NODE_BREAK:
       printf("break\n");
       break;
@@ -198,6 +204,9 @@ print_node(Node *node, bool rec, int depth)
       break;
     case NODE_ELISION:
       printf("elision\n");
+      break;
+    case NODE_SRC_LST:
+      printf("source list\n");
       break;
     default:
       printf("unknown type: %d\n", node->type);

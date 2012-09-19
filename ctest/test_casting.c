@@ -37,7 +37,7 @@ test_non_numeric_strings_are_NaN_when_cast_to_num()
 }
 
 void
-test_numbers_are_correctly_cast()
+test_number_is_correctly_cast()
 {
   JSValue *float_num = JSNUM(3.14);
   JSValue *int_num = JSNUM(-568123);
@@ -53,20 +53,32 @@ test_numbers_are_correctly_cast()
   TEST(STREQ(JSCAST(int_num, T_STRING)->string.ptr, "-568123"));
   TEST(JSCAST(int_num, T_NULL)->type == T_NULL);
   TEST(JSCAST(int_num, T_UNDEF)->type == T_UNDEF);
+
+  JSValue *zero = JSNUM(0);
+  JSValue *neg = JSNUM(-42);
+
+  TEST(JSCAST(zero, T_BOOLEAN)->boolean.val == 0);
+  TEST(JSCAST(neg, T_BOOLEAN)->boolean.val == 1);
 }
 
 void
-test_objects_are_correctly_cast()
+test_object_is_correctly_cast()
 {
   JSValue *obj = JSOBJ();
+  JSValue *arr = JSOBJ();
+  arr->object.is_array = true;
 
   TEST(JSCAST(obj, T_BOOLEAN)->boolean.val == 1);
   TEST(JSCAST(obj, T_NUMBER)->number.is_nan);
   TEST(STREQ(JSCAST(obj, T_STRING)->string.ptr, "[Object object]"));
+
+  TEST(JSCAST(arr, T_BOOLEAN)->boolean.val == 1);
+  TEST(JSCAST(arr, T_NUMBER)->number.val == 0);
+  TEST(!JSCAST(arr, T_NUMBER)->number.is_nan);
 }
 
 void
-test_functions_are_correctly_cast()
+test_function_is_correctly_cast()
 {
   void *fake_node = malloc(sizeof(void));
   JSValue *func = JSFUNC(fake_node);
@@ -77,38 +89,46 @@ test_functions_are_correctly_cast()
 }
 
 void
-test_zero_is_false_others_true()
-{
-  JSValue *zero = JSNUM(0);
-  JSValue *neg = JSNUM(-42);
-
-  TEST(JSCAST(zero, T_BOOLEAN)->boolean.val == 0);
-  TEST(JSCAST(neg, T_BOOLEAN)->boolean.val == 1);
-}
-
-void
-test_keywords_and_specials_cast_to_strings()
+test_boolean_is_correctly_cast()
 {
   TEST(STREQ(JSCAST(JSBOOL(1), T_STRING)->string.ptr, "true"));
   TEST(STREQ(JSCAST(JSBOOL(0), T_STRING)->string.ptr, "false"));
-  TEST(STREQ(JSCAST(JSNAN(), T_STRING)->string.ptr, "NaN"));
-  TEST(STREQ(JSCAST(JSNULL(), T_STRING)->string.ptr, "null"));
-  TEST(STREQ(JSCAST(JSUNDEF(), T_STRING)->string.ptr, "undefined"));
-  TEST(STREQ(JSCAST(JSINF(), T_STRING)->string.ptr, "Infinity"));
-}
 
-void
-test_null_and_undefined_correctly_cast_to_number()
-{
-  TEST(JSCAST(JSNULL(), T_NUMBER)->number.val == 0);
-  TEST(JSCAST(JSUNDEF(), T_NUMBER)->number.is_nan == 1);
-}
-
-void
-test_true_and_false_correctly_cast_to_number()
-{
   TEST(JSCAST(JSBOOL(1), T_NUMBER)->number.val == 1);
   TEST(JSCAST(JSBOOL(0), T_NUMBER)->number.val == 0);
+}
+
+void
+test_infinity_is_correctly_cast()
+{
+  TEST(STREQ(JSCAST(JSINF(), T_STRING)->string.ptr, "Infinity"));
+  TEST(JSCAST(JSINF(), T_BOOLEAN)->boolean.val == 1);
+
+  TEST(STREQ(JSCAST(JSNINF(), T_STRING)->string.ptr, "Infinity"));
+  TEST(JSCAST(JSNINF(), T_BOOLEAN)->boolean.val == 1);
+}
+
+void
+test_nan_is_correctly_cast()
+{
+  TEST(STREQ(JSCAST(JSNAN(), T_STRING)->string.ptr, "NaN"));
+  TEST(JSCAST(JSNAN(), T_BOOLEAN)->boolean.val == 0);
+}
+
+void
+test_null_is_correctly_cast()
+{
+  TEST(JSCAST(JSNULL(), T_NUMBER)->number.val == 0);
+  TEST(JSCAST(JSNULL(), T_BOOLEAN)->boolean.val == 0);
+  TEST(STREQ(JSCAST(JSNULL(), T_STRING)->string.ptr, "null"));
+}
+
+void
+test_undefined_is_correctly_cast()
+{
+  TEST(JSCAST(JSUNDEF(), T_NUMBER)->number.is_nan == 1);
+  TEST(JSCAST(JSUNDEF(), T_BOOLEAN)->boolean.val == 0);
+  TEST(STREQ(JSCAST(JSUNDEF(), T_STRING)->string.ptr, "undefined"));
 }
 
 int
@@ -118,13 +138,14 @@ main()
 
   test_numeric_strings_are_correctly_cast();
   test_non_numeric_strings_are_NaN_when_cast_to_num();
-  test_numbers_are_correctly_cast();
-  test_objects_are_correctly_cast();
-  test_functions_are_correctly_cast();
-  test_zero_is_false_others_true();
-  test_keywords_and_specials_cast_to_strings();
-  test_null_and_undefined_correctly_cast_to_number();
-  test_true_and_false_correctly_cast_to_number();
+  test_number_is_correctly_cast();
+  test_object_is_correctly_cast();
+  test_function_is_correctly_cast();
+  test_boolean_is_correctly_cast();
+  test_infinity_is_correctly_cast();
+  test_nan_is_correctly_cast();
+  test_null_is_correctly_cast();
+  test_undefined_is_correctly_cast();
 
   TEST_SUMMARY();
 

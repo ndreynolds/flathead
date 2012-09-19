@@ -35,7 +35,7 @@
   #define NEW_STMTLST(head,tail)     NEW_NODE(NODE_STMT_LST,head,tail,0,0,0)
   #define NEW_IF(cnd,ifb,elseb)      NEW_NODE(NODE_IF,cnd,ifb,elseb,0,0)
   #define NEW_FOR(exps,stmt)         NEW_NODE(NODE_FOR,exps,stmt,0,0,0)
-  #define NEW_FOREXPS(e1,e2,e3)      NEW_NODE(NODE_FOR,e1,e2,e3,0,0)
+  #define NEW_EXPGRP(e1,e2,e3)       NEW_NODE(NODE_EXPGRP,e1,e2,e3,0,0)
   #define NEW_FORIN(lhs,in,stmt)     NEW_NODE(NODE_FORIN,lhs,in,stmt,0,0)
   #define NEW_NUM(x)                 NEW_NODE(NODE_NUM,0,0,0,x,0)
   #define NEW_BOOL(x)                NEW_NODE(NODE_BOOL,0,0,0,x,0)
@@ -215,21 +215,21 @@ IterationStatement       : DO Statement WHILE '(' Expression ')' ';'
                          /* for ( Expression ; Expresion ; Expression ) Statement */
 
                          | FOR '(' Expression ';' Expression ';' Expression ')' Statement    
-                             { $$ = NEW_FOR(NEW_FOREXPS($3, $5, $7), $9); }
+                             { $$ = NEW_FOR(NEW_EXPGRP($3, $5, $7), $9); }
                          | FOR '(' Expression ';' Expression ';' ')' Statement    
-                             { $$ = NEW_FOR(NEW_FOREXPS($3, $5, NULL), $8); }
+                             { $$ = NEW_FOR(NEW_EXPGRP($3, $5, NULL), $8); }
                          | FOR '(' Expression ';' ';' Expression ')' Statement    
-                             { $$ = NEW_FOR(NEW_FOREXPS($3, NULL, $6), $8); }
+                             { $$ = NEW_FOR(NEW_EXPGRP($3, NULL, $6), $8); }
                          | FOR '(' Expression ';' ';' ')' Statement    
-                             { $$ = NEW_FOR(NEW_FOREXPS($3, NULL, NULL), $7); }
+                             { $$ = NEW_FOR(NEW_EXPGRP($3, NULL, NULL), $7); }
                          | FOR '(' ';' Expression ';' Expression ')' Statement    
-                             { $$ = NEW_FOR(NEW_FOREXPS(NULL, $4, $6), $8); }
+                             { $$ = NEW_FOR(NEW_EXPGRP(NULL, $4, $6), $8); }
                          | FOR '(' ';' Expression ';' ')' Statement    
-                             { $$ = NEW_FOR(NEW_FOREXPS(NULL, $4, NULL), $7); }
+                             { $$ = NEW_FOR(NEW_EXPGRP(NULL, $4, NULL), $7); }
                          | FOR '(' ';' ';' Expression ')' Statement    
-                             { $$ = NEW_FOR(NEW_FOREXPS(NULL, NULL, $5), $7); }
+                             { $$ = NEW_FOR(NEW_EXPGRP(NULL, NULL, $5), $7); }
                          | FOR '(' ';' ';' ')' Statement    
-                             { $$ = NEW_FOR(NEW_FOREXPS(NULL, NULL, NULL), $6); }
+                             { $$ = NEW_FOR(NEW_EXPGRP(NULL, NULL, NULL), $6); }
                          ;
 
 ContinueStatement        : CONTINUE ';'                       
@@ -340,7 +340,7 @@ Function                 : FUNCTION Identifier '(' FormalParameterList ')' '{' F
                              { $$ = NEW_FUNC(NULL, $6, $2); }
                          ;
 
-                         /* Anonymous functions, OTOH, can readily be labled expressions. */
+                         /* Anonymous functions, OTOH, can readily be labeled expressions. */
 FunctionExpression       : FUNCTION '(' FormalParameterList ')' '{' FunctionBody '}'              
                              { $$ = NEW_FUNC($3, $6, NULL); }
                          | FUNCTION '(' ')' '{' FunctionBody '}'                                

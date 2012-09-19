@@ -62,7 +62,8 @@ JSProp *
 fh_get_prop(JSValue *obj, char *name)
 {
   JSProp *prop = NULL;
-  HASH_FIND_STR(obj->object.map, name, prop);
+  if (obj->object.map)
+    HASH_FIND_STR(obj->object.map, name, prop);
   return prop;
 }
 
@@ -116,7 +117,7 @@ void
 fh_set_rec(JSValue *obj, char *name, JSValue *val)
 {
   JSValue *scope_to_set = obj;
-  JSValue *parent;
+  JSValue *parent = NULL;
 
   // Try and find the property in a parent scope.
   JSProp *prop = fh_get_prop(obj, name);
@@ -327,12 +328,14 @@ fh_cast(JSValue *val, JSType type)
   if (val->type == T_NULL) {
     if (type == T_STRING) return JSSTR("null");
     if (type == T_NUMBER) return JSNUM(0);
+    if (type == T_BOOLEAN) return JSBOOL(0);
   }
 
   // undefined => x
   if (val->type == T_UNDEF) {
     if (type == T_STRING) return JSSTR("undefined");
     if (type == T_NUMBER) return JSNAN();
+    if (type == T_BOOLEAN) return JSBOOL(0);
   }
 
   assert(0);
@@ -401,7 +404,7 @@ fh_debug_arr(FILE *stream, JSValue *arr, int indent)
     fprintf(stream, "[]");
     return;
   }
-  bool first;
+  bool first = true;
   JSProp *x, *tmp;
   fprintf(stream, "[ ");
   HASH_ITER(hh, arr->object.map, x, tmp) {

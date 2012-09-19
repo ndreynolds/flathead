@@ -24,6 +24,8 @@ assert(-Infinity !== Infinity);
 assert(!numString === false);
 assert(!!numString === true);
 assert(!false === true);
+assert(!undefined === true);
+assert(!!undefined === false);
 assert(isNaN(+{}));
 
 var result = ++numString;

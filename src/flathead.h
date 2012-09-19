@@ -121,7 +121,9 @@ typedef struct JSValue {
   };
   JSType type;
   struct JSValue *proto;
+  struct State *state;
   bool marked;
+  bool control;
 } JSValue;
 
 void fh_set(JSValue *, char *, JSValue *);
@@ -165,12 +167,12 @@ int fh_arg_len(JSArgs*);
 #define JSOBJ()       fh_new_object()
 #define JSFUNC(x)     fh_new_function(x)
 #define JSNFUNC(x)    fh_new_native_function(x)
-#define JSCAST(x,t)   fh_cast(x,t)
-#define JSDEBUG(x)    fh_debug(stdout,x,0,1);
+#define JSCAST(x,t)   fh_cast((x),(t))
+#define JSDEBUG(x)    fh_debug(stdout,(x),0,1);
 
 #define ARG0(args)    ((args)->arg == NULL ? JSUNDEF() : (args)->arg)       
-#define ARGN(args, n) fh_get_arg(args, n)
-#define ARGLEN(args)  fh_arg_len(args)
+#define ARGN(args, n) fh_get_arg((args), (n))
+#define ARGLEN(args)  fh_arg_len((args))
 
 #define STREQ(a,b)    (strcmp((a),(b)) == 0)
 

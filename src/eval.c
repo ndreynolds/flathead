@@ -25,7 +25,7 @@ fh_eval(JSValue *ctx, Node *node)
 {
   JSValue *result = JSUNDEF();
   switch(node->type) {
-    case NODE_BOOL: return JSBOOL((bool)node->val);
+    case NODE_BOOL: return JSBOOL(node->val);
     case NODE_STR: return JSSTR(node->sval);
     case NODE_NUM: return JSNUM(node->val);
     case NODE_NULL: return JSNULL();
@@ -43,9 +43,11 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_IF: return fh_if(ctx, node);
     case NODE_ASGN: return fh_assign(ctx, node);
     case NODE_RETURN: return fh_return(ctx, node);
+    case NODE_BREAK: return fh_break();
     case NODE_PROP_LST: return fh_prop_lst(ctx, node);
     case NODE_PROP: fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2)); break;
     case NODE_WHILE: fh_while(ctx, node->e1, node->e2); break;
+    case NODE_FOR: fh_for(ctx, node->e1, node->e2); break;
     case NODE_VAR_STMT: fh_var_stmt(ctx, node); break;
     case NODE_EMPT_STMT: break;
     default:
@@ -75,18 +77,26 @@ fh_if(JSValue *ctx, Node *node)
 {
   if (JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val)
     return fh_eval(ctx, node->e2);
-  else if (node->e3 != NULL) 
+  else if (node->e3 != NULL)
     return fh_eval(ctx, node->e3);
-  return NULL;
+  return JSUNDEF();
 }
 
 JSValue *
 fh_return(JSValue *ctx, Node *node)
 {
-  JSValue *result = node->e1 == NULL ? JSUNDEF() : fh_eval(ctx, node->e1);
+  JSValue *result = node->e1 ? fh_eval(ctx, node->e1) : JSUNDEF();
   if (result->type == T_FUNCTION) 
     result->function.closure = ctx;
   return result;
+}
+
+JSValue *
+fh_break()
+{
+  JSValue *signal = JSNUM(1);
+  signal->control = true;
+  return signal;
 }
 
 void
@@ -101,7 +111,7 @@ fh_var_stmt(JSValue *ctx, Node *node)
 JSValue *
 fh_prop_lst(JSValue *ctx, Node *node)
 {
-  JSValue *result;
+  JSValue *result = JSUNDEF();
   rewind_node(node);
   while(!node->visited) result = fh_eval(ctx, pop_node(node));
   return result;
@@ -110,37 +120,58 @@ fh_prop_lst(JSValue *ctx, Node *node)
 JSValue *
 fh_stmt_lst(JSValue *ctx, Node *node)
 {
-  JSValue *result;
+  JSValue *result = NULL;
   Node *child;
   rewind_node(node);
   while(!node->visited) {
     child = pop_node(node);
-    if (child->type == NODE_RETURN) {
-      if (child->e1 == NULL) return JSUNDEF();
-      JSValue *val = fh_eval(ctx, child);
-      if (val->type == T_FUNCTION) val->function.closure = ctx;
-      return val;
-    }
+
+    if (child->type == NODE_RETURN)
+      return fh_return(ctx, child);
+    if (child->type == NODE_BREAK)
+      return fh_break();
+    if (child->type == NODE_CONT)
+      return JSUNDEF();
+
     result = fh_eval(ctx, child);
+    if (result->control)
+      return result;
   }
-  return result;
+  return result ? result : JSUNDEF();
 }
 
 JSValue *
 fh_src_lst(JSValue *ctx, Node *node)
 {
   // TODO: first sweep for function declarations
-  JSValue *result;
-  rewind_node(node);
-  while(!node->visited) result = fh_eval(ctx, pop_node(node));
-  return result;
+  return fh_stmt_lst(ctx, node);
 }
 
 void
-fh_while(JSValue *ctx, Node *cnd, Node *block)
+fh_while(JSValue *ctx, Node *cnd, Node *stmt)
 {
+  JSValue *signal;
+
   while(JSCAST(fh_eval(ctx, cnd), T_BOOLEAN)->boolean.val) {
-    fh_eval(ctx, block);
+    signal = fh_eval(ctx, stmt);
+    if (signal->control) break;
+  }
+}
+
+void
+fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
+{
+  JSValue *signal;
+
+  if (exp_grp->e1) {
+    fh_eval(ctx, exp_grp->e1);
+  }
+
+  while(JSCAST(exp_grp->e2 ? fh_eval(ctx, exp_grp->e2) : JSBOOL(1), T_BOOLEAN)->boolean.val) {
+    signal = fh_eval(ctx, stmt);
+    if (signal->control) break;
+    if (exp_grp->e3)
+      fh_eval(ctx, exp_grp->e3);
   }
 }
 
@@ -208,10 +239,10 @@ fh_do_assign(JSValue *obj, char *name, JSValue *val, char *op)
 
   // Handle other assignment operators
   JSValue *cur = fh_get_rec(obj, name);
-  if (STREQ(op, "+=")) return fh_set(obj, name, fh_add(cur, val));
-  if (STREQ(op, "-=")) return fh_set(obj, name, fh_sub(cur, val));
-  if (STREQ(op, "*=")) return fh_set(obj, name, fh_mul(cur, val));
-  if (STREQ(op, "/=")) return fh_set(obj, name, fh_div(cur, val));
+  if (STREQ(op, "+=")) return fh_set_rec(obj, name, fh_add(cur, val));
+  if (STREQ(op, "-=")) return fh_set_rec(obj, name, fh_sub(cur, val));
+  if (STREQ(op, "*=")) return fh_set_rec(obj, name, fh_mul(cur, val));
+  if (STREQ(op, "/=")) return fh_set_rec(obj, name, fh_div(cur, val));
 }
 
 JSValue *

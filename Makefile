@@ -3,8 +3,7 @@
 # flathead 
 
 CC=gcc
-CFLAGS=-Wall -O
-TFLAGS=
+CFLAGS=-Wall
 YACC=bison -y -d -t -v
 LEX=flex
 
@@ -20,7 +19,7 @@ YACC_OUT=y.tab.c
 
 all: clean default
 
-debug: CFLAGS += -g
+debug: CFLAGS += -g -O0 -fno-inline
 debug: default
 
 tests:

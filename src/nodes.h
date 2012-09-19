@@ -38,6 +38,7 @@ enum NodeType {
   NODE_WHILE,
   NODE_DOWHILE,
   NODE_FOR,
+  NODE_EXPGRP,
   NODE_FORIN,
   NODE_RETURN,
   NODE_CONT,
@@ -71,6 +72,7 @@ typedef struct Node {
   double val;
   enum NodeType type;
   enum NodeType sub_type;
+  enum NodeType control;
   bool visited;
   int line;
   int column;

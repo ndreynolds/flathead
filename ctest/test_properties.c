@@ -127,6 +127,47 @@ test_undeclared_assignment_checks_parent_scope()
   TEST(fh_get_rec(child, "x") == another_number);
 }
 
+void
+test_set_rec_works_repeatedly()
+{
+  JSValue *first = JSNUM(1);
+  JSValue *second = JSNUM(2);
+  JSValue *third = JSNUM(3);
+
+  JSValue *parent = JSOBJ();
+  JSValue *child = JSOBJ();
+  child->object.parent = parent;
+
+  fh_set(parent, "x", first);
+
+  TEST(fh_get(parent, "x") == first);
+  TEST(fh_get(child, "x")->type == T_UNDEF);
+  TEST(fh_get_rec(child, "x") == first);
+
+  fh_set_rec(child, "x", second);
+
+  TEST(fh_get(parent, "x") == second);
+  TEST(fh_get(child, "x")->type == T_UNDEF);
+  TEST(fh_get_rec(child, "x") == second);
+
+  fh_set_rec(child, "x", third);
+
+  TEST(fh_get(parent, "x") == third);
+  TEST(fh_get(child, "x")->type == T_UNDEF);
+  TEST(fh_get_rec(child, "x") == third);
+}
+
+void test_set_rec_works_on_local_scope()
+{
+  JSValue *val = JSNUM(42);
+  JSValue *scope = JSOBJ();
+
+  fh_set_rec(scope, "x", val);
+
+  TEST(fh_get(scope, "x") == val);
+  TEST(fh_get_rec(scope, "x") == val);
+}
+
 int
 main()
 {
@@ -139,6 +180,8 @@ main()
   test_circular_references_are_handled();
   test_recursive_property_gets_retrieve_a_property_from_parent_scope();
   test_undeclared_assignment_checks_parent_scope();
+  test_set_rec_works_repeatedly();
+  test_set_rec_works_on_local_scope();
 
   TEST_SUMMARY();
 
