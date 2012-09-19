@@ -72,7 +72,6 @@ typedef struct Node {
   double val;
   enum NodeType type;
   enum NodeType sub_type;
-  enum NodeType control;
   bool visited;
   int line;
   int column;

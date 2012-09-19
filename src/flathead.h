@@ -121,7 +121,6 @@ typedef struct JSValue {
   };
   JSType type;
   struct JSValue *proto;
-  struct State *state;
   bool marked;
   bool control;
 } JSValue;
