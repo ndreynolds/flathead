@@ -10,7 +10,7 @@
 
 // Math.abs(x)
 JSValue *
-math_abs(JSArgs *args, State *state)
+math_abs(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   if (x->number.is_nan) return JSNAN();
@@ -20,7 +20,7 @@ math_abs(JSArgs *args, State *state)
 
 // Math.acos(x)
 JSValue *
-math_acos(JSArgs *args, State *state)
+math_acos(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   return JSNUM(acos(x->number.val));
@@ -28,7 +28,7 @@ math_acos(JSArgs *args, State *state)
 
 // Math.asin(x)
 JSValue *
-math_asin(JSArgs *args, State *state)
+math_asin(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   return JSNUM(asin(x->number.val));
@@ -36,7 +36,7 @@ math_asin(JSArgs *args, State *state)
 
 // Math.atan(x)
 JSValue *
-math_atan(JSArgs *args, State *state)
+math_atan(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   return JSNUM(atan(x->number.val));
@@ -44,7 +44,7 @@ math_atan(JSArgs *args, State *state)
 
 // Math.atan2(y, x)
 JSValue *
-math_atan2(JSArgs *args, State *state)
+math_atan2(JSValue *instance, JSArgs *args, State *state)
 {
   double y = JSCAST(ARG0(args), T_NUMBER)->number.val;
   double x = JSCAST(ARGN(args, 1), T_NUMBER)->number.val;
@@ -53,7 +53,7 @@ math_atan2(JSArgs *args, State *state)
 
 // Math.ceil(x)
 JSValue *
-math_ceil(JSArgs *args, State *state)
+math_ceil(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   if (x->number.is_inf) 
@@ -63,7 +63,7 @@ math_ceil(JSArgs *args, State *state)
 
 // Math.cos(x)
 JSValue *
-math_cos(JSArgs *args, State *state)
+math_cos(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   return JSNUM(cos(x->number.val));
@@ -71,7 +71,7 @@ math_cos(JSArgs *args, State *state)
 
 // Math.exp(x)
 JSValue *
-math_exp(JSArgs *args, State *state)
+math_exp(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   return JSNUM(exp(x->number.val));
@@ -79,7 +79,7 @@ math_exp(JSArgs *args, State *state)
 
 // Math.floor(x)
 JSValue *
-math_floor(JSArgs *args, State *state)
+math_floor(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   if (x->number.is_inf) 
@@ -89,7 +89,7 @@ math_floor(JSArgs *args, State *state)
 
 // Math.log(x)
 JSValue *
-math_log(JSArgs *args, State *state)
+math_log(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   return JSNUM(log(x->number.val));
@@ -97,7 +97,7 @@ math_log(JSArgs *args, State *state)
 
 // Math.max([value1[,value2[, ...]]])
 JSValue *
-math_max(JSArgs *args, State *state)
+math_max(JSValue *instance, JSArgs *args, State *state)
 {
   int length = ARGLEN(args);
   if (length == 0) return JSNINF();
@@ -123,7 +123,7 @@ math_max(JSArgs *args, State *state)
 
 // Math.min([value1[,value2[, ...]]])
 JSValue *
-math_min(JSArgs *args, State *state)
+math_min(JSValue *instance, JSArgs *args, State *state)
 {
   int length = ARGLEN(args);
   if (length == 0) return JSINF();
@@ -149,7 +149,7 @@ math_min(JSArgs *args, State *state)
 
 // Math.pow(x, y)
 JSValue *
-math_pow(JSArgs *args, State *state)
+math_pow(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARGN(args, 0), T_NUMBER);
   JSValue *y = JSCAST(ARGN(args, 1), T_NUMBER);
@@ -160,14 +160,14 @@ math_pow(JSArgs *args, State *state)
 
 // Math.random()
 JSValue *
-math_random(JSArgs *args, State *state)
+math_random(JSValue *instance, JSArgs *args, State *state)
 {
   return JSNUM((double)rand() / RAND_MAX);
 }
 
 // Math.round(x)
 JSValue *
-math_round(JSArgs *args, State *state)
+math_round(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   return JSNUM(floor(x->number.val + 0.5));
@@ -175,7 +175,7 @@ math_round(JSArgs *args, State *state)
 
 // Math.sin(x)
 JSValue *
-math_sin(JSArgs *args, State *state)
+math_sin(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   return JSNUM(sin(x->number.val));
@@ -183,7 +183,7 @@ math_sin(JSArgs *args, State *state)
 
 // Math.sqrt(x)
 JSValue *
-math_sqrt(JSArgs *args, State *state)
+math_sqrt(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   if (x->number.is_nan) return JSNAN();
@@ -194,7 +194,7 @@ math_sqrt(JSArgs *args, State *state)
 
 // Math.tan(x)
 JSValue *
-math_tan(JSArgs *args, State *state)
+math_tan(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *x = JSCAST(ARG0(args), T_NUMBER);
   return JSNUM(tan(x->number.val));

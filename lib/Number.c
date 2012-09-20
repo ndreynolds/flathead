@@ -5,42 +5,42 @@
 #include "Number.h"
 
 JSValue *
-number_proto_to_exponential(JSArgs *args, State *state)
+number_proto_to_exponential(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO: stub
   return JSUNDEF();
 }
 
 JSValue *
-number_proto_to_fixed(JSArgs *args, State *state)
+number_proto_to_fixed(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO: stub
   return JSUNDEF();
 }
 
 JSValue *
-number_proto_to_locale_string(JSArgs *args, State *state)
+number_proto_to_locale_string(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO: stub
   return JSUNDEF();
 }
 
 JSValue *
-number_proto_to_precision(JSArgs *args, State *state)
+number_proto_to_precision(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO: stub
   return JSUNDEF();
 }
 
 JSValue *
-number_proto_to_string(JSArgs *args, State *state)
+number_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO: stub
   return JSUNDEF();
 }
 
 JSValue *
-number_proto_value_of(JSArgs *args, State *state)
+number_proto_value_of(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO: stub
   return JSUNDEF();

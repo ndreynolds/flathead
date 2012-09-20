@@ -52,7 +52,12 @@ JSValue *
 fh_get_proto(JSValue *obj, char *name)
 {
   JSProp *prop = fh_get_prop_proto(obj, name);
-  return prop == NULL ?  JSUNDEF() : prop->ptr;
+  JSValue *val = prop ? prop->ptr : JSUNDEF();
+  // Store a ref to the instance for natively define methods.
+  if (val->type == T_FUNCTION) {
+    val->function.instance = obj;
+  }
+  return val;
 }
 
 /**
@@ -374,11 +379,11 @@ fh_debug_obj(FILE *stream, JSValue *obj, int indent)
     return;
   }
 
-  JSProp *x, *tmp;
+  JSProp *x;
   int i;
   bool first = true;
 
-  HASH_ITER(hh, obj->object.map, x, tmp) {
+  OBJ_ITER(obj, x) {
     if (first) {
       fprintf(stream, "\n");
       for(i=0;i<(indent);i++) fprintf(stream, " ");

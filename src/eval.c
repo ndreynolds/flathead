@@ -94,8 +94,8 @@ fh_return(JSValue *ctx, Node *node)
 JSValue *
 fh_break()
 {
-  JSValue *signal = JSNUM(1);
-  signal->control = true;
+  JSValue *signal = JSNULL();
+  signal->signal = S_BREAK;
   return signal;
 }
 
@@ -134,7 +134,7 @@ fh_stmt_lst(JSValue *ctx, Node *node)
       return JSUNDEF();
 
     result = fh_eval(ctx, child);
-    if (result->control)
+    if (result->signal == S_BREAK)
       return result;
   }
   return result ? result : JSUNDEF();
@@ -150,26 +150,26 @@ fh_src_lst(JSValue *ctx, Node *node)
 void
 fh_while(JSValue *ctx, Node *cnd, Node *stmt)
 {
-  JSValue *signal;
+  JSValue *result;
 
   while(JSCAST(fh_eval(ctx, cnd), T_BOOLEAN)->boolean.val) {
-    signal = fh_eval(ctx, stmt);
-    if (signal->control) break;
+    result = fh_eval(ctx, stmt);
+    if (result->signal == S_BREAK) break;
   }
 }
 
 void
 fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
 {
-  JSValue *signal;
+  JSValue *result;
 
   if (exp_grp->e1) {
     fh_eval(ctx, exp_grp->e1);
   }
 
   while(JSCAST(exp_grp->e2 ? fh_eval(ctx, exp_grp->e2) : JSBOOL(1), T_BOOLEAN)->boolean.val) {
-    signal = fh_eval(ctx, stmt);
-    if (signal->control) break;
+    result = fh_eval(ctx, stmt);
+    if (result->signal == S_BREAK) break;
     if (exp_grp->e3)
       fh_eval(ctx, exp_grp->e3);
   }
@@ -278,7 +278,8 @@ fh_function_call(JSValue *ctx, State *state, JSValue *func, Node *args_node)
     // Native functions are C functions referenced by pointer.
     rewind_node(args_node);
     JSNativeFunction native = func->function.native;
-    return (*native)(args, state);
+    JSValue *instance = func->function.instance;
+    return (*native)(instance, args, state);
   }
 
   rewind_node(func->function.node);

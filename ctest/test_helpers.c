@@ -10,7 +10,7 @@
 void
 test_get_arg_can_retrieve_first_arg()
 {
-  JSArgs *args = malloc(sizeof(JSArgs*));
+  JSArgs *args = malloc(sizeof(JSArgs));
   args->arg = JSNUM(42);
   args->next = NULL;
 
@@ -20,7 +20,7 @@ test_get_arg_can_retrieve_first_arg()
 void
 test_get_arg_handles_empty_case()
 {
-  JSArgs *args = malloc(sizeof(JSArgs*));
+  JSArgs *args = malloc(sizeof(JSArgs));
   args->arg = NULL;
   args->next = NULL;
 
@@ -30,9 +30,9 @@ test_get_arg_handles_empty_case()
 void
 test_get_arg_can_retrieve_the_nth_arg()
 {
-  JSArgs *args0 = malloc(sizeof(JSArgs*));
-  JSArgs *args1 = malloc(sizeof(JSArgs*));
-  JSArgs *args2 = malloc(sizeof(JSArgs*));
+  JSArgs *args0 = malloc(sizeof(JSArgs));
+  JSArgs *args1 = malloc(sizeof(JSArgs));
+  JSArgs *args2 = malloc(sizeof(JSArgs));
 
   args0->arg = NULL;
   args0->next = args1;
@@ -49,9 +49,9 @@ test_get_arg_can_retrieve_the_nth_arg()
 void
 test_arg_len_returns_the_number_of_arguments()
 {
-  JSArgs *args0 = malloc(sizeof(JSArgs*));
-  JSArgs *args1 = malloc(sizeof(JSArgs*));
-  JSArgs *args2 = malloc(sizeof(JSArgs*));
+  JSArgs *args0 = malloc(sizeof(JSArgs));
+  JSArgs *args1 = malloc(sizeof(JSArgs));
+  JSArgs *args2 = malloc(sizeof(JSArgs));
 
   args0->arg = JSNUM(1);
   args0->next = args1;
@@ -68,7 +68,7 @@ test_arg_len_returns_the_number_of_arguments()
 void
 test_arg_len_handles_empty_case()
 {
-  JSArgs *args = malloc(sizeof(JSArgs*));
+  JSArgs *args = malloc(sizeof(JSArgs));
 
   args->arg = NULL;
   args->next = NULL;

@@ -3,25 +3,26 @@
 
 #include "../src/flathead.h"
 
-JSValue * obj_create(JSArgs *, State *);
-JSValue * obj_define_property(JSArgs *, State *);
-JSValue * obj_define_properties(JSArgs *, State *);
-JSValue * obj_get_own_property_descriptor(JSArgs *, State *);
-JSValue * obj_keys(JSArgs *, State *);
-JSValue * obj_get_own_property_names(JSArgs *, State *);
-JSValue * obj_get_prototype_of(JSArgs *, State *);
-JSValue * obj_prevent_extensions(JSArgs *, State *);
-JSValue * obj_is_extensible(JSArgs *, State *);
-JSValue * obj_seal(JSArgs *, State *);
-JSValue * obj_is_sealed(JSArgs *, State *);
-JSValue * obj_freeze(JSArgs *, State *);
-JSValue * obj_is_frozen(JSArgs *, State *);
+JSValue * obj_create(JSValue *, JSArgs *, State *);
+JSValue * obj_define_property(JSValue *, JSArgs *, State *);
+JSValue * obj_define_properties(JSValue *, JSArgs *, State *);
+JSValue * obj_get_own_property_descriptor(JSValue *, JSArgs *, State *);
+JSValue * obj_keys(JSValue *, JSArgs *, State *);
+JSValue * obj_get_own_property_names(JSValue *, JSArgs *, State *);
+JSValue * obj_get_prototype_of(JSValue *, JSArgs *, State *);
+JSValue * obj_prevent_extensions(JSValue *, JSArgs *, State *);
+JSValue * obj_is_extensible(JSValue *, JSArgs *, State *);
+JSValue * obj_seal(JSValue *, JSArgs *, State *);
+JSValue * obj_is_sealed(JSValue *, JSArgs *, State *);
+JSValue * obj_freeze(JSValue *, JSArgs *, State *);
+JSValue * obj_is_frozen(JSValue *, JSArgs *, State *);
 
-JSValue * obj_proto_has_own_property(JSArgs *, State *);
-JSValue * obj_proto_is_prototype_of(JSArgs *, State *);
-JSValue * obj_proto_property_is_enumerable(JSArgs *, State *);
-JSValue * obj_proto_to_locale_string(JSArgs *, State *);
-JSValue * obj_proto_to_string(JSArgs *, State *);
-JSValue * obj_proto_value_of(JSArgs *, State *);
+JSValue * obj_proto_has_own_property(JSValue *, JSArgs *, State *);
+JSValue * obj_proto_is_prototype_of(JSValue *, JSArgs *, State *);
+JSValue * obj_proto_property_is_enumerable(JSValue *, JSArgs *, State *);
+JSValue * obj_proto_to_locale_string(JSValue *, JSArgs *, State *);
+JSValue * obj_proto_to_string(JSValue *, JSArgs *, State *);
+JSValue * obj_proto_value_of(JSValue *, JSArgs *, State *);
 
+JSValue * obj_or_throw(JSValue *, State *, const char *);
 JSValue * bootstrap_object(void);

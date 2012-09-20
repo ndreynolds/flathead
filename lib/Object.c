@@ -6,7 +6,7 @@
 
 // Object.create(proto [, propertiesObject ])
 JSValue *
-obj_create(JSArgs *args, State *state)
+obj_create(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO: stub
   return JSUNDEF();
@@ -14,103 +14,119 @@ obj_create(JSArgs *args, State *state)
 
 // Object.defineProperty(obj, prop, descriptor)
 JSValue *
-obj_define_property(JSArgs *args, State *state)
+obj_define_property(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *obj = obj_or_throw(ARG0(args), state, "defineProperty");
+
+  JSValue *prop = ARGN(args, 1);
+  JSValue *desc = ARGN(args, 2);
+
+  fh_set(obj, prop->string.ptr, fh_get(desc, "value"));
+  return obj;
 }
 
 // Object.defineProperties(obj, props)
 JSValue *
-obj_define_properties(JSArgs *args, State *state)
+obj_define_properties(JSValue *instance, JSArgs *args, State *state)
 {
+  JSValue *obj = obj_or_throw(ARG0(args), state, "defineProperties");
+
   // TODO: stub
-  return JSUNDEF();
+  return obj;
 }
 
 // Object.getOwnPropertyDescriptor(obj, prop)
 JSValue *
-obj_get_own_property_descriptor(JSArgs *args, State *state)
+obj_get_own_property_descriptor(JSValue *instance, JSArgs *args, State *state)
 {
+  JSValue *obj = obj_or_throw(ARG0(args), state, "getOwnPropertyDescriptor");
+
   // TODO: stub
-  return JSUNDEF();
+  return obj;
 }
 
 // Object.keys(obj)
 JSValue *
-obj_keys(JSArgs *args, State *state)
+obj_keys(JSValue *instance, JSArgs *args, State *state)
 {
+  JSValue *obj = obj_or_throw(ARG0(args), state, "keys");
+
   // TODO: stub
-  return JSUNDEF();
+  return obj;
 }
 
 // Object.getOwnPropertyNames(obj)
 JSValue *
-obj_get_own_property_names(JSArgs *args, State *state)
+obj_get_own_property_names(JSValue *instance, JSArgs *args, State *state)
 {
+  JSValue *obj = obj_or_throw(ARG0(args), state, "getOwnPropertyNames");
+
   // TODO: stub
-  return JSUNDEF();
+  return obj;
 }
 
 // Object.getPrototypeOf(obj)
 JSValue *
-obj_get_prototype_of(JSArgs *args, State *state)
+obj_get_prototype_of(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *obj = obj_or_throw(ARG0(args), state, "getPrototypeOf");
+  return obj->proto ? obj->proto : JSUNDEF();
 }
 
 // Object.preventExtensions(obj)
 JSValue *
-obj_prevent_extensions(JSArgs *args, State *state)
+obj_prevent_extensions(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *obj = obj_or_throw(ARG0(args), state, "preventExtensions");
+  obj->object.extensible = true;  
+  return obj;
 }
 
 // Object.isExtensible(obj)
 JSValue *
-obj_is_extensible(JSArgs *args, State *state)
+obj_is_extensible(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *obj = obj_or_throw(ARG0(args), state, "isExtensible");
+  return JSBOOL(obj->object.extensible);
 }
 
 // Object.seal(obj)
 JSValue *
-obj_seal(JSArgs *args, State *state)
+obj_seal(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *obj = obj_or_throw(ARG0(args), state, "seal");
+  obj->object.sealed = true;  
+  return obj;
 }
 
 // Object.isSealed(obj)
 JSValue *
-obj_is_sealed(JSArgs *args, State *state)
+obj_is_sealed(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *obj = obj_or_throw(ARG0(args), state, "isSealed");
+  return JSBOOL(obj->object.sealed);
 }
 
 // Object.freeze(obj)
 JSValue *
-obj_freeze(JSArgs *args, State *state)
+obj_freeze(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *obj = obj_or_throw(ARG0(args), state, "freeze");
+  obj->object.frozen = true;  
+  return obj;
 }
 
 // Object.isFrozen(obj)
 JSValue *
-obj_is_frozen(JSArgs *args, State *state)
+obj_is_frozen(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *obj = obj_or_throw(ARG0(args), state, "isFrozen");
+  return JSBOOL(obj->object.frozen);
 }
 
 // Object.prototype.hasOwnProperty(prop)
 JSValue *
-obj_proto_has_own_property(JSArgs *args, State *state)
+obj_proto_has_own_property(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO: stub
   return JSUNDEF();
@@ -118,7 +134,7 @@ obj_proto_has_own_property(JSArgs *args, State *state)
 
 // Object.prototype.isPrototypeOf(object)
 JSValue *
-obj_proto_is_prototype_of(JSArgs *args, State *state)
+obj_proto_is_prototype_of(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO: stub
   return JSUNDEF();
@@ -126,7 +142,7 @@ obj_proto_is_prototype_of(JSArgs *args, State *state)
 
 // Object.prototype.propertyIsEnumerable(prop)
 JSValue *
-obj_proto_property_is_enumerable(JSArgs *args, State *state)
+obj_proto_property_is_enumerable(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO: stub
   return JSUNDEF();
@@ -134,24 +150,32 @@ obj_proto_property_is_enumerable(JSArgs *args, State *state)
 
 // Object.prototype.toLocaleString()
 JSValue *
-obj_proto_to_locale_string(JSArgs *args, State *state)
+obj_proto_to_locale_string(JSValue *instance, JSArgs *args, State *state)
 {
-  return obj_proto_to_string(args, state);
+  return obj_proto_to_string(instance, args, state);
 }
 
 // Object.prototype.toString()
 JSValue *
-obj_proto_to_string(JSArgs *args, State *state)
+obj_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 {
   return JSSTR("[object Object]");
 }
 
 // Object.prototype.valueOf()
 JSValue *
-obj_proto_value_of(JSArgs *args, State *state)
+obj_proto_value_of(JSValue *instance, JSArgs *args, State *state)
 {
   // TODO
   return JSSTR("[object Object]");
+}
+
+JSValue *
+obj_or_throw(JSValue *maybe_obj, State *state, const char *name)
+{
+  if (!maybe_obj || maybe_obj->type != T_OBJECT)
+    fh_error(state, E_TYPE, "Object.%s called on a non-object", name);
+  return maybe_obj;
 }
 
 JSValue *

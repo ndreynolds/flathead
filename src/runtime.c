@@ -25,7 +25,7 @@
 #include "../lib/Number.h"
 
 JSValue *
-is_nan(JSArgs *args, State *state)
+is_nan(JSValue *instance, JSArgs *args, State *state)
 {
   if (args->arg != NULL) {
     JSValue *num = JSCAST((JSValue *)args->arg, T_NUMBER);
@@ -36,14 +36,14 @@ is_nan(JSArgs *args, State *state)
 }
 
 JSValue *
-is_finite(JSArgs *args, State *state)
+is_finite(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *num = JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
   return JSBOOL(!(num->number.is_nan || num->number.is_inf));
 }
 
 JSValue *
-parse_int(JSArgs *args, State *state)
+parse_int(JSValue *instance, JSArgs *args, State *state)
 {
   // Ecma 15.1.2.2
   // TODO: use radix argument, strip whitespace.
@@ -53,7 +53,7 @@ parse_int(JSArgs *args, State *state)
 }
 
 JSValue *
-parse_float(JSArgs *args, State *state)
+parse_float(JSValue *instance, JSArgs *args, State *state)
 {
   return JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
 }

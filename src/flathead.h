@@ -39,6 +39,11 @@ typedef struct State {
   int column;
 } State;
 
+typedef enum Signal {
+  S_BREAK = 1,
+  S_NOOP
+} Signal;
+
 typedef enum JSType {
   T_NUMBER,
   T_STRING,
@@ -97,17 +102,24 @@ struct JSObject {
   bool frozen;
   bool sealed;
   bool extensible;
+  bool enumerable;
   struct JSValue *parent;
   JSProp *map;
 };
 
-typedef struct JSValue * (*JSNativeFunction)(JSArgs *, State *); 
+/**
+ * The standard API for natively defined functions provides an instance (when
+ * applicable), the arguments as values in linked-list format, and the evaluation
+ * state, which contains information that may be used for error reporting.
+ */
+typedef struct JSValue * (*JSNativeFunction)(struct JSValue *, JSArgs *, State *); 
 
 struct JSFunction {
   bool is_native;
   struct Node *node; 
   struct JSValue *closure;
   struct JSValue *prototype;
+  struct JSValue *instance;
   JSNativeFunction native;
 };
 
@@ -120,9 +132,9 @@ typedef struct JSValue {
     struct JSFunction function;
   };
   JSType type;
+  Signal signal;
   struct JSValue *proto;
   bool marked;
-  bool control;
 } JSValue;
 
 void fh_set(JSValue *, char *, JSValue *);
@@ -174,5 +186,7 @@ int fh_arg_len(JSArgs*);
 #define ARGLEN(args)  fh_arg_len((args))
 
 #define STREQ(a,b)    (strcmp((a),(b)) == 0)
+
+#define OBJ_ITER(o,p) JSProp *_tmp; HASH_ITER(hh,(o)->object.map,p,_tmp)
 
 #endif
