@@ -75,11 +75,10 @@ fh_get_prop(JSValue *obj, char *name)
 void
 fh_set(JSValue *obj, char *name, JSValue *val)
 {
-  // TODO: Handle undeclared assignment properly; set prop flags
   bool add = false;
   JSProp *prop = fh_get_prop(obj, name);
   if (prop == NULL) {
-    prop = malloc(sizeof(JSProp));
+    prop = fh_new_prop(true, true, true);
     add = true;
   }
   prop->name = malloc((strlen(name) + 1) * sizeof(char));
@@ -218,6 +217,20 @@ fh_new_native_function(JSNativeFunction func)
   val->function.is_native = true;
   val->function.native = func;
   return val;
+}
+
+JSProp *
+fh_new_prop(bool writable, bool configurable, bool enumerable)
+{
+  JSProp *prop = malloc(sizeof(JSProp));
+
+  prop->writable = writable;
+  prop->configurable = configurable;
+  prop->enumerable = enumerable;
+
+  prop->circular = false;
+  prop->ptr = NULL;
+  return prop;
 }
 
 State *

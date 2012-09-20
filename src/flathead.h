@@ -102,7 +102,6 @@ struct JSObject {
   bool frozen;
   bool sealed;
   bool extensible;
-  bool enumerable;
   struct JSValue *parent;
   JSProp *map;
 };
@@ -155,6 +154,7 @@ JSValue * fh_new_function(struct Node *);
 JSValue * fh_new_native_function(JSNativeFunction);
 JSValue * fh_get_arg(JSArgs*, int);
 JSArgs * fh_new_args();
+JSProp * fh_new_prop(bool, bool, bool);
 State * fh_new_state(int, int);
 
 JSValue * fh_cast(JSValue *, JSType);

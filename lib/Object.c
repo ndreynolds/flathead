@@ -8,8 +8,25 @@
 JSValue *
 obj_create(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *proto = ARG0(args);
+  JSValue *props = ARGN(args, 1);
+
+  JSValue *obj = JSOBJ();
+  obj->proto = proto;
+
+  // TODO: Replace array construction with helper call.
+  if (props->type == T_OBJECT) {
+    JSProp *p;
+    // TODO: accessor/value property type distinctions
+    OBJ_ITER(props, p) {
+      if (p->enumerable) {
+        if (p->ptr && p->ptr->type == T_OBJECT)
+          fh_set(obj, p->name, fh_get(p->ptr, "value"));
+      }
+    }
+  }
+
+  return obj; 
 }
 
 // Object.defineProperty(obj, prop, descriptor)
@@ -30,8 +47,18 @@ JSValue *
 obj_define_properties(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *obj = obj_or_throw(ARG0(args), state, "defineProperties");
+  JSValue *props = ARGN(args, 1);
 
-  // TODO: stub
+  if (props->type == T_OBJECT) {
+    JSProp *p;
+    OBJ_ITER(props, p) {
+      if (p->enumerable) {
+        if (p->ptr && p->ptr->type == T_OBJECT)
+          fh_set(obj, p->name, fh_get(p->ptr, "value"));
+      }
+    }
+  }
+
   return obj;
 }
 
@@ -40,9 +67,16 @@ JSValue *
 obj_get_own_property_descriptor(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *obj = obj_or_throw(ARG0(args), state, "getOwnPropertyDescriptor");
+  JSValue *prop_name = ARGN(args, 1);
+  JSProp *prop = fh_get_prop(obj, prop_name->string.ptr);
+  JSValue *descriptor = JSOBJ();
 
-  // TODO: stub
-  return obj;
+  fh_set(descriptor, "value", prop->ptr);
+  fh_set(descriptor, "configurable", JSBOOL(prop->configurable));
+  fh_set(descriptor, "writable", JSBOOL(prop->writable));
+  fh_set(descriptor, "enumerable", JSBOOL(prop->enumerable));
+
+  return descriptor;
 }
 
 // Object.keys(obj)
@@ -50,9 +84,22 @@ JSValue *
 obj_keys(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *obj = obj_or_throw(ARG0(args), state, "keys");
+  JSValue *keys = JSOBJ();
+  keys->object.is_array = true;
 
-  // TODO: stub
-  return obj;
+  // TODO: Replace array construction with helper call.
+  JSProp *p;
+  JSValue *name;
+  int i = 0;
+  OBJ_ITER(obj, p) {
+    if (p->enumerable) {
+      name = JSCAST(JSNUM(i), T_STRING);
+      fh_set(keys, name->string.ptr, JSSTR(p->name));
+      i++;
+    }
+  }
+
+  return keys;
 }
 
 // Object.getOwnPropertyNames(obj)
@@ -60,9 +107,20 @@ JSValue *
 obj_get_own_property_names(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *obj = obj_or_throw(ARG0(args), state, "getOwnPropertyNames");
+  JSValue *names = JSOBJ();
+  names->object.is_array = true;
 
-  // TODO: stub
-  return obj;
+  // TODO: Replace array construction with helper call.
+  JSProp *p;
+  JSValue *name;
+  int i = 0;
+  OBJ_ITER(obj, p) {
+    name = JSCAST(JSNUM(i), T_STRING);
+    fh_set(names, name->string.ptr, JSSTR(p->name));
+    i++;
+  }
+
+  return names;
 }
 
 // Object.getPrototypeOf(obj)
@@ -128,24 +186,32 @@ obj_is_frozen(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_proto_has_own_property(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *prop_name = ARG0(args);
+  return JSBOOL(fh_get_prop(instance, prop_name->string.ptr) != NULL);
 }
 
 // Object.prototype.isPrototypeOf(object)
 JSValue *
 obj_proto_is_prototype_of(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *obj = ARG0(args);
+  JSValue *proto = obj->proto;
+
+  while(proto != NULL) {
+    if (proto == instance) return JSBOOL(1);
+    proto = proto->proto;
+  }
+  return JSBOOL(0);
 }
 
 // Object.prototype.propertyIsEnumerable(prop)
 JSValue *
 obj_proto_property_is_enumerable(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *prop_name = ARG0(args);
+  // TODO: restricted to own properties?
+  JSProp *prop = fh_get_prop(instance, prop_name->string.ptr);
+  return JSBOOL(prop != NULL && prop->enumerable);
 }
 
 // Object.prototype.toLocaleString()
