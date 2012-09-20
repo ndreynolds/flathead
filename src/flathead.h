@@ -22,13 +22,10 @@
 #include "../ext/uthash.h"
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <assert.h>
 #include <float.h>
-
-typedef int bool;
-#define true 1
-#define false 0
 
 struct JSArgs;
 struct JSValue;
