@@ -188,10 +188,7 @@ print_node(Node *node, bool rec, int depth)
       printf("member expression\n");
       break;
     case NODE_FUNC:
-      printf("function expression\n");
-      break;
-    case NODE_FUNC_DECL:
-      printf("function declaration\n");
+      printf("function\n");
       break;
     case NODE_PARAM_LST:
       printf("parameter list\n");

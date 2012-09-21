@@ -8,6 +8,13 @@ var assertEquals = function(a, b) {
   return assert(a === b);
 };
 
+// Function declarations can be used pre-defintion
+assertEquals(typeof f0, 'function');
+assertEquals(f0(), 42);
+function f0() {
+  return 42;
+}
+
 // Syntax allows an empty function body.
 var f1 = function() {};
 
@@ -45,9 +52,9 @@ var recursive2 = function(x) {
   return x;
 };
 
-assertEquals(square(3), 9);
-assertEquals(add(2, 2), 4);
-assertEquals(incrementSquare(9), 82);
-assertEquals(incrementSquare(20), 401);
-assertEquals(recursive1(1), 10 );
-assertEquals(recursive2(1), 10);
+assertEquals(9, square(3));
+assertEquals(4, add(2, 2));
+assertEquals(82, incrementSquare(9));
+assertEquals(401, incrementSquare(20));
+assertEquals(10, recursive1(1));
+assertEquals(10, recursive2(1));

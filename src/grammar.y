@@ -209,19 +209,32 @@ IterationStatement       : DO Statement WHILE '(' Expression ')' ';'
                              { $$ = NEW_DOWHILE($2, $5); }
                          | WHILE '(' Expression ')' Statement                                
                              { $$ = NEW_WHILE($3, $5); }
+
+                         /* for ( LHS/VarDecl in Expression ) Statement */
+
                          | FOR '(' LeftHandSideExpression IN Expression ')' Statement
                              { $$ = NEW_FORIN($3, $5, $7); }
+                         | FOR '(' VAR Identifier IN Expression ')' Statement
+                             { $$ = NEW_FORIN($4, $6, $8); }
 
-                         /* for ( Expression ; Expresion ; Expression ) Statement */
+                         /* for ( Expression/VarDecl ; Expresion ; Expression ) Statement */
 
                          | FOR '(' Expression ';' Expression ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, $5, $7), $9); }
+                         | FOR '(' VAR Identifier ';' Expression ';' Expression ')' Statement    
+                             { $$ = NEW_FOR(NEW_EXPGRP($4, $6, $8), $10); }
                          | FOR '(' Expression ';' Expression ';' ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, $5, NULL), $8); }
+                         | FOR '(' VAR Identifier ';' Expression ';' ')' Statement    
+                             { $$ = NEW_FOR(NEW_EXPGRP($4, $6, NULL), $9); }
                          | FOR '(' Expression ';' ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, NULL, $6), $8); }
+                         | FOR '(' VAR Identifier ';' ';' Expression ')' Statement    
+                             { $$ = NEW_FOR(NEW_EXPGRP($4, NULL, $7), $9); }
                          | FOR '(' Expression ';' ';' ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, NULL, NULL), $7); }
+                         | FOR '(' VAR Identifier ';' ';' ')' Statement    
+                             { $$ = NEW_FOR(NEW_EXPGRP($4, NULL, NULL), $8); }
                          | FOR '(' ';' Expression ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP(NULL, $4, $6), $8); }
                          | FOR '(' ';' Expression ';' ')' Statement    
@@ -334,16 +347,16 @@ PropertyName             : Identifier
                          
                          /* Whether a named function is a declaration or expression is ambiguous
                             here. We'll decide that on evaluation. */
-Function                 : FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}'   
+Function                 : FUNCTION Identifier '(' FormalParameterList ')' '{' FunctionBody '}'
                              { $$ = NEW_FUNC($4, $7, $2); }
-                         | FUNCTION Identifier '(' ')' '{' FunctionBody '}'                     
+                         | FUNCTION Identifier '(' ')' '{' FunctionBody '}'
                              { $$ = NEW_FUNC(NULL, $6, $2); }
                          ;
 
                          /* Anonymous functions, OTOH, can readily be labeled expressions. */
-FunctionExpression       : FUNCTION '(' FormalParameterList ')' '{' FunctionBody '}'              
+FunctionExpression       : FUNCTION '(' FormalParameterList ')' '{' FunctionBody '}'
                              { $$ = NEW_FUNC($3, $6, NULL); }
-                         | FUNCTION '(' ')' '{' FunctionBody '}'                                
+                         | FUNCTION '(' ')' '{' FunctionBody '}'
                              { $$ = NEW_FUNC(NULL, $5, NULL); }
                          ;
 

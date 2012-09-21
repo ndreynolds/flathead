@@ -23,6 +23,7 @@
 
 void fh_while(JSValue *, Node *, Node *);
 void fh_for(JSValue *, Node *, Node *);
+void fh_forin(JSValue *, Node *);
 void fh_var_stmt(JSValue *, Node *);
 void fh_do_assign(JSValue *, char *, JSValue *, char *);
 JSArgs * fh_build_args(JSValue *, Node *);

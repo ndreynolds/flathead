@@ -48,6 +48,7 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_PROP: fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2)); break;
     case NODE_WHILE: fh_while(ctx, node->e1, node->e2); break;
     case NODE_FOR: fh_for(ctx, node->e1, node->e2); break;
+    case NODE_FORIN: fh_forin(ctx, node); break;
     case NODE_VAR_STMT: fh_var_stmt(ctx, node); break;
     case NODE_EMPT_STMT: break;
     default:
@@ -143,7 +144,16 @@ fh_stmt_lst(JSValue *ctx, Node *node)
 JSValue *
 fh_src_lst(JSValue *ctx, Node *node)
 {
-  // TODO: first sweep for function declarations
+  // First sweep for function declarations
+  Node *child;
+  while(!node->visited) {
+    child = pop_node(node);
+    if (child->type == NODE_FUNC) {
+      fh_set(ctx, fh_str_from_node(ctx, child->e3)->string.ptr, JSFUNC(child));
+    }
+  }
+  rewind_node(node);
+
   return fh_stmt_lst(ctx, node);
 }
 
@@ -172,6 +182,32 @@ fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
     if (result->signal == S_BREAK) break;
     if (exp_grp->e3)
       fh_eval(ctx, exp_grp->e3);
+  }
+}
+
+void
+fh_forin(JSValue *ctx, Node *node)
+{
+  JSProp *p;
+  JSValue *result,
+          *proto = fh_eval(ctx, node->e2),
+          *name = fh_str_from_node(ctx, node->e1);
+
+  // If variable declaration:
+  if (node->e1->type == NODE_IDENT)
+    fh_set(ctx, name->string.ptr, JSNULL());
+
+  // Note that during the first iteration, the prototype is the object.
+  while(proto != NULL) {
+    OBJ_ITER(proto, p) {
+      if (p->enumerable) {
+        // Assign to name, possibly undeclared assignment.
+        fh_set_rec(ctx, name->string.ptr, p->ptr);
+        result = fh_eval(ctx, node->e3);
+        if (result->signal == S_BREAK) break;
+      }
+    }
+    proto = proto->proto;
   }
 }
 
