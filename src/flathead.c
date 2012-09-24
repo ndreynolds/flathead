@@ -75,20 +75,42 @@ fh_get_prop(JSValue *obj, char *name)
 void
 fh_set(JSValue *obj, char *name, JSValue *val)
 {
+  fh_set_prop(obj, name, val, P_DEFAULT);
+}
+
+void
+fh_set_prop(JSValue *obj, char *name, JSValue *val, JSPropFlags flags)
+{
   bool add = false;
   JSProp *prop = fh_get_prop(obj, name);
   if (prop == NULL) {
-    prop = fh_new_prop(true, true, true);
+    prop = fh_new_prop(flags);
     add = true;
   }
+
+  // Set flags 
+  if (!add) {
+    prop->writable = flags & P_WRITE;
+    prop->configurable = flags & P_CONF;
+    prop->enumerable = flags & P_ENUM;
+  }
+
   prop->name = malloc((strlen(name) + 1) * sizeof(char));
   strcpy(prop->name, name);
   prop->ptr = val;
-  // Do we have a circular reference?
-  prop->circular = prop->ptr == obj ? 1 : 0;
+  prop->circular = prop->ptr == obj ? 1 : 0; // Do we have a circular reference?
+
   // Don't add if it already exists (bad things happen).
   if (add)
     HASH_ADD_KEYPTR(hh, obj->object.map, prop->name, strlen(prop->name), prop);
+}
+
+void
+fh_del_prop(JSValue *obj, char *name)
+{
+  JSProp *deletee = fh_get_prop(obj, name);
+  if (deletee != NULL)
+    HASH_DEL(obj->object.map, deletee);
 }
 
 JSProp *
@@ -178,7 +200,7 @@ fh_new_string(char *x)
   JSValue *val = fh_new_val(T_STRING);
   val->string.ptr = malloc((strlen(x) + 1) * sizeof(char));
   strcpy(val->string.ptr, x);
-  val->string.len = strlen(x);
+  val->string.length = strlen(x);
   //val->object.proto = fh_get(fh_get(fh_global(), "String"), "prototype");
   return val;
 }
@@ -203,6 +225,16 @@ fh_new_object()
 }
 
 JSValue *
+fh_new_array()
+{
+  JSValue *arr = fh_new_object();
+  arr->object.is_array = true;
+  arr->proto = fh_try_get_proto("Array");
+  fh_arr_set_len(arr, 0);
+  return arr;
+}
+
+JSValue *
 fh_new_function(struct Node *node)
 {
   JSValue *val = fh_new_val(T_FUNCTION);
@@ -220,13 +252,13 @@ fh_new_native_function(JSNativeFunction func)
 }
 
 JSProp *
-fh_new_prop(bool writable, bool configurable, bool enumerable)
+fh_new_prop(JSPropFlags flags)
 {
   JSProp *prop = malloc(sizeof(JSProp));
 
-  prop->writable = writable;
-  prop->configurable = configurable;
-  prop->enumerable = enumerable;
+  prop->writable = flags & P_WRITE;
+  prop->configurable = flags & P_CONF;
+  prop->enumerable = flags & P_ENUM;
 
   prop->circular = false;
   prop->ptr = NULL;
@@ -272,7 +304,7 @@ fh_str_concat(char *dst, char *new)
   strcat(dst, new);
   return dst;
 }
-
+  
 JSValue *
 fh_cast(JSValue *val, JSType type)
 {
@@ -306,7 +338,7 @@ fh_cast(JSValue *val, JSType type)
     }
     if (type == T_BOOLEAN) {
       // "" is false, all others true
-      if (val->string.len == 0) return JSBOOL(0);
+      if (val->string.length == 0) return JSBOOL(0);
       return JSBOOL(1);
     }
   }
@@ -357,6 +389,13 @@ fh_cast(JSValue *val, JSType type)
   }
 
   assert(0);
+}
+
+void
+fh_arr_set_len(JSValue *arr, int len)
+{
+  arr->object.length = len;
+  fh_set_prop(arr, "length", JSNUM(len), P_BUILTIN);
 }
 
 void
@@ -428,8 +467,10 @@ fh_debug_arr(FILE *stream, JSValue *arr, int indent)
   HASH_ITER(hh, arr->object.map, x, tmp) {
     if (!first) 
       fprintf(stream, ", ");
-    else first = false;
-    fh_debug(stream, x->ptr, 0, false);
+    else if (x->enumerable)
+      first = false;
+    if (x->enumerable)
+      fh_debug(stream, x->ptr, 0, false);
   };
   fprintf(stream, " ]");
 }

@@ -254,22 +254,22 @@ bootstrap_object()
   // ------
 
   // Properties
-  fh_set(object, "prototype", prototype);
+  BUILTIN(object, "prototype", prototype);
 
   // Methods
-  fh_set(object, "create", JSNFUNC(&obj_create));
-  fh_set(object, "defineProperty", JSNFUNC(&obj_define_property));
-  fh_set(object, "defineProperties", JSNFUNC(&obj_define_properties));
-  fh_set(object, "getOwnPropertyDescriptor", JSNFUNC(&obj_get_own_property_descriptor));
-  fh_set(object, "keys", JSNFUNC(&obj_keys));
-  fh_set(object, "getOwnPropertyName", JSNFUNC(&obj_get_own_property_names));
-  fh_set(object, "getPrototypeOf", JSNFUNC(&obj_get_prototype_of));
-  fh_set(object, "preventExtensions", JSNFUNC(&obj_prevent_extensions));
-  fh_set(object, "isExtensible", JSNFUNC(&obj_is_extensible));
-  fh_set(object, "seal", JSNFUNC(&obj_seal));
-  fh_set(object, "isSealed", JSNFUNC(&obj_is_sealed));
-  fh_set(object, "freeze", JSNFUNC(&obj_freeze));
-  fh_set(object, "isFrozen", JSNFUNC(&obj_is_frozen));
+  BUILTIN(object, "create", JSNFUNC(&obj_create));
+  BUILTIN(object, "defineProperty", JSNFUNC(&obj_define_property));
+  BUILTIN(object, "defineProperties", JSNFUNC(&obj_define_properties));
+  BUILTIN(object, "getOwnPropertyDescriptor", JSNFUNC(&obj_get_own_property_descriptor));
+  BUILTIN(object, "keys", JSNFUNC(&obj_keys));
+  BUILTIN(object, "getOwnPropertyName", JSNFUNC(&obj_get_own_property_names));
+  BUILTIN(object, "getPrototypeOf", JSNFUNC(&obj_get_prototype_of));
+  BUILTIN(object, "preventExtensions", JSNFUNC(&obj_prevent_extensions));
+  BUILTIN(object, "isExtensible", JSNFUNC(&obj_is_extensible));
+  BUILTIN(object, "seal", JSNFUNC(&obj_seal));
+  BUILTIN(object, "isSealed", JSNFUNC(&obj_is_sealed));
+  BUILTIN(object, "freeze", JSNFUNC(&obj_freeze));
+  BUILTIN(object, "isFrozen", JSNFUNC(&obj_is_frozen));
 
   // Object.prototype
   // ----------------
@@ -279,12 +279,12 @@ bootstrap_object()
   // fh_set(prototype, "constructor", object);
 
   // Methods
-  fh_set(prototype, "hasOwnProperty", JSNFUNC(&obj_proto_has_own_property));
-  fh_set(prototype, "isPrototypeOf", JSNFUNC(&obj_proto_is_prototype_of));
-  fh_set(prototype, "propertyIsEnumerable", JSNFUNC(&obj_proto_property_is_enumerable));
-  fh_set(prototype, "toLocaleString", JSNFUNC(&obj_proto_to_locale_string));
-  fh_set(prototype, "toString", JSNFUNC(&obj_proto_to_string));
-  fh_set(prototype, "valueOf", JSNFUNC(&obj_proto_value_of));
+  BUILTIN(prototype, "hasOwnProperty", JSNFUNC(&obj_proto_has_own_property));
+  BUILTIN(prototype, "isPrototypeOf", JSNFUNC(&obj_proto_is_prototype_of));
+  BUILTIN(prototype, "propertyIsEnumerable", JSNFUNC(&obj_proto_property_is_enumerable));
+  BUILTIN(prototype, "toLocaleString", JSNFUNC(&obj_proto_to_locale_string));
+  BUILTIN(prototype, "toString", JSNFUNC(&obj_proto_to_string));
+  BUILTIN(prototype, "valueOf", JSNFUNC(&obj_proto_value_of));
 
   return object;
 }

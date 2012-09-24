@@ -9,9 +9,9 @@ LEX=flex
 
 MAIN=src/flathead.c
 SRC_FILES=src/nodes.c src/gc.c src/eval.c src/runtime.c
-LIB_FILES=lib/console.c lib/Math.c lib/Number.c lib/Object.c
+LIB_FILES=lib/console.c lib/Math.c lib/Number.c lib/Object.c lib/Array.c
 
-OUT_FILE=-o bin/fh
+OUT_FILE=bin/fh
 GRAMMAR_FILE=src/grammar.y
 LEX_FILE=src/lexer.l
 LEX_OUT=lex.yy.c
@@ -21,6 +21,8 @@ all: clean default
 
 debug: CFLAGS += -g -O0 -fno-inline
 debug: default
+debug: 
+	gdb $(OUT_FILE)
 
 tests:
 	node test/runner.js
@@ -39,4 +41,4 @@ install: default
 	cp bin/fh /usr/local/bin/
 	
 default: grammar lexer
-	$(CC) $(CFLAGS) $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(MAIN) $(LIB_FILES) $(SRC_FILES) -lm
+	$(CC) $(CFLAGS) -o $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(MAIN) $(LIB_FILES) $(SRC_FILES) -lm

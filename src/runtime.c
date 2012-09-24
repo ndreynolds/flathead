@@ -22,6 +22,7 @@
 #include "../lib/console.h"
 #include "../lib/Math.h"
 #include "../lib/Object.h"
+#include "../lib/Array.h"
 #include "../lib/Number.h"
 
 JSValue *
@@ -66,6 +67,7 @@ fh_bootstrap()
   fh_gc_register_global(global);
 
   fh_set(global, "Object", bootstrap_object());
+  fh_set(global, "Array", bootstrap_array());
   fh_set(global, "Number", bootstrap_number());
 
   fh_set(global, "console", bootstrap_console());

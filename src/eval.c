@@ -223,18 +223,18 @@ fh_obj(JSValue *ctx, Node *node)
 JSValue *
 fh_arr(JSValue *ctx, Node *node)
 {
-  JSValue *obj = JSOBJ();
-  obj->object.is_array = true;
+  JSValue *arr = JSARR();
   if (node->e1 != NULL) {
     int i = 0;
     JSValue *str;
     while(!node->e1->visited) {
       str = JSCAST(JSNUM(i), T_STRING);
-      fh_set(obj, str->string.ptr, fh_eval(ctx, pop_node(node->e1)));
+      fh_set(arr, str->string.ptr, fh_eval(ctx, pop_node(node->e1)));
       i++;
     }
+    fh_arr_set_len(arr, i);
   }
-  return obj;
+  return arr;
 }
 
 JSValue *

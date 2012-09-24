@@ -230,34 +230,34 @@ bootstrap_math()
   JSValue *math = JSOBJ();
 
   // Properties
-  fh_set(math, "E", JSNUM(M_E));
-  fh_set(math, "LN2", JSNUM(M_LN2));
-  fh_set(math, "LN10", JSNUM(M_LN10));
-  fh_set(math, "LOG2E", JSNUM(M_LOG2E));
-  fh_set(math, "LOG10E", JSNUM(M_LOG10E));
-  fh_set(math, "PI", JSNUM(M_PI));
-  fh_set(math, "SQRT1_2", JSNUM(M_SQRT1_2));
-  fh_set(math, "SQRT2", JSNUM(M_SQRT2));
+  BUILTIN(math, "E", JSNUM(M_E));
+  BUILTIN(math, "LN2", JSNUM(M_LN2));
+  BUILTIN(math, "LN10", JSNUM(M_LN10));
+  BUILTIN(math, "LOG2E", JSNUM(M_LOG2E));
+  BUILTIN(math, "LOG10E", JSNUM(M_LOG10E));
+  BUILTIN(math, "PI", JSNUM(M_PI));
+  BUILTIN(math, "SQRT1_2", JSNUM(M_SQRT1_2));
+  BUILTIN(math, "SQRT2", JSNUM(M_SQRT2));
 
   // Methods
-  fh_set(math, "abs", JSNFUNC(&math_abs));
-  fh_set(math, "acos", JSNFUNC(&math_acos));
-  fh_set(math, "asin", JSNFUNC(&math_asin));
-  fh_set(math, "atan", JSNFUNC(&math_atan));
-  fh_set(math, "atan2", JSNFUNC(&math_atan2));
-  fh_set(math, "ceil", JSNFUNC(&math_ceil));
-  fh_set(math, "cos", JSNFUNC(&math_cos));
-  fh_set(math, "exp", JSNFUNC(&math_exp));
-  fh_set(math, "floor", JSNFUNC(&math_floor));
-  fh_set(math, "log", JSNFUNC(&math_log));
-  fh_set(math, "max", JSNFUNC(&math_max));
-  fh_set(math, "min", JSNFUNC(&math_min));
-  fh_set(math, "pow", JSNFUNC(&math_pow));
-  fh_set(math, "random", JSNFUNC(&math_random));
-  fh_set(math, "round", JSNFUNC(&math_round));
-  fh_set(math, "sin", JSNFUNC(&math_sin));
-  fh_set(math, "sqrt", JSNFUNC(&math_sqrt));
-  fh_set(math, "tan", JSNFUNC(&math_tan));
+  BUILTIN(math, "abs", JSNFUNC(&math_abs));
+  BUILTIN(math, "acos", JSNFUNC(&math_acos));
+  BUILTIN(math, "asin", JSNFUNC(&math_asin));
+  BUILTIN(math, "atan", JSNFUNC(&math_atan));
+  BUILTIN(math, "atan2", JSNFUNC(&math_atan2));
+  BUILTIN(math, "ceil", JSNFUNC(&math_ceil));
+  BUILTIN(math, "cos", JSNFUNC(&math_cos));
+  BUILTIN(math, "exp", JSNFUNC(&math_exp));
+  BUILTIN(math, "floor", JSNFUNC(&math_floor));
+  BUILTIN(math, "log", JSNFUNC(&math_log));
+  BUILTIN(math, "max", JSNFUNC(&math_max));
+  BUILTIN(math, "min", JSNFUNC(&math_min));
+  BUILTIN(math, "pow", JSNFUNC(&math_pow));
+  BUILTIN(math, "random", JSNFUNC(&math_random));
+  BUILTIN(math, "round", JSNFUNC(&math_round));
+  BUILTIN(math, "sin", JSNFUNC(&math_sin));
+  BUILTIN(math, "sqrt", JSNFUNC(&math_sqrt));
+  BUILTIN(math, "tan", JSNFUNC(&math_tan));
 
   return math;
 }

@@ -59,10 +59,10 @@ bootstrap_console()
 {
   JSValue *console = JSOBJ();
 
-  fh_set(console, "log", JSNFUNC(&console_log));
-  fh_set(console, "error", JSNFUNC(&console_error));
-  fh_set(console, "assert", JSNFUNC(&console_assert));
-  fh_set(console, "time", JSNFUNC(&console_time));
+  BUILTIN(console, "log", JSNFUNC(&console_log));
+  BUILTIN(console, "error", JSNFUNC(&console_error));
+  BUILTIN(console, "assert", JSNFUNC(&console_assert));
+  BUILTIN(console, "time", JSNFUNC(&console_time));
 
   return console;
 }

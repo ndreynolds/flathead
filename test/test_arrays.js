@@ -6,8 +6,9 @@ var assertEquals = function(a, b) {
   assert(a === b);
 };
 
+
 // ----------------------------------------------------------------------------
-// Indexing
+// Literals & Indexing
 // ----------------------------------------------------------------------------
 
 // Simple homogenous array
@@ -38,5 +39,45 @@ var getIndex = function() {
   return 1;
 };
 var a4 = ['a', 'b', 'c', 'd'];
-assertEquals('c', a4[4 - 2]);
-assertEquals('b', a4[getIndex()]);
+//assertEquals('c', a4[4 - 2]);
+//assertEquals('b', a4[getIndex()]);
+
+
+// ----------------------------------------------------------------------------
+// Array Global
+// ----------------------------------------------------------------------------
+
+assert(Array);
+
+assert(Array.isArray([]));
+assert(Array.isArray([1]));
+// TODO: (waiting on new operator) assert(Array.isArray( new Array() );
+assert(Array.isArray(Array.prototype));
+
+assert(!Array.isArray());
+assert(!Array.isArray({}));
+assert(!Array.isArray(null));
+assert(!Array.isArray(undefined));
+assert(!Array.isArray(17));
+assert(!Array.isArray("Array"));
+assert(!Array.isArray(true));
+assert(!Array.isArray(false));
+
+
+// ----------------------------------------------------------------------------
+// Array Prototype
+// ----------------------------------------------------------------------------
+
+var a5 = [1, 2, 3, 4];
+
+// Array.prototype.pop()
+assert(a5.pop() === 4);
+assert(a5.length === 3);
+assert(a5.pop() === 3);
+assert(a5.length === 2);
+
+// Array.prototype.push(element1, ..., elementN)
+assert(a5.push('lions') === 3);
+assert(a5.length === 3);
+assert(a5.push('tigers', 'and', 'bears') === 6);
+assert(a5.length === 6);
