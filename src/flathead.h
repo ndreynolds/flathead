@@ -1,5 +1,5 @@
 /*
- * flathead.h -- Memory management, casting, and debug helpers
+ * flathead.h -- Core types, constructors, casting, and debug.
  *
  * Copyright (c) 2012 Nick Reynolds
  *  
@@ -26,6 +26,29 @@
 #include <stdio.h>
 #include <assert.h>
 #include <float.h>
+
+#define JSBOOL(x)      fh_new_boolean(x)
+#define JSSTR(x)       fh_new_string(x)
+#define JSNULL()       fh_new_val(T_NULL)
+#define JSUNDEF()      fh_new_val(T_UNDEF)
+#define JSNUM(x)       fh_new_number((x),0,0,0)
+#define JSNAN()        fh_new_number(0,1,0,0)
+#define JSINF(n)       fh_new_number(DBL_MAX,0,1,0)
+#define JSNINF(n)      fh_new_number(DBL_MIN,0,1,1)
+#define JSOBJ()        fh_new_object()
+#define JSARR()        fh_new_array()
+#define JSFUNC(x)      fh_new_function(x)
+#define JSNFUNC(x)     fh_new_native_function(x)
+#define JSCAST(x,t)    fh_cast((x),(t))
+#define JSDEBUG(x)     fh_debug(stdout,(x),0,1);
+
+#define ARG0(args)     ((args)->arg == NULL ? JSUNDEF() : (args)->arg)       
+#define ARGN(args, n)  fh_get_arg((args), (n))
+#define ARGLEN(args)   fh_arg_len(args)
+
+#define STREQ(a,b)     (strcmp((a),(b)) == 0)
+#define OBJ_ITER(o,p)  JSProp *_tmp; HASH_ITER(hh,(o)->object.map,p,_tmp)
+#define BUILTIN(o,k,v) fh_set_prop((o),(k),(v),P_BUILTIN)
 
 struct JSArgs;
 struct JSValue;
@@ -142,17 +165,6 @@ typedef struct JSValue {
   bool marked;
 } JSValue;
 
-void fh_set(JSValue *, char *, JSValue *);
-void fh_set_prop(JSValue *, char *, JSValue *, JSPropFlags);
-void fh_set_rec(JSValue *, char *, JSValue *);
-void fh_del_prop(JSValue *, char *);
-JSProp * fh_get_prop(JSValue *, char *);
-JSProp * fh_get_prop_rec(JSValue *, char *);
-JSProp * fh_get_prop_proto(JSValue *, char *);
-JSValue * fh_get(JSValue *, char *);
-JSValue * fh_get_proto(JSValue *, char *);
-JSValue * fh_get_rec(JSValue *, char *);
-
 JSValue * fh_new_val(JSType);
 JSValue * fh_new_number(double, bool, bool, bool);
 JSValue * fh_new_string(char *);
@@ -166,6 +178,7 @@ JSArgs * fh_new_args();
 JSProp * fh_new_prop(JSPropFlags);
 State * fh_new_state(int, int);
 
+JSValue * fh_try_get_proto(char *);
 JSValue * fh_cast(JSValue *, JSType);
 char * fh_typeof(JSValue *);
 char * fh_str_concat(char *, char *);
@@ -176,28 +189,5 @@ void fh_debug_arr(FILE *, JSValue *, int);
 void fh_debug_args(FILE *, JSArgs *);
 void fh_debug(FILE *, JSValue *, int, bool);
 int fh_arg_len(JSArgs*);
-
-#define JSBOOL(x)      fh_new_boolean(x)
-#define JSSTR(x)       fh_new_string(x)
-#define JSNULL()       fh_new_val(T_NULL)
-#define JSUNDEF()      fh_new_val(T_UNDEF)
-#define JSNUM(x)       fh_new_number(x,0,0,0)
-#define JSNAN()        fh_new_number(0,1,0,0)
-#define JSINF(n)       fh_new_number(DBL_MAX,0,1,0)
-#define JSNINF(n)      fh_new_number(DBL_MIN,0,1,1)
-#define JSOBJ()        fh_new_object()
-#define JSARR()        fh_new_array()
-#define JSFUNC(x)      fh_new_function(x)
-#define JSNFUNC(x)     fh_new_native_function(x)
-#define JSCAST(x,t)    fh_cast((x),(t))
-#define JSDEBUG(x)     fh_debug(stdout,(x),0,1);
-
-#define ARG0(args)     ((args)->arg == NULL ? JSUNDEF() : (args)->arg)       
-#define ARGN(args, n)  fh_get_arg((args), (n))
-#define ARGLEN(args)   fh_arg_len((args))
-
-#define STREQ(a,b)     (strcmp((a),(b)) == 0)
-#define OBJ_ITER(o,p)  JSProp *_tmp; HASH_ITER(hh,(o)->object.map,p,_tmp)
-#define BUILTIN(o,k,v) fh_set_prop((o), (k), (v), P_BUILTIN)
 
 #endif

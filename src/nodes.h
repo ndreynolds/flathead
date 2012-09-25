@@ -35,6 +35,7 @@ enum NodeType {
   NODE_EXP,
   NODE_STMT_LST,
   NODE_IF,
+  NODE_TERN,
   NODE_WHILE,
   NODE_DOWHILE,
   NODE_FOR,

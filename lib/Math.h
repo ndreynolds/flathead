@@ -2,6 +2,7 @@
 // ------
 
 #include "../src/flathead.h"
+#include "../src/props.h"
 
 JSValue * math_abs(JSValue *, JSArgs *, State *);
 JSValue * math_acos(JSValue *, JSArgs *, State *);

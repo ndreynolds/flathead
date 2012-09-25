@@ -33,7 +33,8 @@
   #define NEW_DOWHILE(cnd,blck)      NEW_NODE(NODE_DOWHILE,cnd,blck,0,0,0)
   #define NEW_BLOCK(stmtlst)         NEW_NODE(NODE_BLOCK,stmtlst,0,0,0,0)
   #define NEW_STMTLST(head,tail)     NEW_NODE(NODE_STMT_LST,head,tail,0,0,0)
-  #define NEW_IF(cnd,ifb,elseb)      NEW_NODE(NODE_IF,cnd,ifb,elseb,0,0)
+  #define NEW_IF(p,q,r)              NEW_NODE(NODE_IF,p,q,r,0,0)
+  #define NEW_TERN(p,q,r)            NEW_NODE(NODE_TERN,p,q,r,0,0)
   #define NEW_FOR(exps,stmt)         NEW_NODE(NODE_FOR,exps,stmt,0,0,0)
   #define NEW_EXPGRP(e1,e2,e3)       NEW_NODE(NODE_EXPGRP,e1,e2,e3,0,0)
   #define NEW_FORIN(lhs,in,stmt)     NEW_NODE(NODE_FORIN,lhs,in,stmt,0,0)
@@ -390,6 +391,8 @@ PrimaryExpression        : THIS
 
 ConditionalExpression    : LogicalORExpression                                  
                              { $$ = $1; }
+                         | LogicalORExpression '?' AssignmentExpression ':' AssignmentExpression
+                             { $$ = NEW_TERN($1, $3, $5); }
                          ;
 
 LogicalORExpression      : LogicalANDExpression                                 

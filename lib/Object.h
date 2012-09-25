@@ -2,6 +2,7 @@
 // --------
 
 #include "../src/flathead.h"
+#include "../src/props.h"
 
 JSValue * obj_create(JSValue *, JSArgs *, State *);
 JSValue * obj_define_property(JSValue *, JSArgs *, State *);

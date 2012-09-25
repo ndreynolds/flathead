@@ -1,5 +1,5 @@
 /*
- * flathead.c -- Memory management, casting, and debug helpers
+ * flathead.c -- Core types, constructors, casting, and debug.
  *
  * Copyright (c) 2012 Nick Reynolds
  *  
@@ -17,162 +17,14 @@
  */
 
 #include "flathead.h"
+#include "props.h"
+#include "debug.h"
 #include "gc.h"
 
-/**
- * Lookup a property on an object, resolve the value, and return it.
- */
-JSValue *
-fh_get(JSValue *obj, char *name)
-{
-  // We can't read properties from undefined.
-  if (obj->type == T_UNDEF)
-    fh_error(NULL, E_TYPE, "Cannot read property '%s' of undefined", name);
 
-  JSProp *prop = fh_get_prop(obj, name);
-  // But we'll happily return undefined if a property doesn't exist.
-  if (prop == NULL) return JSUNDEF();
-  return prop->ptr;
-}
-
-/**
- * Same as `fh_get`, but recurse the scope chain.
- */
-JSValue *
-fh_get_rec(JSValue *obj, char *name) 
-{
-  JSProp *prop = fh_get_prop_rec(obj, name);
-  return prop == NULL ?  JSUNDEF() : prop->ptr;
-}
-
-/**
- * Same as `fh_get`, but recurse the prototype chain (if one exists).
- */
-JSValue *
-fh_get_proto(JSValue *obj, char *name)
-{
-  JSProp *prop = fh_get_prop_proto(obj, name);
-  JSValue *val = prop ? prop->ptr : JSUNDEF();
-  // Store a ref to the instance for natively define methods.
-  if (val->type == T_FUNCTION) {
-    val->function.instance = obj;
-  }
-  return val;
-}
-
-/**
- * Lookup a property on an object and return it.
- */
-JSProp *
-fh_get_prop(JSValue *obj, char *name)
-{
-  JSProp *prop = NULL;
-  if (obj->object.map)
-    HASH_FIND_STR(obj->object.map, name, prop);
-  return prop;
-}
-
-void
-fh_set(JSValue *obj, char *name, JSValue *val)
-{
-  fh_set_prop(obj, name, val, P_DEFAULT);
-}
-
-void
-fh_set_prop(JSValue *obj, char *name, JSValue *val, JSPropFlags flags)
-{
-  bool add = false;
-  JSProp *prop = fh_get_prop(obj, name);
-  if (prop == NULL) {
-    prop = fh_new_prop(flags);
-    add = true;
-  }
-
-  // Set flags 
-  if (!add) {
-    prop->writable = flags & P_WRITE;
-    prop->configurable = flags & P_CONF;
-    prop->enumerable = flags & P_ENUM;
-  }
-
-  prop->name = malloc((strlen(name) + 1) * sizeof(char));
-  strcpy(prop->name, name);
-  prop->ptr = val;
-  prop->circular = prop->ptr == obj ? 1 : 0; // Do we have a circular reference?
-
-  // Don't add if it already exists (bad things happen).
-  if (add)
-    HASH_ADD_KEYPTR(hh, obj->object.map, prop->name, strlen(prop->name), prop);
-}
-
-void
-fh_del_prop(JSValue *obj, char *name)
-{
-  JSProp *deletee = fh_get_prop(obj, name);
-  if (deletee != NULL)
-    HASH_DEL(obj->object.map, deletee);
-}
-
-JSProp *
-fh_get_prop_rec(JSValue *obj, char *name)
-{
-  JSProp *prop = fh_get_prop(obj, name);
-  // If not found here, check the parent object.
-  if (prop == NULL && obj->object.parent != NULL)
-    return fh_get_prop_rec(obj->object.parent, name);
-  return prop;
-}
-
-JSProp *
-fh_get_prop_proto(JSValue *obj, char *name)
-{
-  JSProp *prop = fh_get_prop(obj, name);
-  if (prop == NULL && obj->proto != NULL)
-    return fh_get_prop_proto(obj->proto, name);
-  return prop;
-}
-
-/*
- * (Re)set a property on an object, setting the property on the
- * given object, or the closest parent scope on which it is 
- * already defined.
- *
- * This is used in undeclared assignment.
- */
-void
-fh_set_rec(JSValue *obj, char *name, JSValue *val)
-{
-  JSValue *scope_to_set = obj;
-  JSValue *parent = NULL;
-
-  // Try and find the property in a parent scope.
-  JSProp *prop = fh_get_prop(obj, name);
-  while(prop == NULL) {
-    if (obj->object.parent != NULL) {
-      parent = obj->object.parent;
-      prop = fh_get_prop(parent, name);
-      obj = parent;
-      continue;
-    }
-    break;
-  }
-  if (prop != NULL && parent != NULL)
-    scope_to_set = parent;
-
-  fh_set(scope_to_set, name, val);
-}
-
-JSValue *
-fh_try_get_proto(char *type)
-{
-  JSValue *global = fh_global();
-  if (global != NULL) {
-    JSValue *obj = fh_get(global, type);
-    if (obj->type != T_UNDEF)
-      return fh_get(obj, "prototype");
-  }
-  return NULL;
-}
+// ----------------------------------------------------------------------------
+// Value Constructors
+// ----------------------------------------------------------------------------
 
 JSValue *
 fh_new_val(JSType type)
@@ -201,7 +53,7 @@ fh_new_string(char *x)
   val->string.ptr = malloc((strlen(x) + 1) * sizeof(char));
   strcpy(val->string.ptr, x);
   val->string.length = strlen(x);
-  //val->object.proto = fh_get(fh_get(fh_global(), "String"), "prototype");
+  val->proto = fh_try_get_proto("String");
   return val;
 }
 
@@ -210,7 +62,7 @@ fh_new_boolean(bool x)
 {
   JSValue *val = fh_new_val(T_BOOLEAN);
   val->boolean.val = x;
-  //val->object.proto = fh_get(fh_get(fh_global(), "Boolean"), "prototype");
+  val->proto = fh_try_get_proto("Boolean");
   return val;
 }
 
@@ -274,37 +126,11 @@ fh_new_state(int line, int column)
   return state;
 }
 
-char *
-fh_typeof(JSValue *value) 
-{
-  /* Per Table 20 of the ECMA5 spec: */
-  switch(value->type) 
-  {
-    case T_OBJECT:
-    case T_NULL:
-      return "object";
-    case T_FUNCTION:
-      return "function";
-    case T_BOOLEAN:
-      return "boolean";
-    case T_NUMBER:
-      return "number";
-    case T_STRING:
-      return "string";
-    default:
-      return "undefined";
-  }
-}
 
-char *
-fh_str_concat(char *dst, char *new)
-{
-  dst = realloc(dst, strlen(dst) + strlen(new) + sizeof(char));
-  if (!dst) exit(1);
-  strcat(dst, new);
-  return dst;
-}
-  
+// ----------------------------------------------------------------------------
+// Value Casting
+// ----------------------------------------------------------------------------
+
 JSValue *
 fh_cast(JSValue *val, JSType type)
 {
@@ -391,17 +217,15 @@ fh_cast(JSValue *val, JSType type)
   assert(0);
 }
 
-void
-fh_arr_set_len(JSValue *arr, int len)
-{
-  arr->object.length = len;
-  fh_set_prop(arr, "length", JSNUM(len), P_BUILTIN);
-}
+
+// ----------------------------------------------------------------------------
+// Error Handling
+// ----------------------------------------------------------------------------
 
 void
 fh_error(State *state, JSErrorType type, const char *tpl, ...)
 {
-  char *name = type == E_TYPE ?  "TypeError" : 
+  char *name = type == E_TYPE ? "TypeError" : 
                type == E_SYNTAX ? "SyntaxError" :
                type == E_EVAL ? "EvalError" :
                type == E_RANGE ? "RangeError" :
@@ -423,111 +247,53 @@ fh_error(State *state, JSErrorType type, const char *tpl, ...)
   exit(1);
 }
 
-void
-fh_debug_obj(FILE *stream, JSValue *obj, int indent)
+
+// ----------------------------------------------------------------------------
+// Utilities
+// ----------------------------------------------------------------------------
+
+char *
+fh_typeof(JSValue *value) 
 {
-  if (HASH_COUNT(obj->object.map) == 0) {
-    fprintf(stream, "{}");
-    return;
-  }
-
-  JSProp *x;
-  int i;
-  bool first = true;
-
-  OBJ_ITER(obj, x) {
-    if (first) {
-      fprintf(stream, "\n");
-      for(i=0;i<(indent);i++) fprintf(stream, " ");
-      fprintf(stream, "{");
-      first = false;
-    }
-    else {
-      fprintf(stream, ",\n");
-      for(i=0;i<(indent+1);i++) fprintf(stream, " ");
-    }
-    fprintf(stream, " %s: ", x->name);
-    x->circular ? 
-      fprintf(stream, "[Circular]") : 
-      fh_debug(stream, x->ptr, indent+3, false);
-  };
-  fprintf(stream, " }");
-}
-
-void
-fh_debug_arr(FILE *stream, JSValue *arr, int indent)
-{
-  if (HASH_COUNT(arr->object.map) == 0) {
-    fprintf(stream, "[]");
-    return;
-  }
-  bool first = true;
-  JSProp *x, *tmp;
-  fprintf(stream, "[ ");
-  HASH_ITER(hh, arr->object.map, x, tmp) {
-    if (!first) 
-      fprintf(stream, ", ");
-    else if (x->enumerable)
-      first = false;
-    if (x->enumerable)
-      fh_debug(stream, x->ptr, 0, false);
-  };
-  fprintf(stream, " ]");
-}
-
-void
-fh_debug(FILE *stream, JSValue *val, int indent, bool newline)
-{
-  switch(val->type)
-  {
-    fprintf(stream, "%s", fh_typeof(val));
-    case T_BOOLEAN:
-      fprintf(stream, "%s", !val->boolean.val ? "false" : "true");
-      break;
-    case T_NUMBER:
-      if (val->number.is_nan)
-        fprintf(stream, "NaN");
-      else if (val->number.is_inf) 
-        fprintf(stream, "%sInfinity", val->number.is_neg ? "-" : "");
-      else 
-        fprintf(stream, "%g", val->number.val);
-      break;
-    case T_STRING:
-      fprintf(stream, "%s", val->string.ptr);
-      break;
-    case T_NULL:
-      fprintf(stream, "null");
-      break;
-    case T_FUNCTION:
-      fprintf(stream, "[Function]");
-      break;
-    case T_UNDEF:
-      fprintf(stream, "undefined");
-      break;
+  /* Per Table 20 of the ECMA5 spec: */
+  switch(value->type) {
     case T_OBJECT:
-      if (val->object.is_array)
-        fh_debug_arr(stream, val, indent);
-      else
-        fh_debug_obj(stream, val, indent);
-      break;
+    case T_NULL:
+      return "object";
+    case T_FUNCTION:
+      return "function";
+    case T_BOOLEAN:
+      return "boolean";
+    case T_NUMBER:
+      return "number";
+    case T_STRING:
+      return "string";
+    default:
+      return "undefined";
   }
-  if (newline) fprintf(stream, "\n");
 }
 
-void
-fh_debug_args(FILE *stream, JSArgs *args)
+JSValue *
+fh_try_get_proto(char *type)
 {
-  bool first = true;
-  while(first || args->next != NULL)
-  {
-    if (!first)
-      args = args->next;
-    if (args->arg != NULL)
-      fh_debug(stream, args->arg, 0, 1);
-    first = false;
+  JSValue *global = fh_global();
+  if (global != NULL) {
+    JSValue *obj = fh_get(global, type);
+    if (obj->type != T_UNDEF)
+      return fh_get(obj, "prototype");
   }
+  return NULL;
 }
 
+char *
+fh_str_concat(char *dst, char *new)
+{
+  dst = realloc(dst, strlen(dst) + strlen(new) + sizeof(char));
+  if (!dst) exit(1);
+  strcat(dst, new);
+  return dst;
+}
+  
 JSValue *
 fh_get_arg(JSArgs *args, int n)
 {
@@ -553,4 +319,11 @@ fh_arg_len(JSArgs *args)
     args = args->next;
   }
   return i;
+}
+
+void
+fh_arr_set_len(JSValue *arr, int len)
+{
+  arr->object.length = len;
+  fh_set_prop(arr, "length", JSNUM(len), P_BUILTIN);
 }

@@ -41,6 +41,7 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_EXP_STMT: return fh_eval(ctx, node->e1);
     case NODE_EXP: return fh_exp(ctx, node);
     case NODE_IF: return fh_if(ctx, node);
+    case NODE_TERN: return fh_if(ctx, node);
     case NODE_ASGN: return fh_assign(ctx, node);
     case NODE_RETURN: return fh_return(ctx, node);
     case NODE_BREAK: return fh_break();
@@ -177,7 +178,9 @@ fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
     fh_eval(ctx, exp_grp->e1);
   }
 
+  int counter = 0;
   while(JSCAST(exp_grp->e2 ? fh_eval(ctx, exp_grp->e2) : JSBOOL(1), T_BOOLEAN)->boolean.val) {
+    printf("%d\n", ++counter);
     result = fh_eval(ctx, stmt);
     if (result->signal == S_BREAK) break;
     if (exp_grp->e3)
@@ -281,6 +284,11 @@ fh_do_assign(JSValue *obj, char *name, JSValue *val, char *op)
   if (STREQ(op, "/=")) return fh_set_rec(obj, name, fh_div(cur, val));
 }
 
+
+// ----------------------------------------------------------------------------
+// Function Application
+// ----------------------------------------------------------------------------
+
 JSValue *
 fh_call(JSValue *ctx, Node *call)
 {
@@ -375,6 +383,11 @@ fh_setup_func_env(JSValue *ctx, JSValue *func, JSArgs *args)
   return scope;
 }
 
+
+// ----------------------------------------------------------------------------
+// Unary Expressions
+// ----------------------------------------------------------------------------
+
 JSValue *
 fh_eval_postfix_exp(JSValue *ctx, Node *node)
 {
@@ -435,6 +448,11 @@ fh_eval_prefix_exp(JSValue *ctx, Node *node)
 
   assert(0);
 }
+
+
+// ----------------------------------------------------------------------------
+// Binary Expressions
+// ----------------------------------------------------------------------------
 
 JSValue *
 fh_eval_bin_exp(JSValue *ctx, Node *node)
@@ -632,3 +650,8 @@ fh_or(JSValue *ctx, Node *a, Node *b)
   if (JSCAST(aval, T_BOOLEAN)->boolean.val) return aval;
   return fh_eval(ctx, b);
 }
+
+
+// ----------------------------------------------------------------------------
+// Utilities
+// ----------------------------------------------------------------------------

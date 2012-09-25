@@ -1,6 +1,6 @@
 /*
- * runtime.h -- Bootstrap global object and friends 
- * 
+ * props.h -- Property access and hashmap traversals
+ *
  * Copyright (c) 2012 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,15 +16,20 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RUNTIME_H
-#define RUNTIME_H
+#ifndef PROP_H
+#define PROP_H
 
 #include "flathead.h"
 
-JSValue * is_nan(JSValue *, JSArgs *, State *);
-JSValue * is_finite(JSValue *, JSArgs *, State *);
-JSValue * parse_float(JSValue *, JSArgs *, State *);
-JSValue * parse_int(JSValue *, JSArgs *, State *);
-JSValue * fh_bootstrap(void);
+void fh_set(JSValue *, char *, JSValue *);
+void fh_set_prop(JSValue *, char *, JSValue *, JSPropFlags);
+void fh_set_rec(JSValue *, char *, JSValue *);
+void fh_del_prop(JSValue *, char *);
+JSProp * fh_get_prop(JSValue *, char *);
+JSProp * fh_get_prop_rec(JSValue *, char *);
+JSProp * fh_get_prop_proto(JSValue *, char *);
+JSValue * fh_get(JSValue *, char *);
+JSValue * fh_get_proto(JSValue *, char *);
+JSValue * fh_get_rec(JSValue *, char *);
 
 #endif

@@ -2,6 +2,7 @@
 // -------
 
 #include "../src/flathead.h"
+#include "../src/props.h"
 
 JSValue * arr_is_array(JSValue *, JSArgs *, State *);
 

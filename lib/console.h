@@ -2,6 +2,7 @@
 // ---------
 
 #include "../src/flathead.h"
+#include "../src/props.h"
 
 JSValue * console_log(JSValue *, JSArgs *, State *);
 JSValue * console_error(JSValue *, JSArgs *, State *);

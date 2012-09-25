@@ -49,8 +49,7 @@ parse_int(JSValue *instance, JSArgs *args, State *state)
   // Ecma 15.1.2.2
   // TODO: use radix argument, strip whitespace.
   JSValue *num = JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
-  if (num->number.is_nan) return JSNAN();
-  return JSNUM(floor(num->number.val));
+  return num->number.is_nan ? JSNAN() : JSNUM(floor(num->number.val));
 }
 
 JSValue *

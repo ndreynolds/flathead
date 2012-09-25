@@ -16,7 +16,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifndef EVAL_H
+#define EVAL_H
+
 #include "nodes.h"
+#include "props.h"
 
 #define T_BOTH(a,b,t)      (a->type == t && b->type == t)
 #define T_XOR(a,b,t1,t2)   ((a->type == t1 && b->type == t2) || (a->type == t2 && b->type == t1))
@@ -57,3 +61,5 @@ JSValue * fh_gt(JSValue *, JSValue *);
 JSValue * fh_lt(JSValue *, JSValue *);
 JSValue * fh_and(JSValue *, Node *, Node *);
 JSValue * fh_or(JSValue *, Node *, Node *);
+
+#endif

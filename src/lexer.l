@@ -65,7 +65,7 @@ L?'(\\.|[^\\'])*'            { yylval.val = extract_string(yytext); return STRIN
 "==="       return STEQ;
 "!=="       return STNE;
 
-[-+()\[\]=*/%<>,.:;!{}]  return *yytext;
+[-+()\[\]=*/%<>,.:;?!{}]  return *yytext;
 [ \t\v\f]   ;
 \n          yycolumn = 0;
 <<EOF>>     { yycolumn = 0; return EOF; }

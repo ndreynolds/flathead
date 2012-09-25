@@ -1,6 +1,7 @@
+
 /*
- * runtime.h -- Bootstrap global object and friends 
- * 
+ * debug.h -- debugging functions
+ *
  * Copyright (c) 2012 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,15 +17,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RUNTIME_H
-#define RUNTIME_H
+#ifndef DEBUG_H
+#define DEBUG_H
 
 #include "flathead.h"
 
-JSValue * is_nan(JSValue *, JSArgs *, State *);
-JSValue * is_finite(JSValue *, JSArgs *, State *);
-JSValue * parse_float(JSValue *, JSArgs *, State *);
-JSValue * parse_int(JSValue *, JSArgs *, State *);
-JSValue * fh_bootstrap(void);
+void fh_debug_obj(FILE *, JSValue *, int);
+void fh_debug_arr(FILE *, JSValue *, int);
+void fh_debug_args(FILE *, JSArgs *);
+void fh_debug(FILE *, JSValue *, int, bool);
 
 #endif

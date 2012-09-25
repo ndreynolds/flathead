@@ -95,122 +95,54 @@ void
 print_node(Node *node, bool rec, int depth)
 {
   print_indent(depth); 
-  switch(node->type)
-  {
-    case NODE_IDENT:
-      printf("identifier (%s)\n", node->sval);
-      return;
-    case NODE_NUM:
-      printf("number (%f)\n", node->val);
-      return;
-    case NODE_BOOL:
-      printf("bool (%d)\n", (int)node->val);
-      return;
-    case NODE_STR:
-      printf("string (%s)\n", node->sval);
-      return;
-    case NODE_NULL:
-      printf("null (NULL)\n");
-      break;
-    case NODE_VAR_STMT:
-      printf("variable statement\n");
-      break;
-    case NODE_EXP_STMT:
-      printf("expression statement\n");
-      break;
+  switch(node->type) {
+    case NODE_IDENT:     printf("identifier (%s)\n", node->sval); return;
+    case NODE_NUM:       printf("number (%f)\n", node->val); return;
+    case NODE_BOOL:      printf("bool (%d)\n", (int)node->val); return;
+    case NODE_STR:       printf("string (%s)\n", node->sval); return;
+    case NODE_NULL:      printf("null (NULL)\n"); return;
+    case NODE_VAR_STMT:  printf("variable statement"); break;
+    case NODE_EXP_STMT:  printf("expression statement"); break;
+    case NODE_STMT_LST:  printf("statement list"); break;
+    case NODE_ASGN:      printf("assignment"); break;
+    case NODE_IF:        printf("if"); break;
+    case NODE_TERN:      printf("conditional expression"); break;
+    case NODE_WHILE:     printf("while"); break;
+    case NODE_DOWHILE:   printf("dowhile"); break;
+    case NODE_FOR:       printf("for"); break;
+    case NODE_EXPGRP:    printf("expression group"); break;
+    case NODE_FORIN:     printf("for-in"); break;
+    case NODE_BREAK:     printf("break"); break;
+    case NODE_CONT:      printf("continue"); break;
+    case NODE_THIS:      printf("this"); break;
+    case NODE_RETURN:    printf("return"); break;
+    case NODE_BLOCK:     printf("block"); break;
+    case NODE_OBJ:       printf("object"); break;
+    case NODE_PROP:      printf("property"); break;
+    case NODE_PROP_LST:  printf("property list"); break;
+    case NODE_EMPT_STMT: printf("empty statement"); break;
+    case NODE_CALL:      printf("call expression"); break;
+    case NODE_NEW:       printf("new expression"); break;
+    case NODE_ARG_LST:   printf("argument list"); break;
+    case NODE_MEMBER:    printf("member expression"); break;
+    case NODE_FUNC:      printf("function"); break;
+    case NODE_PARAM_LST: printf("parameter list"); break;
+    case NODE_ARR:       printf("array literal"); break;
+    case NODE_EL_LST:    printf("element list"); break;
+    case NODE_ELISION:   printf("elision"); break;
+    case NODE_SRC_LST:   printf("source list"); break;
     case NODE_EXP:
-      printf("expression");
-      if (node->sub_type == NODE_UNARY_PRE) printf(" (unary prefix)\n");
-      else if (node->sub_type == NODE_UNARY_POST) printf(" (unary postfix)\n");
-      else printf (" (binary)\n");
-      break;
-    case NODE_STMT_LST:
-      printf("statement list\n");
-      break;
-    case NODE_ASGN:
-      printf("assignment\n");
-      break;
-    case NODE_IF:
-      printf("if\n");
-      break;
-    case NODE_WHILE:
-      printf("while\n");
-      break;
-    case NODE_DOWHILE:
-      printf("dowhile\n");
-      break;
-    case NODE_FOR:
-      printf("for\n");
-      break;
-    case NODE_EXPGRP:
-      printf("expression group\n");
-      break;
-    case NODE_FORIN:
-      printf("for-in\n");
-      break;
-    case NODE_BREAK:
-      printf("break\n");
-      break;
-    case NODE_CONT:
-      printf("continue\n");
-      break;
-    case NODE_THIS:
-      printf("this\n");
-      break;
-    case NODE_RETURN:
-      printf("return\n");
-      break;
-    case NODE_BLOCK:
-      printf("block\n");
-      break;
-    case NODE_OBJ:
-      printf("object\n");
-      break;
-    case NODE_PROP:
-      printf("property\n");
-      break;
-    case NODE_PROP_LST:
-      printf("property list\n");
-      break;
-    case NODE_EMPT_STMT:
-      printf("empty statement\n");
-      break;
-    case NODE_CALL:
-      printf("call expression\n");
-      break;
-    case NODE_NEW:
-      printf("new expression\n");
-      break;
-    case NODE_ARG_LST:
-      printf("argument list\n");
-      break;
-    case NODE_MEMBER:
-      printf("member expression\n");
-      break;
-    case NODE_FUNC:
-      printf("function\n");
-      break;
-    case NODE_PARAM_LST:
-      printf("parameter list\n");
-      break;
-    case NODE_ARR:
-      printf("array literal\n");
-      break;
-    case NODE_EL_LST:
-      printf("element list\n");
-      break;
-    case NODE_ELISION:
-      printf("elision\n");
-      break;
-    case NODE_SRC_LST:
-      printf("source list\n");
+      printf("expression ");
+      if (node->sub_type == NODE_UNARY_PRE) printf("(unary prefix)");
+      else if (node->sub_type == NODE_UNARY_POST) printf("(unary postfix)");
+      else printf ("(binary)");
       break;
     default:
-      printf("unknown type: %d\n", node->type);
+      printf("unknown type: %d", node->type);
   }
-
+  printf("\n");
   if (!rec) return;
-  if (node->sval != NULL) {
+  if (node->sval) {
     print_indent(depth+2);
     printf("%s\n", node->sval);
   }
