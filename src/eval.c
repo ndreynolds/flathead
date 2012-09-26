@@ -158,62 +158,6 @@ fh_src_lst(JSValue *ctx, Node *node)
   return fh_stmt_lst(ctx, node);
 }
 
-void
-fh_while(JSValue *ctx, Node *cnd, Node *stmt)
-{
-  JSValue *result;
-
-  while(JSCAST(fh_eval(ctx, cnd), T_BOOLEAN)->boolean.val) {
-    result = fh_eval(ctx, stmt);
-    if (result->signal == S_BREAK) break;
-  }
-}
-
-void
-fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
-{
-  JSValue *result;
-
-  if (exp_grp->e1) {
-    fh_eval(ctx, exp_grp->e1);
-  }
-
-  int counter = 0;
-  while(JSCAST(exp_grp->e2 ? fh_eval(ctx, exp_grp->e2) : JSBOOL(1), T_BOOLEAN)->boolean.val) {
-    printf("%d\n", ++counter);
-    result = fh_eval(ctx, stmt);
-    if (result->signal == S_BREAK) break;
-    if (exp_grp->e3)
-      fh_eval(ctx, exp_grp->e3);
-  }
-}
-
-void
-fh_forin(JSValue *ctx, Node *node)
-{
-  JSProp *p;
-  JSValue *result,
-          *proto = fh_eval(ctx, node->e2),
-          *name = fh_str_from_node(ctx, node->e1);
-
-  // If variable declaration:
-  if (node->e1->type == NODE_IDENT)
-    fh_set(ctx, name->string.ptr, JSNULL());
-
-  // Note that during the first iteration, the prototype is the object.
-  while(proto != NULL) {
-    OBJ_ITER(proto, p) {
-      if (p->enumerable) {
-        // Assign to name, possibly undeclared assignment.
-        fh_set_rec(ctx, name->string.ptr, p->ptr);
-        result = fh_eval(ctx, node->e3);
-        if (result->signal == S_BREAK) break;
-      }
-    }
-    proto = proto->proto;
-  }
-}
-
 JSValue *
 fh_obj(JSValue *ctx, Node *node)
 {
@@ -238,17 +182,6 @@ fh_arr(JSValue *ctx, Node *node)
     fh_arr_set_len(arr, i);
   }
   return arr;
-}
-
-JSValue *
-fh_str_from_node(JSValue *ctx, Node *node)
-{
-  // Need to evaluate the node to a string key.
-  // e.g. obj['a']  obj.a  arr[1]  arr[arr.length - 1]
-
-  if (node->type == NODE_IDENT)
-    return JSSTR(node->sval);
-  return JSCAST(fh_eval(ctx, node), T_STRING);
 }
 
 JSValue *
@@ -282,6 +215,64 @@ fh_do_assign(JSValue *obj, char *name, JSValue *val, char *op)
   if (STREQ(op, "-=")) return fh_set_rec(obj, name, fh_sub(cur, val));
   if (STREQ(op, "*=")) return fh_set_rec(obj, name, fh_mul(cur, val));
   if (STREQ(op, "/=")) return fh_set_rec(obj, name, fh_div(cur, val));
+}
+
+// ----------------------------------------------------------------------------
+// Iteration Constructs
+// ----------------------------------------------------------------------------
+
+void
+fh_while(JSValue *ctx, Node *cnd, Node *stmt)
+{
+  JSValue *result;
+
+  while(JSCAST(fh_eval(ctx, cnd), T_BOOLEAN)->boolean.val) {
+    result = fh_eval(ctx, stmt);
+    if (result->signal == S_BREAK) break;
+  }
+}
+
+void
+fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
+{
+  JSValue *result;
+
+  if (exp_grp->e1) {
+    fh_eval(ctx, exp_grp->e1);
+  }
+
+  while(JSCAST(exp_grp->e2 ? fh_eval(ctx, exp_grp->e2) : JSBOOL(1), T_BOOLEAN)->boolean.val) {
+    result = fh_eval(ctx, stmt);
+    if (result->signal == S_BREAK) break;
+    if (exp_grp->e3)
+      fh_eval(ctx, exp_grp->e3);
+  }
+}
+
+void
+fh_forin(JSValue *ctx, Node *node)
+{
+  JSProp *p;
+  JSValue *result,
+          *proto = fh_eval(ctx, node->e2),
+          *name = fh_str_from_node(ctx, node->e1);
+
+  // If variable declaration:
+  if (node->e1->type == NODE_IDENT)
+    fh_set(ctx, name->string.ptr, JSNULL());
+
+  // Note that during the first iteration, the prototype is the object.
+  while(proto != NULL) {
+    OBJ_ITER(proto, p) {
+      if (p->enumerable) {
+        // Assign to name, possibly undeclared assignment.
+        fh_set_rec(ctx, name->string.ptr, p->ptr);
+        result = fh_eval(ctx, node->e3);
+        if (result->signal == S_BREAK) break;
+      }
+    }
+    proto = proto->proto;
+  }
 }
 
 
@@ -655,3 +646,14 @@ fh_or(JSValue *ctx, Node *a, Node *b)
 // ----------------------------------------------------------------------------
 // Utilities
 // ----------------------------------------------------------------------------
+
+JSValue *
+fh_str_from_node(JSValue *ctx, Node *node)
+{
+  // Need to evaluate the node to a string key.
+  // e.g. obj['a']  obj.a  arr[1]  arr[arr.length - 1]
+
+  if (node->type == NODE_IDENT)
+    return JSSTR(node->sval);
+  return JSCAST(fh_eval(ctx, node), T_STRING);
+}

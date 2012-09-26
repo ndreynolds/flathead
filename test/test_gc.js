@@ -19,10 +19,17 @@ var z = '99 Luftballons';
 
 // Trigger the garbage collector.
 
-var i = 0;
-while(i < 10000) {
-  42;
-  i++;
+// use the method on global, if exposed.
+if (typeof gc !== 'undefined') {
+  gc();
+}
+// ...or trigger it the old-fashioned way with a big loop.
+else {
+  var i = 0;
+  while(i < 10000) {
+    42;
+    i++;
+  }
 }
 
 

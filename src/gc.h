@@ -22,7 +22,7 @@
 #include <stddef.h>
 #include "flathead.h"
 
-#define SLOTS_PER_CONTAINER 1000
+#define SLOTS_PER_CONTAINER 10000
 
 typedef struct ContainerMetadata {
   JSValue *slots;

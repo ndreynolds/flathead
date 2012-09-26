@@ -67,7 +67,7 @@ fh_global()
 void
 fh_gc()
 {
-#ifdef GCPROF
+#ifdef fh_gc_profile
   puts("GC running.");
 #endif
   ContainerMetadata *container = fh_get_container();

@@ -59,6 +59,13 @@ parse_float(JSValue *instance, JSArgs *args, State *state)
 }
 
 JSValue *
+gc_collect_manual(JSValue *instance, JSArgs *args, State *state)
+{
+  fh_gc();
+  return JSUNDEF();
+}
+
+JSValue *
 fh_bootstrap()
 {
   JSValue *global = JSOBJ();
@@ -79,6 +86,10 @@ fh_bootstrap()
   fh_set(global, "parseFloat", JSNFUNC(&parse_float));
   fh_set(global, "undefined", JSUNDEF());
   fh_set(global, "this", global);
+
+#ifdef fh_gc_expose
+  fh_set(global, "gc", JSNFUNC(&gc_collect_manual));
+#endif
 
   return global;
 }
