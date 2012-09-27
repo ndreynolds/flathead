@@ -20,9 +20,13 @@
   #include <unistd.h>
   #include <stdio.h>
   #include <stdlib.h>
+  #include <getopt.h>
+  #include <readline/readline.h>
+  #include <readline/history.h>
   #include "src/nodes.h"
   #include "src/eval.h"
   #include "src/runtime.h"
+  #include "src/cli.h"
 
   #define YYDEBUG 0
 
@@ -69,7 +73,9 @@
   void yyerror(const char *);
   int yylex(void);
   int yydebug;
+  bool interactive = false;
   FILE *yyin;
+  int fh_get_input(char *, int);
   Node *root;
   State *state;
 %}
@@ -580,46 +586,97 @@ ArgumentList             : AssignmentExpression
 void 
 yyerror(const char *s) 
 {
+  // Trim the "syntax error: " prefix so we can use fh_error.
   char *trimmed = strndup(s + 14, strlen(s) - 14);
   State *state = fh_new_state(yylloc.first_line, yylloc.first_column);
   fh_error(state, E_SYNTAX, trimmed);
 }
 
+// This is our replacement function when we redefine YY_INPUT
 int 
-main(int argc, char *argv[]) 
+fh_get_input(char *buf, int size)
 {
-  int c, print_parse_tree = 0;
-
-  while((c = getopt(argc, argv, "vp")) != -1) {
-    switch(c) {
-      case 'v':
-        yydebug = 1;
-        break;
-      case 'p':
-        print_parse_tree = 1;
-        break;
+  // For the REPL:
+  if (interactive) {
+    char *line;
+    line = readline("> ");
+    if (!line)
+      return 0;
+    if (strlen(line) > size - 3) {
+      fh_error(state, E_ERROR, "input line too long");
+      return 0;
     }
+    strcpy(buf, line);
+    // Ghetto ASI
+    if (!strchr(buf, ';')) strcat(buf, ";");
+    strcat(buf, "\n");
+    free(line);
+    add_history(buf);
+  }
+  // For file or stdin:
+  else {
+    if (!yyin)
+      fh_error(NULL, E_ERROR, "invalid input file");
+    if (feof(yyin)) 
+      return 0;
+    size_t read;
+    read = fread(buf, size, 1, yyin);
+  }
+  return strlen(buf);
+}
+
+int
+main(int argc, char **argv)
+{
+  static int print_ast = 0;
+  static int print_tokens = 0;
+
+  int c = 0, fakeind = 0, optind = 1;
+  static struct option long_options[] = {
+    {"version", no_argument, NULL, 'v'},
+    {"help", no_argument, NULL, 'h'},
+    {"interactive", no_argument, NULL, 'i'},
+    {"nodes", no_argument, &print_ast, 'n'},
+    {"tokens", no_argument, &print_tokens, 't'},
+    {NULL, 0, NULL, 0}
+  };
+
+  while((c = getopt_long(argc, argv, "vhint", long_options, &fakeind)) != -1) {
+    switch (c) {
+      case 0: break;
+      case 'v': print_version(); return 0;
+      case 'h': print_help(); return 0;
+      case 'i': interactive = true; break;
+      case 'n': print_ast = true; break;
+      case 't': print_tokens = true; break;
+      default: break;
+    }
+    optind++;
   }
 
-  yyin = optind < argc ? fopen(argv[optind], "r") : stdin;
-  if (!yyin) {
-    fh_error(NULL, E_ERROR, "Invalid input file.");
-  }
+  if (optind < argc)
+    yyin = fopen(argv[optind], "r");
+  else if (!isatty(fileno(stdin)) && !interactive)
+    yyin = stdin;
+  else 
+    interactive = true;
 
-  // Parse it.
-  yyparse();
-
-  if (print_parse_tree) 
-    print_node(root, true, 0);
-
+  // Bootstrap our runtime
   JSValue *global = fh_bootstrap();
 
-  // Evaluate.
-  fh_eval(global, root);
-
-  // Debug.
-  if (yydebug) 
-    JSDEBUG(global);
+  // We can operate as a REPL or file/stdin mode.
+  if (interactive) {
+    printf("Flathead %s\n", VERSION);
+    while(true) {
+      yyparse();
+      if (print_ast) print_node(root, true, 0);
+      JSDEBUG(fh_eval(global, root));
+    }
+  } else {
+    yyparse();
+    if (print_ast) print_node(root, true, 0);
+    fh_eval(global, root);
+  }
 
   return 0;
 }

@@ -27,6 +27,8 @@
 #include <assert.h>
 #include <float.h>
 
+#define VERSION        "0.5.1"
+
 #define JSBOOL(x)      fh_new_boolean(x)
 #define JSSTR(x)       fh_new_string(x)
 #define JSNULL()       fh_new_val(T_NULL)

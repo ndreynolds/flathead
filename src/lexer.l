@@ -7,7 +7,11 @@
   int yycolumn = 1;
   void yyuseraction(void);
   char * extract_string(char *);
+  int interactive;
+  int fh_get_input(char *, int);
   #define YY_USER_ACTION yyuseraction();
+  #undef YY_INPUT
+  #define YY_INPUT(buf,result,max_size) result = fh_get_input(buf, max_size);
 %}
 
 %option yylineno
@@ -67,8 +71,11 @@ L?'(\\.|[^\\'])*'            { yylval.val = extract_string(yytext); return STRIN
 
 [-+()\[\]=*/%<>,.:;?!{}]  return *yytext;
 [ \t\v\f]   ;
-\n          yycolumn = 0;
-<<EOF>>     { yycolumn = 0; return EOF; }
+\n          { yycolumn = 0; 
+              if (interactive) return EOF; }
+<<EOF>>     { yycolumn = 0; 
+              if (interactive) exit(0);
+              return EOF; }
 .           parse_error(yytext);
 
 %%

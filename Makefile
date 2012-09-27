@@ -15,14 +15,14 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall 
 YACC = bison -y -d -t -v
 LEX = flex
 
 SRC_FILES = $(wildcard src/*.c)
 LIB_FILES = $(wildcard lib/*.c)
 
-OUT_FILE = bin/fh
+OUT_FILE = bin/flat
 YACC_FILE = src/grammar.y
 LEX_FILE = src/lexer.l
 LEX_OUT = lex.yy.c
@@ -42,6 +42,10 @@ ifeq ($(gcexpose), on)
   CFLAGS += -Dfh_gc_expose
 endif
 
+ifneq ($(readline), off)
+  CFLAGS += -lreadline
+endif
+
 .PHONY: test
 
 all: clean default
@@ -51,11 +55,11 @@ test:
 	node test/runner.js
 	node ctest/crunner.js
 
-grammar:
-	$(YACC) $(YACC_FILE)
-
 lexer:
 	$(LEX) $(LEX_FILE)
+
+parser: 
+	$(YACC) $(YACC_FILE)
 
 clean:
 	rm -rf y.* lex.yy.c bin/fh* a.out
@@ -63,5 +67,5 @@ clean:
 install: default
 	cp bin/fh /usr/local/bin/
 	
-default: grammar lexer
+default: parser lexer 
 	$(CC) $(CFLAGS) -o $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(SRC_FILES) $(LIB_FILES) -lm
