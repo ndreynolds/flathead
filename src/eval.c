@@ -206,7 +206,17 @@ JSValue *
 fh_assign(JSValue *ctx, Node *node)
 {
   JSValue *val = fh_eval(ctx, node->e2);
-  fh_do_assign(ctx, node->e1->sval, val, node->sval);
+  char *key = node->e1->sval;
+
+  if (node->e1->type == NODE_MEMBER) {
+    Node *member = node->e1;
+    ctx = member->e2->type == NODE_MEMBER ?
+      fh_member(ctx, member->e2) :
+      fh_get(ctx, fh_str_from_node(ctx, member->e2)->string.ptr);
+    key = member->e1->sval;
+  }
+    
+  fh_do_assign(ctx, key, val, node->sval);
   return val;
 }
 
