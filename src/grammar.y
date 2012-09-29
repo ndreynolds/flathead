@@ -32,7 +32,6 @@
 
   #define NEW_NODE(t,e1,e2,e3,d,s)   new_node(t,e1,e2,e3,d,s,yylloc.first_line,yylloc.first_column) 
   #define NEW_IDENT(name)            NEW_NODE(NODE_IDENT,0,0,0,0,name)
-  #define NEW_VARSTMT(ident,exp)     NEW_NODE(NODE_VAR_STMT,ident,exp,0,0,0)
   #define NEW_WHILE(cnd,blck)        NEW_NODE(NODE_WHILE,cnd,blck,0,0,0)
   #define NEW_DOWHILE(cnd,blck)      NEW_NODE(NODE_DOWHILE,cnd,blck,0,0,0)
   #define NEW_BLOCK(stmtlst)         NEW_NODE(NODE_BLOCK,stmtlst,0,0,0,0)
@@ -69,6 +68,9 @@
   #define NEW_PARAMLST(head,tail)    NEW_NODE(NODE_PARAM_LST,head,tail,0,0,0)
   #define NEW_ELISION()              NEW_NODE(NODE_ELISION,0,0,0,0,0)
   #define NEW_SRCLST(head,tail)      NEW_NODE(NODE_SRC_LST,head,tail,0,0,0)
+  #define NEW_VARSTMT(declst)        NEW_NODE(NODE_VAR_STMT,declst,0,0,0,0)
+  #define NEW_VARDEC(id,exp)         NEW_NODE(NODE_VAR_DEC,id,exp,0,0,0)
+  #define NEW_VARDECLST(head,tail)   NEW_NODE(NODE_VAR_DEC_LST,head,tail,0,0,0)
 
   void yyerror(const char *);
   int yylex(void);
@@ -142,7 +144,8 @@
 %type<node> AssignmentExpression ElementList PropertyName PropertyAssignment 
 %type<node> PropertyNameAndValueList Function FunctionBody FunctionExpression 
 %type<node> FormalParameterList CallExpression MemberExpression NewExpression 
-%type<node> Arguments ArgumentList Elision 
+%type<node> Arguments ArgumentList Elision VariableDeclarationList 
+%type<node> VariableDeclaration Initializer
 
 %%
 
@@ -192,10 +195,24 @@ StatementList            : Statement
                              { $$ = NEW_STMTLST($2, $1); }
                          ;
 
-VariableStatement        : VAR Identifier ';'                                
-                             { $$ = NEW_VARSTMT($2, NULL); }
-                         | VAR Identifier '=' AssignmentExpression ';'     
-                             { $$ = NEW_VARSTMT($2, $4); }
+VariableStatement        : VAR VariableDeclarationList ';'
+                             { $$ = NEW_VARSTMT($2); }
+                         ;
+
+VariableDeclarationList  : VariableDeclaration
+                             { $$ = NEW_VARDECLST($1, NULL); }
+                         | VariableDeclarationList ',' VariableDeclaration
+                             { $$ = NEW_VARDECLST($3, $1); }
+                         ;
+
+VariableDeclaration      : Identifier Initializer
+                             { $$ = NEW_VARDEC($1, $2); }
+                         | Identifier
+                             { $$ = NEW_VARDEC($1, NULL); }
+                         ;
+
+Initializer              : '=' AssignmentExpression
+                             { $$ = $2; }
                          ;
 
 EmptyStatement           : ';'                                               
@@ -221,26 +238,26 @@ IterationStatement       : DO Statement WHILE '(' Expression ')' ';'
 
                          | FOR '(' LeftHandSideExpression IN Expression ')' Statement
                              { $$ = NEW_FORIN($3, $5, $7); }
-                         | FOR '(' VAR Identifier IN Expression ')' Statement
+                         | FOR '(' VAR VariableDeclaration IN Expression ')' Statement
                              { $$ = NEW_FORIN($4, $6, $8); }
 
                          /* for ( Expression/VarDecl ; Expresion ; Expression ) Statement */
 
                          | FOR '(' Expression ';' Expression ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, $5, $7), $9); }
-                         | FOR '(' VAR Identifier ';' Expression ';' Expression ')' Statement    
+                         | FOR '(' VAR VariableDeclarationList ';' Expression ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($4, $6, $8), $10); }
                          | FOR '(' Expression ';' Expression ';' ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, $5, NULL), $8); }
-                         | FOR '(' VAR Identifier ';' Expression ';' ')' Statement    
+                         | FOR '(' VAR VariableDeclarationList ';' Expression ';' ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($4, $6, NULL), $9); }
                          | FOR '(' Expression ';' ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, NULL, $6), $8); }
-                         | FOR '(' VAR Identifier ';' ';' Expression ')' Statement    
+                         | FOR '(' VAR VariableDeclarationList ';' ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($4, NULL, $7), $9); }
                          | FOR '(' Expression ';' ';' ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, NULL, NULL), $7); }
-                         | FOR '(' VAR Identifier ';' ';' ')' Statement    
+                         | FOR '(' VAR VariableDeclarationList ';' ';' ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($4, NULL, NULL), $8); }
                          | FOR '(' ';' Expression ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP(NULL, $4, $6), $8); }

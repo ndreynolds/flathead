@@ -44,13 +44,15 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_TERN: return fh_if(ctx, node);
     case NODE_ASGN: return fh_assign(ctx, node);
     case NODE_RETURN: return fh_return(ctx, node);
+    case NODE_VAR_STMT: return fh_eval(ctx, node->e1);
+    case NODE_VAR_DEC_LST: return fh_eval_each(ctx, node);
+    case NODE_VAR_DEC: return fh_var_dec(ctx, node);
     case NODE_BREAK: return fh_break();
-    case NODE_PROP_LST: return fh_prop_lst(ctx, node);
+    case NODE_PROP_LST: return fh_eval_each(ctx, node);
     case NODE_PROP: fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2)); break;
     case NODE_WHILE: fh_while(ctx, node->e1, node->e2); break;
     case NODE_FOR: fh_for(ctx, node->e1, node->e2); break;
     case NODE_FORIN: fh_forin(ctx, node); break;
-    case NODE_VAR_STMT: fh_var_stmt(ctx, node); break;
     case NODE_EMPT_STMT: break;
     default:
       fh_error(
@@ -58,6 +60,15 @@ fh_eval(JSValue *ctx, Node *node)
         "Unsupported syntax type (%d)", node->type
       );
   }
+  return result;
+}
+
+JSValue *
+fh_eval_each(JSValue *ctx, Node *node)
+{
+  JSValue *result = JSUNDEF();
+  rewind_node(node);
+  while(!node->visited) result = fh_eval(ctx, pop_node(node));
   return result;
 }
 
@@ -72,6 +83,16 @@ fh_exp(JSValue *ctx, Node *node)
     default:
       return fh_eval_bin_exp(ctx, node);
   }
+}
+
+JSValue *
+fh_var_dec(JSValue *ctx, Node *node)
+{
+  if (node->e2 != NULL)
+    fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
+  else
+    fh_set(ctx, node->e1->sval, JSUNDEF());
+  return JSUNDEF();
 }
 
 JSValue *
@@ -99,24 +120,6 @@ fh_break()
   JSValue *signal = JSNULL();
   signal->signal = S_BREAK;
   return signal;
-}
-
-void
-fh_var_stmt(JSValue *ctx, Node *node)
-{
-  if (node->e2 != NULL)
-    fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
-  else
-    fh_set(ctx, node->e1->sval, JSNULL());
-}
-
-JSValue *
-fh_prop_lst(JSValue *ctx, Node *node)
-{
-  JSValue *result = JSUNDEF();
-  rewind_node(node);
-  while(!node->visited) result = fh_eval(ctx, pop_node(node));
-  return result;
 }
 
 JSValue *
@@ -274,8 +277,10 @@ fh_forin(JSValue *ctx, Node *node)
           *name = fh_str_from_node(ctx, node->e1);
 
   // If variable declaration:
-  if (node->e1->type == NODE_IDENT)
-    fh_set(ctx, name->string.ptr, JSNULL());
+  if (node->e1->type == NODE_VAR_DEC) {
+    fh_eval(ctx, node->e1);
+    name = JSSTR(node->e1->e1->sval);
+  }
 
   // Note that during the first iteration, the prototype is the object.
   while(proto != NULL) {
