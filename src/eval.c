@@ -188,8 +188,14 @@ JSValue *
 fh_member(JSValue *ctx, Node *member)
 {
   JSValue *id1, *id2, *parent;
-  id1 = fh_str_from_node(ctx, member->e1);
+
+  // In `x.foo` we'll take 'foo' literally, in `x[foo]` we need to eval 'foo'.
+  // This distinction is stored as 0/1 in the val slot.
+  id1 = member->val ? 
+    JSCAST(fh_eval(ctx, member->e1), T_STRING) :
+    fh_str_from_node(ctx, member->e1);
   id2 = fh_str_from_node(ctx, member->e2);
+
   parent = member->e2->type == NODE_MEMBER ? 
     fh_member(ctx, member->e2) :
     fh_get(ctx, id2->string.ptr);
@@ -266,7 +272,7 @@ fh_forin(JSValue *ctx, Node *node)
     OBJ_ITER(proto, p) {
       if (p->enumerable) {
         // Assign to name, possibly undeclared assignment.
-        fh_set_rec(ctx, name->string.ptr, p->ptr);
+        fh_set_rec(ctx, name->string.ptr, JSSTR(p->name));
         result = fh_eval(ctx, node->e3);
         if (result->signal == S_BREAK) break;
       }
@@ -613,6 +619,8 @@ fh_gt(JSValue *a, JSValue *b)
   }
   if (T_BOTH(a, b, T_STRING)) 
     return JSBOOL(strcmp(a->string.ptr, b->string.ptr) > 0);
+
+  if (a->type == T_UNDEF|| b->type == T_UNDEF) return JSBOOL(0);
 
   assert(0);
 }

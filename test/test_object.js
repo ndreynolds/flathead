@@ -12,15 +12,20 @@ var obj = { a: 1, b: 2, c:3 };
 
 // TODO: Object.create()
 
+// This one isn't enumerable.
 Object.defineProperty(obj, 'd', { value: 4 });
 assert(obj.d === 4);
 
-Object.defineProperties(obj, {
-  e: { value: 5 },
-  f: { value: 6 }
-});
+// This one is.
+Object.defineProperty(obj, 'e', { value: 5, enumerable: true });
 assert(obj.e === 5);
+
+Object.defineProperties(obj, {
+  f: { value: 6 },
+  g: { value: 7, enumerable: true }
+});
 assert(obj.f === 6);
+assert(obj.g === 7);
 
 var desc = Object.getOwnPropertyDescriptor(obj, 'a');
 assert(desc.value === 1);
@@ -29,13 +34,13 @@ assert(desc.writable);
 assert(desc.enumerable);
 
 var keys = Object.keys(obj);
-// TODO: assert(keys.length === 6);
+// TODO: assert(keys.length === 5);
+// Note that we only expect to see enumerable properties.
 assert(keys[0] === 'a');
 assert(keys[1] === 'b');
 assert(keys[2] === 'c');
-assert(keys[3] === 'd');
-assert(keys[4] === 'e');
-assert(keys[5] === 'f');
+assert(keys[3] === 'e');
+assert(keys[4] === 'g');
 
 
 // -----------------------------------------------------------------------------
@@ -50,7 +55,7 @@ assert(x.toLocaleString() === '[object Object]');
 assert(x.hasOwnProperty('a'));
 assert(!x.hasOwnProperty('toString'));
 assert(x.propertyIsEnumerable('b'));
-assert(x.valueOf() === '[object Object]');
+assert(x.valueOf() === x);
 
 // Directly via the prototype
 
@@ -59,4 +64,4 @@ assert(Object.prototype.toLocaleString() === '[object Object]');
 assert(Object.prototype.hasOwnProperty('toString'));
 assert(!Object.prototype.hasOwnProperty('a'));
 // TODO: assert(!Object.prototype.propertyIsEnumerable('toString'));
-assert(Object.prototype.valueOf() === '[object Object]');
+assert(Object.prototype.valueOf() === Object.prototype);

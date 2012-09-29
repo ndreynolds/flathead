@@ -52,7 +52,8 @@ new_node(enum NodeType type, Node *e1, Node *e2, Node *e3,
   node->line = line;
   node->column = column;
 
-  if (type == NODE_NUM || type == NODE_BOOL) node->val = x;
+  if (type == NODE_NUM || type == NODE_BOOL || type == NODE_MEMBER) 
+    node->val = x;
   if (s != NULL) {
     node->sval = malloc((strlen(s) + 1) * sizeof(char));
     strcpy(node->sval, s);

@@ -55,6 +55,9 @@ test:
 	node test/runner.js
 	node ctest/crunner.js
 
+debug: CFLAGS += -g -O0
+debug: default
+
 lexer:
 	$(LEX) $(LEX_FILE)
 

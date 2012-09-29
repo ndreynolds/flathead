@@ -1,5 +1,5 @@
 /*
- * props.c -- Property access and hashmap traversals
+ * props.c -- Property access and prototype/scope traversals
  *
  * Copyright (c) 2012 Nick Reynolds
  *  

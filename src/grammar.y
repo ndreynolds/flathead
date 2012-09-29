@@ -64,7 +64,7 @@
   #define NEW_ARGLST(head,tail)      NEW_NODE(NODE_ARG_LST,head,tail,0,0,0)
   #define NEW_CALL(call,args)        NEW_NODE(NODE_CALL,call,args,0,0,0);
   #define NEW_NEW(exp)               NEW_NODE(NODE_NEW,exp,0,0,0,0);
-  #define NEW_MEMBER(head,tail)      NEW_NODE(NODE_MEMBER,head,tail,0,0,0)
+  #define NEW_MEMBER(head,tail,exp)  NEW_NODE(NODE_MEMBER,head,tail,0,exp,0)
   #define NEW_FUNC(params,body,id)   NEW_NODE(NODE_FUNC,params,body,id,0,0)
   #define NEW_PARAMLST(head,tail)    NEW_NODE(NODE_PARAM_LST,head,tail,0,0,0)
   #define NEW_ELISION()              NEW_NODE(NODE_ELISION,0,0,0,0,0)
@@ -557,16 +557,16 @@ NewExpression            : MemberExpression
                              { $$ = NEW_NEW($2); }
                          ;
 
-MemberExpression         : PrimaryExpression                         
+MemberExpression         : PrimaryExpression
                              { $$ = $1; }
-                         | FunctionExpression                      
+                         | FunctionExpression
                              { $$ = $1; }
-                         | MemberExpression '[' Expression ']'     
-                             { $$ = NEW_MEMBER($3, $1); }
-                         | MemberExpression '.' Identifier         
-                             { $$ = NEW_MEMBER($3, $1); }
-                         | NEW MemberExpression Arguments          
-                             { $$ = NEW_NEW(NEW_MEMBER($3, $2)); }
+                         | MemberExpression '[' Expression ']'
+                             { $$ = NEW_MEMBER($3, $1, 42); }
+                         | MemberExpression '.' Identifier
+                             { $$ = NEW_MEMBER($3, $1, false); }
+                         | NEW MemberExpression Arguments
+                             { $$ = NEW_NEW(NEW_MEMBER($3, $2, false)); }
                          ;
 
 Arguments                : '(' ')'                                   

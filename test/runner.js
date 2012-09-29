@@ -2,12 +2,12 @@
 
 // runner.js
 // ---------
-// Finds and runs the JavaScript test suite on flathead. 
+// Finds and runs the JavaScript test suite on flathead.
 //
 // Run this script with NodeJS.
 //
-// --command     Specify an alternate executable to run the test files with. 
-//               (e.g. 'node' or 'js')   
+// --command     Specify an alternate executable to run the test files with.
+//               (e.g. 'node' or 'js')
 
 var exec = require('child_process').exec,
     fs = require('fs'),
@@ -16,7 +16,7 @@ var exec = require('child_process').exec,
 var testRunner = exports.testRunner = {
 
   options: {
-    cmd: __dirname + '/../bin/fh',
+    cmd: __dirname + '/../bin/flat',
     files: []
   },
 
@@ -25,7 +25,7 @@ var testRunner = exports.testRunner = {
     failed: 0,
     found: 0,
     done: function() {
-      return this.passed + this.failed == this.found;
+      return this.passed + this.failed === this.found;
     }
   },
 
@@ -37,7 +37,7 @@ var testRunner = exports.testRunner = {
 
   // Parse command line arguments into the options object.
   parseArgs: function() {
-    var args = process.argv;
+    var index, args = process.argv;
     if ((index = args.indexOf('--command')) >= 0) {
       this.options.cmd = args[index + 1];
       args = _.without(args, args[index], args[index + 1]);
@@ -70,14 +70,14 @@ var testRunner = exports.testRunner = {
   },
 
   // Execute the given (or default) command providing the file as an argument.
-  // Provide success/failure callbacks. A test is considered failed if the 
+  // Provide success/failure callbacks. A test is considered failed if the
   // exit code is non-zero, or the output streams are non-empty.
   runScript: function(fileName, onSuccess, onFailure) {
     var cmd = [this.options.cmd, fileName].join(' ');
-    exec(cmd, {timeout: 500}, function(err, stdout, stderr) {
-      fileName = fileName.split('/')[fileName.split('/').length - 1]
-      return (err || stdout || stderr) ? 
-        onFailure(fileName, err, stderr) : 
+    exec(cmd, {timeout: 2000}, function(err, stdout, stderr) {
+      fileName = fileName.split('/')[fileName.split('/').length - 1];
+      return (err || stdout || stderr) ?
+        onFailure(fileName, err, stderr) :
         onSuccess(fileName);
     });
   },
@@ -89,8 +89,8 @@ var testRunner = exports.testRunner = {
       files.forEach(function(f) {
         if (f.match(/^test_/)) {
           that.runScript(
-            [__dirname, f].join('/'), 
-            that.onTestPass, 
+            [__dirname, f].join('/'),
+            that.onTestPass,
             that.onTestFail
           );
           that.stats.found++;

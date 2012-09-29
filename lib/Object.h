@@ -26,4 +26,5 @@ JSValue * obj_proto_to_string(JSValue *, JSArgs *, State *);
 JSValue * obj_proto_value_of(JSValue *, JSArgs *, State *);
 
 JSValue * obj_or_throw(JSValue *, State *, const char *);
+JSPropFlags flags_from_descriptor(JSValue *);
 JSValue * bootstrap_object(void);

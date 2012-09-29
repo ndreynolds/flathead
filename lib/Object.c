@@ -14,14 +14,14 @@ obj_create(JSValue *instance, JSArgs *args, State *state)
   JSValue *obj = JSOBJ();
   obj->proto = proto;
 
-  // TODO: Replace array construction with helper call.
   if (props->type == T_OBJECT) {
     JSProp *p;
-    // TODO: accessor/value property type distinctions
+    JSPropFlags flags;
     OBJ_ITER(props, p) {
-      if (p->enumerable) {
-        if (p->ptr && p->ptr->type == T_OBJECT)
-          fh_set(obj, p->name, fh_get(p->ptr, "value"));
+      if (!p->enumerable) continue;
+      if (p->ptr && p->ptr->type == T_OBJECT) {
+        flags = flags_from_descriptor(p->ptr);
+        fh_set_prop(obj, p->name, fh_get(p->ptr, "value"), flags);
       }
     }
   }
@@ -37,8 +37,9 @@ obj_define_property(JSValue *instance, JSArgs *args, State *state)
 
   JSValue *prop = ARGN(args, 1);
   JSValue *desc = ARGN(args, 2);
+  JSPropFlags flags = flags_from_descriptor(desc);
 
-  fh_set(obj, prop->string.ptr, fh_get(desc, "value"));
+  fh_set_prop(obj, prop->string.ptr, fh_get(desc, "value"), flags);
   return obj;
 }
 
@@ -51,10 +52,12 @@ obj_define_properties(JSValue *instance, JSArgs *args, State *state)
 
   if (props->type == T_OBJECT) {
     JSProp *p;
+    JSPropFlags flags;
     OBJ_ITER(props, p) {
-      if (p->enumerable) {
-        if (p->ptr && p->ptr->type == T_OBJECT)
-          fh_set(obj, p->name, fh_get(p->ptr, "value"));
+      if (!p->enumerable) continue;
+      if (p->ptr && p->ptr->type == T_OBJECT) {
+        flags = flags_from_descriptor(p->ptr);
+        fh_set_prop(obj, p->name, fh_get(p->ptr, "value"), flags);
       }
     }
   }
@@ -232,8 +235,7 @@ obj_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_proto_value_of(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSSTR("[object Object]");
+  return instance;
 }
 
 JSValue *
@@ -242,6 +244,22 @@ obj_or_throw(JSValue *maybe_obj, State *state, const char *name)
   if (!maybe_obj || maybe_obj->type != T_OBJECT)
     fh_error(state, E_TYPE, "Object.%s called on a non-object", name);
   return maybe_obj;
+}
+
+JSPropFlags
+flags_from_descriptor(JSValue *desc)
+{
+  JSPropFlags flags = 0;
+  JSValue *enumerable = fh_get(desc, "enumerable");
+  JSValue *configurable = fh_get(desc, "configurable");
+  JSValue *writable = fh_get(desc, "writable");
+  if (enumerable->type == T_BOOLEAN && enumerable->boolean.val)
+    flags |= P_ENUM;
+  if (configurable->type == T_BOOLEAN && configurable->boolean.val)
+    flags |= P_CONF;
+  if (writable->type == T_BOOLEAN && writable->boolean.val)
+    flags |= P_WRITE;
+  return flags;
 }
 
 JSValue *

@@ -1,5 +1,5 @@
 /*
- * cli.c -- 
+ * cli.c -- Utilities for the command line interface.
  *
  * Copyright (c) 2012 Nick Reynolds
  *  
