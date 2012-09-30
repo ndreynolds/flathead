@@ -44,7 +44,7 @@ JSValue * fh_obj(JSValue *, Node *);
 JSValue * fh_arr(JSValue *, Node *);
 JSValue * fh_call(JSValue *, Node *);
 JSValue * fh_var_dec(JSValue *, Node *);
-JSValue * fh_function_call(JSValue *, State *, JSValue *, Node *);
+JSValue * fh_function_call(JSValue *, State *, JSValue *, JSArgs *);
 JSValue * fh_setup_func_env(JSValue *, JSValue *, JSArgs *);
 JSValue * fh_str_from_node(JSValue *, Node *);
 JSValue * fh_member(JSValue *, Node *);

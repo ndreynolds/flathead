@@ -1,5 +1,5 @@
 /*
- * eval.c -- AST-walker
+ * eval.c -- AST-walking interpreter
  *
  * Copyright (c) 2012 Nick Reynolds
  *  
@@ -63,63 +63,25 @@ fh_eval(JSValue *ctx, Node *node)
   return result;
 }
 
-JSValue *
-fh_eval_each(JSValue *ctx, Node *node)
-{
-  JSValue *result = JSUNDEF();
-  rewind_node(node);
-  while(!node->visited) result = fh_eval(ctx, pop_node(node));
-  return result;
-}
+
+// ----------------------------------------------------------------------------
+// Source & Statement Lists
+// ----------------------------------------------------------------------------
 
 JSValue *
-fh_exp(JSValue *ctx, Node *node)
+fh_src_lst(JSValue *ctx, Node *node)
 {
-  switch (node->sub_type) {
-    case NODE_UNARY_POST: 
-      return fh_eval_postfix_exp(ctx, node);
-    case NODE_UNARY_PRE:
-      return fh_eval_prefix_exp(ctx, node);
-    default:
-      return fh_eval_bin_exp(ctx, node);
+  // First sweep for function declarations
+  Node *child;
+  while(!node->visited) {
+    child = pop_node(node);
+    if (child->type == NODE_FUNC) {
+      fh_set(ctx, fh_str_from_node(ctx, child->e3)->string.ptr, JSFUNC(child));
+    }
   }
-}
+  rewind_node(node);
 
-JSValue *
-fh_var_dec(JSValue *ctx, Node *node)
-{
-  if (node->e2 != NULL)
-    fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
-  else
-    fh_set(ctx, node->e1->sval, JSUNDEF());
-  return JSUNDEF();
-}
-
-JSValue *
-fh_if(JSValue *ctx, Node *node)
-{
-  if (JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val)
-    return fh_eval(ctx, node->e2);
-  else if (node->e3 != NULL)
-    return fh_eval(ctx, node->e3);
-  return JSUNDEF();
-}
-
-JSValue *
-fh_return(JSValue *ctx, Node *node)
-{
-  JSValue *result = node->e1 ? fh_eval(ctx, node->e1) : JSUNDEF();
-  if (result->type == T_FUNCTION) 
-    result->function.closure = ctx;
-  return result;
-}
-
-JSValue *
-fh_break()
-{
-  JSValue *signal = JSNULL();
-  signal->signal = S_BREAK;
-  return signal;
+  return fh_stmt_lst(ctx, node);
 }
 
 JSValue *
@@ -138,6 +100,7 @@ fh_stmt_lst(JSValue *ctx, Node *node)
     if (child->type == NODE_CONT)
       return JSUNDEF();
 
+    // Break signals bubble up as special values with a signal flag.
     result = fh_eval(ctx, child);
     if (result->signal == S_BREAK)
       return result;
@@ -145,21 +108,10 @@ fh_stmt_lst(JSValue *ctx, Node *node)
   return result ? result : JSUNDEF();
 }
 
-JSValue *
-fh_src_lst(JSValue *ctx, Node *node)
-{
-  // First sweep for function declarations
-  Node *child;
-  while(!node->visited) {
-    child = pop_node(node);
-    if (child->type == NODE_FUNC) {
-      fh_set(ctx, fh_str_from_node(ctx, child->e3)->string.ptr, JSFUNC(child));
-    }
-  }
-  rewind_node(node);
 
-  return fh_stmt_lst(ctx, node);
-}
+// ----------------------------------------------------------------------------
+// Object & Array Literals
+// ----------------------------------------------------------------------------
 
 JSValue *
 fh_obj(JSValue *ctx, Node *node)
@@ -187,6 +139,11 @@ fh_arr(JSValue *ctx, Node *node)
   return arr;
 }
 
+
+// ----------------------------------------------------------------------------
+// Membership
+// ----------------------------------------------------------------------------
+
 JSValue *
 fh_member(JSValue *ctx, Node *member)
 {
@@ -204,6 +161,11 @@ fh_member(JSValue *ctx, Node *member)
     fh_get(ctx, id2->string.ptr);
   return fh_get_proto(parent, id1->string.ptr);
 }
+
+
+// ----------------------------------------------------------------------------
+// Declaration & Assignment
+// ----------------------------------------------------------------------------
 
 JSValue *
 fh_assign(JSValue *ctx, Node *node)
@@ -235,6 +197,17 @@ fh_do_assign(JSValue *obj, char *name, JSValue *val, char *op)
   if (STREQ(op, "*=")) return fh_set_rec(obj, name, fh_mul(cur, val));
   if (STREQ(op, "/=")) return fh_set_rec(obj, name, fh_div(cur, val));
 }
+
+JSValue *
+fh_var_dec(JSValue *ctx, Node *node)
+{
+  if (node->e2 != NULL)
+    fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
+  else
+    fh_set(ctx, node->e1->sval, JSUNDEF());
+  return JSUNDEF();
+}
+
 
 // ----------------------------------------------------------------------------
 // Iteration Constructs
@@ -297,6 +270,39 @@ fh_forin(JSValue *ctx, Node *node)
 }
 
 
+
+// ----------------------------------------------------------------------------
+// Control
+// ----------------------------------------------------------------------------
+
+JSValue *
+fh_return(JSValue *ctx, Node *node)
+{
+  JSValue *result = node->e1 ? fh_eval(ctx, node->e1) : JSUNDEF();
+  if (result->type == T_FUNCTION) 
+    result->function.closure = ctx;
+  return result;
+}
+
+JSValue *
+fh_break()
+{
+  JSValue *signal = JSNULL();
+  signal->signal = S_BREAK;
+  return signal;
+}
+
+JSValue *
+fh_if(JSValue *ctx, Node *node)
+{
+  if (JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val)
+    return fh_eval(ctx, node->e2);
+  else if (node->e3 != NULL)
+    return fh_eval(ctx, node->e3);
+  return JSUNDEF();
+}
+
+
 // ----------------------------------------------------------------------------
 // Function Application
 // ----------------------------------------------------------------------------
@@ -308,7 +314,8 @@ fh_call(JSValue *ctx, Node *call)
   State *state = fh_new_state(call->line, call->column);
   if (maybe_func->type != T_FUNCTION)
     fh_error(state, E_TYPE, "%s is not a function", fh_typeof(maybe_func));
-  return fh_function_call(ctx, state, maybe_func, call->e2);
+  JSArgs *args = fh_build_args(ctx, call->e2);
+  return fh_function_call(ctx, state, maybe_func, args);
 }
 
 JSArgs *
@@ -326,13 +333,10 @@ fh_build_args(JSValue *ctx, Node *args_node)
 }
 
 JSValue *
-fh_function_call(JSValue *ctx, State *state, JSValue *func, Node *args_node)
+fh_function_call(JSValue *ctx, State *state, JSValue *func, JSArgs *args)
 {
-  JSArgs *args = fh_build_args(ctx, args_node);
-
   if (func->function.is_native) {
     // Native functions are C functions referenced by pointer.
-    rewind_node(args_node);
     JSNativeFunction native = func->function.native;
     JSValue *instance = func->function.instance;
     return (*native)(instance, args, state);
@@ -393,6 +397,24 @@ fh_setup_func_env(JSValue *ctx, JSValue *func, JSArgs *args)
   }
 
   return scope;
+}
+
+
+// ----------------------------------------------------------------------------
+// Expressions
+// ----------------------------------------------------------------------------
+
+JSValue *
+fh_exp(JSValue *ctx, Node *node)
+{
+  switch (node->sub_type) {
+    case NODE_UNARY_POST: 
+      return fh_eval_postfix_exp(ctx, node);
+    case NODE_UNARY_PRE:
+      return fh_eval_prefix_exp(ctx, node);
+    default:
+      return fh_eval_bin_exp(ctx, node);
+  }
 }
 
 
@@ -679,4 +701,13 @@ fh_str_from_node(JSValue *ctx, Node *node)
   if (node->type == NODE_IDENT)
     return JSSTR(node->sval);
   return JSCAST(fh_eval(ctx, node), T_STRING);
+}
+
+JSValue *
+fh_eval_each(JSValue *ctx, Node *node)
+{
+  JSValue *result = JSUNDEF();
+  rewind_node(node);
+  while(!node->visited) result = fh_eval(ctx, pop_node(node));
+  return result;
 }
