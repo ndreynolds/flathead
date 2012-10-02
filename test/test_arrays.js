@@ -71,13 +71,146 @@ assert(!Array.isArray(false));
 var a5 = [1, 2, 3, 4];
 
 // Array.prototype.pop()
+
 assert(a5.pop() === 4);
 assert(a5.length === 3);
 assert(a5.pop() === 3);
 assert(a5.length === 2);
 
+
 // Array.prototype.push(element1, ..., elementN)
+
 assert(a5.push('lions') === 3);
 assert(a5.length === 3);
 assert(a5.push('tigers', 'and', 'bears') === 6);
 assert(a5.length === 6);
+
+
+// Array.prototype.shift()
+
+assert(a5.shift() === 1);
+assert(a5.length === 5);
+assert(a5.shift() === 2);
+assert(a5.length === 4);
+
+
+// Array.prototype.unshift(element1, ..., elementN)
+
+// TODO
+
+
+// Array.prototype.reverse()
+
+// Even and odd length arrays.
+var a6 = ['a', 'b', 'c', 'd'];
+var a7 = ['c', 'a', 't'];
+
+var result = a6.reverse();
+assert(result[0] === a6[0]);
+
+assert(a6[0] === 'd');
+assert(a6[1] === 'c');
+assert(a6[2] === 'b');
+assert(a6[3] === 'a');
+
+a7.reverse();
+assert(a7[0] === 't');
+assert(a7[1] === 'a');
+assert(a7[2] === 'c');
+
+
+// Array.prototype.join(sep)
+
+var a8 = ['foo', 'bar'];
+assert(a8.join('') === 'foobar');
+assert(a8.join(',') === 'foo,bar');
+assert(a8.join('baz') === 'foobazbar');
+
+var a9 = [1,2,3,4,5,6,7,8,9];
+assert(a9.join(',') === '1,2,3,4,5,6,7,8,9');
+
+
+// Array.prototype.indexOf()
+
+var a10 = [4, 2, 1, 3, 4];
+
+assert(a10.indexOf(4) === 0);
+assert(a10.indexOf(4, -5) === 0);
+assert(a10.indexOf(2, -3) === -1);
+assert(a10.indexOf(2) === 1);
+assert(a10.indexOf(1, -3) === 2);
+assert(a10.indexOf(3) === 3);
+assert(a10.indexOf(999) === -1);
+
+
+// Array.prototype.lastIndexOf()
+
+assert(a10.lastIndexOf(4) === 4);
+assert(a10.lastIndexOf(4, -2) === 0);
+assert(a10.lastIndexOf(4, -4) === 0);
+assert(a10.lastIndexOf(4, -6) === -1);
+assert(a10.lastIndexOf(2) === 1);
+assert(a10.lastIndexOf(1, -2) === 2);
+assert(a10.lastIndexOf(3) === 3);
+assert(a10.lastIndexOf(999) === -1);
+
+
+// Array.prototype.sort()
+
+// a11.sort();
+// assert(a11[0] === 1);
+// assert(a11[1] === 2);
+// assert(a11[2] === 3);
+// assert(a11[3] === 4);
+
+
+// Array.prototype.forEach(callback[, ctx])
+
+var a12 = [1, 2, 3, 4];
+var sum = 0;
+var f = function(x) { return sum += x; };
+
+a12.forEach(f, this);
+assertEquals(10, sum);
+
+
+// Array.prototype.every(callback[, ctx])
+
+var a13 = [1, 2, 3, 4];
+var f1 = function(x) { return x < 5; };
+var f2 = function(x) { return x % 2 === 0; };
+
+assert(a13.every(f1, this));
+assert(!a13.every(f2, this));
+
+
+// Array.prototype.some(callback[, ctx])
+
+var f3 = function(x) { return x < 0; };
+
+assert(a13.some(f1, this));
+assert(a13.some(f2, this));
+assert(!a13.some(f3, this));
+
+
+// Array.prototype.filter(callback[, ctx])
+
+var result = a13.filter(f2, this);
+assert(result[0] === 2);
+assert(result[1] === 4);
+assert(result.length === 2);
+
+
+// Array.prototype.map(callback[, ctx])
+
+var f4 = function(x) { return x * x; };
+
+var result = a13.map(f4, this);
+assert(result[0] === 1);
+assert(result[1] === 4);
+assert(result[2] === 9);
+assert(result[3] === 16);
+
+
+// Array.prototype.reduce(callback[, ctx])
+

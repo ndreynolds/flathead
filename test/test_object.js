@@ -34,7 +34,7 @@ assert(desc.writable);
 assert(desc.enumerable);
 
 var keys = Object.keys(obj);
-// TODO: assert(keys.length === 5);
+assert(keys.length === 5);
 // Note that we only expect to see enumerable properties.
 assert(keys[0] === 'a');
 assert(keys[1] === 'b');
@@ -63,5 +63,5 @@ assert(Object.prototype.toString() === '[object Object]');
 assert(Object.prototype.toLocaleString() === '[object Object]');
 assert(Object.prototype.hasOwnProperty('toString'));
 assert(!Object.prototype.hasOwnProperty('a'));
-// TODO: assert(!Object.prototype.propertyIsEnumerable('toString'));
+assert(!Object.prototype.propertyIsEnumerable('toString'));
 assert(Object.prototype.valueOf() === Object.prototype);

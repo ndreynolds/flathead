@@ -3,6 +3,7 @@
 
 #include "../src/flathead.h"
 #include "../src/props.h"
+#include "../src/eval.h"
 
 JSValue * arr_is_array(JSValue *, JSArgs *, State *);
 
@@ -32,5 +33,6 @@ JSValue * arr_proto_reduce_right(JSValue *, JSArgs *, State *);
 int arr_lex_sort(JSProp *, JSProp *);
 int arr_key_sort(JSProp *, JSProp *);
 int arr_custom_sort(JSProp *, JSProp *);
+JSValue * arr_do_join(JSValue *, JSValue *);
 
 JSValue * bootstrap_array(void);

@@ -87,8 +87,7 @@ JSValue *
 obj_keys(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *obj = obj_or_throw(ARG0(args), state, "keys");
-  JSValue *keys = JSOBJ();
-  keys->object.is_array = true;
+  JSValue *keys = JSARR();
 
   // TODO: Replace array construction with helper call.
   JSProp *p;
@@ -101,6 +100,7 @@ obj_keys(JSValue *instance, JSArgs *args, State *state)
       i++;
     }
   }
+  fh_arr_set_len(keys, i);
 
   return keys;
 }

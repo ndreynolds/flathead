@@ -59,6 +59,7 @@ struct Node;
 typedef struct State {
   int line;
   int column;
+  struct JSValue *ctx;
 } State;
 
 typedef enum Signal {
@@ -175,8 +176,8 @@ JSValue * fh_new_object();
 JSValue * fh_new_array();
 JSValue * fh_new_function(struct Node *);
 JSValue * fh_new_native_function(JSNativeFunction);
-JSValue * fh_get_arg(JSArgs*, int);
-JSArgs * fh_new_args();
+JSValue * fh_get_arg(JSArgs *, int);
+JSArgs * fh_new_args(JSValue *, JSValue *, JSValue *);
 JSProp * fh_new_prop(JSPropFlags);
 State * fh_new_state(int, int);
 

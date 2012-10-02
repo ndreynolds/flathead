@@ -270,7 +270,6 @@ fh_forin(JSValue *ctx, Node *node)
 }
 
 
-
 // ----------------------------------------------------------------------------
 // Control
 // ----------------------------------------------------------------------------
@@ -312,6 +311,7 @@ fh_call(JSValue *ctx, Node *call)
 {
   JSValue *maybe_func = fh_eval(ctx, call->e1);
   State *state = fh_new_state(call->line, call->column);
+  state->ctx = ctx;
   if (maybe_func->type != T_FUNCTION)
     fh_error(state, E_TYPE, "%s is not a function", fh_typeof(maybe_func));
   JSArgs *args = fh_build_args(ctx, call->e2);
@@ -338,8 +338,7 @@ fh_function_call(JSValue *ctx, State *state, JSValue *func, JSArgs *args)
   if (func->function.is_native) {
     // Native functions are C functions referenced by pointer.
     JSNativeFunction native = func->function.native;
-    JSValue *instance = func->function.instance;
-    return (*native)(instance, args, state);
+    return (*native)(func->function.instance, args, state);
   }
 
   rewind_node(func->function.node);

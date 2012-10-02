@@ -126,6 +126,24 @@ fh_new_state(int line, int column)
   return state;
 }
 
+JSArgs *
+fh_new_args(JSValue *arg1, JSValue *arg2, JSValue *arg3)
+{
+  JSArgs *args = malloc(sizeof(JSArgs));
+
+  args->arg = arg1;
+  if (arg2) {
+    args->next = malloc(sizeof(JSArgs));
+    args->next->arg = arg2;
+  }
+  if (arg3) {
+    args->next->next = malloc(sizeof(JSArgs));
+    args->next->next->arg = arg3;
+  }
+
+  return args;
+}
+
 
 // ----------------------------------------------------------------------------
 // Value Casting

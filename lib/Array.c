@@ -1,6 +1,10 @@
 // Array.c
 // -------
 // Array properties, methods, and prototype
+//
+// Known issues:
+//  - 'Holes' in arrays are not handled.
+//  - 
 
 #include "Array.h"
 
@@ -51,18 +55,22 @@ JSValue *
 arr_proto_reverse(JSValue *instance, JSArgs *args, State *state)
 {
   int len = instance->object.length;
-  int i;
-  for (i=0; i<len; i++) {
-    JSValue *old_key = JSCAST(JSNUM(i), T_STRING);
-    JSValue *new_key = JSCAST(JSNUM(len - i + 1), T_STRING);
-    JSProp *prop = fh_get_prop(instance, old_key->string.ptr);
-    prop->name = new_key->string.ptr;
+  int i = 0, j = len - 1;
+  JSValue *ikey, *jkey, *tmp;
+  JSProp *iprop, *jprop;
+
+  while(i < j) {
+    // While i & j converge, swap the values they point to.
+    ikey = JSCAST(JSNUM(i++), T_STRING);
+    jkey = JSCAST(JSNUM(j--), T_STRING);
+    iprop = fh_get_prop(instance, ikey->string.ptr);
+    jprop = fh_get_prop(instance, jkey->string.ptr);
+    tmp = iprop->ptr;
+    iprop->ptr = jprop->ptr;
+    jprop->ptr = tmp;
   }
 
-  // keys are now correct, but the order is not.
-  HASH_SORT(instance->object.map, arr_key_sort);
-
-  return JSUNDEF();
+  return instance;
 }
 
 // Array.prototype.shift()
@@ -83,7 +91,8 @@ arr_proto_shift(JSValue *instance, JSArgs *args, State *state)
     JSValue *old_key = JSCAST(JSNUM(i), T_STRING);
     JSValue *new_key = JSCAST(JSNUM(i - 1), T_STRING);
     JSProp *prop = fh_get_prop(instance, old_key->string.ptr);
-    prop->name = new_key->string.ptr;
+    fh_del_prop(instance, old_key->string.ptr);
+    fh_set(instance, new_key->string.ptr, prop->ptr);
   }
 
   fh_arr_set_len(instance, len - 1);
@@ -94,18 +103,20 @@ arr_proto_shift(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 arr_proto_sort(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *func = ARG0(args);
-  if (func) {
-    arr_compare_func = func;
+  arr_compare_func = ARG0(args);
+  if (arr_compare_func)
     HASH_SORT(instance->object.map, arr_custom_sort);
-  }
-  else {
+  else
     HASH_SORT(instance->object.map, arr_lex_sort);
-  }
+
+  JSProp *p;
+  int i = 0;
+  JSValue *key = JSCAST(JSNUM(i), T_STRING);
+
   return instance;
 }
 
-// Array.prototype.splice(
+// Array.prototype.splice(index, howMany[, element1[, ..., elementN]])
 JSValue *
 arr_proto_splice(JSValue *instance, JSArgs *args, State *state)
 {
@@ -113,7 +124,7 @@ arr_proto_splice(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
-// Array.prototype.unshift(arr)
+// Array.prototype.unshift(element1, ..., elementN)
 JSValue *
 arr_proto_unshift(JSValue *instance, JSArgs *args, State *state)
 {
@@ -121,20 +132,33 @@ arr_proto_unshift(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
-// Array.prototype.concat(
+// Array.prototype.concat(value1, value2, ..., valueN)
 JSValue *
 arr_proto_concat(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  int nargs = ARGLEN(args);
+  int len = instance->object.length;
+  JSValue *newarr = JSARR();
+
+  JSValue *arg;
+  int i;
+  for (i=0; i<nargs; i++) {
+    arg = ARGN(args, i);
+    if (arg->type == T_OBJECT && arg->object.is_array) {
+      // TODO: add all of its items
+    }
+    else {
+      // TODO: just add it
+    }
+  }
+  return newarr;
 }
 
-// Array.prototype.join(
+// Array.prototype.join(separator)
 JSValue *
 arr_proto_join(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return arr_do_join(instance, ARG0(args));
 }
 
 // Array.prototype.slice(
@@ -145,79 +169,206 @@ arr_proto_slice(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
-// Array.prototype.toString(
+// Array.prototype.toString()
 JSValue *
 arr_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return arr_do_join(instance, JSSTR(","));
 }
 
-// Array.prototype.indexOf(
+// Array.prototype.indexOf(searchElement[, fromIndex])
 JSValue *
 arr_proto_index_of(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *search = ARG0(args);
+  JSValue *from = ARGN(args, 1);
+  int len = instance->object.length;
+
+  int i = 0;
+  if (from->type == T_NUMBER) {
+    if (from->number.val < 0)
+      i = len + from->number.val;
+    else
+      i = from->number.val;
+  }
+
+  JSValue *key, *equals;
+  for(; i < instance->object.length && i >= 0; i++) {
+    key = JSCAST(JSNUM(i), T_STRING);
+    // indexOf uses strict equality
+    equals = fh_eq(fh_get(instance, key->string.ptr), search, true);
+    if (equals->boolean.val) {
+      return JSNUM(i);
+    }
+  }
+  return JSNUM(-1);
 }
 
-// Array.prototype.lastIndexOf(
+// Array.prototype.lastIndexOf(searchElement[, fromIndex])
 JSValue *
 arr_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *search = ARG0(args);
+  JSValue *from = ARGN(args, 1);
+  int len = instance->object.length;
+
+  int i = len - 1;
+  if (from->type == T_NUMBER) {
+    if (from->number.val < 0)
+      i = len + from->number.val;
+    else if (from->number.val < len)
+      i = from->number.val;
+  }
+
+  JSValue *key, *equals;
+  for(; i >= 0; i--) {
+    key = JSCAST(JSNUM(i), T_STRING);
+    // lastIndexOf uses strict equality
+    equals = fh_eq(fh_get(instance, key->string.ptr), search, true);
+    if (equals->boolean.val) {
+      return JSNUM(i);
+    }
+  }
+  return JSNUM(-1);
 }
 
-// Array.prototype.filter(
+// Array.prototype.filter(callback[, ctx])
 JSValue *
 arr_proto_filter(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *callback = ARG0(args);
+  JSValue *ctx = ARGN(args, 1);
+  if (!ctx) ctx = state->ctx;
+  JSValue *filtered = JSARR();
+  int len = instance->object.length;
+
+  JSValue *ikey, *jkey, *val, *result;
+  JSArgs *cbargs;
+  int i = 0, j = 0;
+  for (; i<len; i++) {
+    ikey = JSCAST(JSNUM(i), T_STRING);
+    val = fh_get(instance, ikey->string.ptr);
+    cbargs = fh_new_args(val, JSNUM(i), instance);
+    result = fh_function_call(ctx, state, callback, cbargs);
+    if (JSCAST(result, T_BOOLEAN)->boolean.val) {
+      jkey = JSCAST(JSNUM(j++), T_STRING);
+      fh_set(filtered, jkey->string.ptr, fh_get(instance, ikey->string.ptr));
+    }
+  }
+  fh_arr_set_len(filtered, j);
+
+  return filtered;
 }
 
-// Array.prototype.forEach(
+// Array.prototype.forEach(callback[, ctx])
 JSValue *
 arr_proto_for_each(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
+  JSValue *callback = ARG0(args);
+  JSValue *ctx = ARGN(args, 1);
+  if (!ctx) ctx = state->ctx;
+  int len = instance->object.length;
+
+  JSValue *key, *val;
+  JSArgs *cbargs;
+  int i;
+  for (i=0; i<len; i++) {
+    key = JSCAST(JSNUM(i), T_STRING);
+    val = fh_get(instance, key->string.ptr);
+    cbargs = fh_new_args(val, JSNUM(i), instance);
+    fh_function_call(ctx, state, callback, cbargs);
+  }
+
   return JSUNDEF();
 }
 
-// Array.prototype.every(
+// Array.prototype.every(callback[, ctx])
 JSValue *
 arr_proto_every(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *callback = ARG0(args);
+  JSValue *ctx = ARGN(args, 1);
+  if (!ctx) ctx = state->ctx;
+  int len = instance->object.length;
+
+  JSValue *key, *val, *result;
+  JSArgs *cbargs;
+  int i;
+  for (i = 0; i<len; i++) {
+    key = JSCAST(JSNUM(i), T_STRING);
+    val = fh_get(instance, key->string.ptr);
+    cbargs = fh_new_args(val, JSNUM(i), instance);
+    result = fh_function_call(ctx, state, callback, cbargs);
+    if (!JSCAST(result, T_BOOLEAN)->boolean.val)
+      return JSBOOL(0);
+  }
+
+  return JSBOOL(1);
 }
 
-// Array.prototype.map(
+// Array.prototype.map(callback[, ctx])
 JSValue *
 arr_proto_map(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *callback = ARG0(args);
+  JSValue *ctx = ARGN(args, 1);
+  if (!ctx) ctx = state->ctx;
+  int len = instance->object.length;
+  JSValue *map = JSARR();
+
+  JSValue *key, *val, *result;
+  JSArgs *cbargs;
+  int i;
+  for (i = 0; i<len; i++) {
+    key = JSCAST(JSNUM(i), T_STRING);
+    val = fh_get(instance, key->string.ptr);
+    cbargs = fh_new_args(val, JSNUM(i), instance);
+    result = fh_function_call(ctx, state, callback, cbargs);
+    fh_set(map, key->string.ptr, result);
+  }
+
+  fh_arr_set_len(map, len);
+  return map;
 }
 
-// Array.prototype.some(
+// Array.prototype.some(callback[, ctx])
 JSValue *
 arr_proto_some(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *callback = ARG0(args);
+  JSValue *ctx = ARGN(args, 1);
+  if (!ctx) ctx = state->ctx;
+  int len = instance->object.length;
+
+  JSValue *key, *val, *result;
+  JSArgs *cbargs;
+  int i;
+  for (i = 0; i<len; i++) {
+    key = JSCAST(JSNUM(i), T_STRING);
+    val = fh_get(instance, key->string.ptr);
+    cbargs = fh_new_args(val, JSNUM(i), instance);
+    result = fh_function_call(ctx, state, callback, cbargs);
+    if (JSCAST(result, T_BOOLEAN)->boolean.val)
+      return JSBOOL(1);
+  }
+
+  return JSBOOL(0);
 }
 
-// Array.prototype.reduce(
+// Array.prototype.reduce(callback[, seed])
 JSValue *
 arr_proto_reduce(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
+  JSValue *callback = ARG0(args);
+  JSValue *ctx = ARGN(args, 1);
+  if (!ctx) ctx = state->ctx;
+  int len = instance->object.length;
+  JSValue *reduction;
+
   return JSUNDEF();
 }
 
-// Array.prototype.reduceRight(
+// Array.prototype.reduceRight(callback[, seed])
 JSValue *
 arr_proto_reduce_right(JSValue *instance, JSArgs *args, State *state)
 {
@@ -249,6 +400,30 @@ arr_custom_sort(JSProp *a, JSProp *b)
 
   // return fh_function_call(arr_custom_sort);
   return 0;
+}
+
+JSValue *
+arr_do_join(JSValue *arr, JSValue *sep)
+{
+  JSValue *result = JSSTR("");
+
+  bool first = true;
+  JSProp *p;
+  JSValue *strval;
+
+  OBJ_ITER(arr, p) {
+    if (!p->enumerable) continue;
+    if (p->ptr) {
+      if (!first)
+        result = JSSTR(fh_str_concat(result->string.ptr, sep->string.ptr));
+      else
+        first = false;
+      strval = JSCAST(p->ptr, T_STRING);
+      result = JSSTR(fh_str_concat(result->string.ptr, strval->string.ptr));
+    }
+  }
+
+  return result;
 }
 
 JSValue *
