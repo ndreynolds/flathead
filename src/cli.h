@@ -19,4 +19,5 @@
 #include "flathead.h"
 
 void print_help(void);
+void print_startup(void);
 void print_version(void);

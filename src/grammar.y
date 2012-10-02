@@ -683,7 +683,7 @@ main(int argc, char **argv)
 
   // We can operate as a REPL or file/stdin mode.
   if (interactive) {
-    printf("Flathead %s\n", VERSION);
+    print_startup();
     while(true) {
       yyparse();
       if (print_ast) print_node(root, true, 0);

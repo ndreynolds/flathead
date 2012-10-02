@@ -32,6 +32,16 @@ print_help()
 }
 
 void
+print_startup()
+{
+  printf("   ______     __  __               __    \n"
+         "  / __/ /__ _/ /_/ /  ___ ___ ____/ /    \n"
+         " / _// / _ `/ __/ _ \\/ -_) _ `/ _  /    \n"
+         "/_/ /_/\\_,_/\\__/_//_/\\__/\\_,_/\\_,_/ \n"
+         "\nVersion %s (<ctrl-d> to quit)          \n", VERSION);
+}
+
+void
 print_version()
 {
   printf("%s\n", VERSION);
