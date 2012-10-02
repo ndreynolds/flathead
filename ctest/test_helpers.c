@@ -25,7 +25,7 @@ test_get_arg_handles_empty_case()
   args->arg = NULL;
   args->next = NULL;
 
-  TEST(fh_get_arg(args, 0)->type == T_NULL);
+  TEST(fh_get_arg(args, 0)->type == T_UNDEF);
 }
 
 void

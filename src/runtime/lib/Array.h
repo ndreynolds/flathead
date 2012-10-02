@@ -1,9 +1,7 @@
 // Array.h
 // -------
 
-#include "../src/flathead.h"
-#include "../src/props.h"
-#include "../src/eval.h"
+#include "../runtime.h"
 
 JSValue * arr_is_array(JSValue *, JSArgs *, State *);
 

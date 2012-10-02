@@ -39,8 +39,8 @@ var getIndex = function() {
   return 1;
 };
 var a4 = ['a', 'b', 'c', 'd'];
-//assertEquals('c', a4[4 - 2]);
-//assertEquals('b', a4[getIndex()]);
+assertEquals('c', a4[4 - 2]);
+assertEquals('b', a4[getIndex()]);
 
 
 // ----------------------------------------------------------------------------
@@ -80,26 +80,32 @@ assert(a5.length === 2);
 
 // Array.prototype.push(element1, ..., elementN)
 
-assert(a5.push('lions') === 3);
+assert(a5.push('bears') === 3);
 assert(a5.length === 3);
-assert(a5.push('tigers', 'and', 'bears') === 6);
-assert(a5.length === 6);
+assert(a5.push('and', 'tigers', 'and', 'lions') === 7);
+assert(a5.length === 7);
 
 
 // Array.prototype.shift()
 
 assert(a5.shift() === 1);
-assert(a5.length === 5);
+assert(a5.length === 6);
 assert(a5.shift() === 2);
-assert(a5.length === 4);
+assert(a5.length === 5);
 
 
 // Array.prototype.unshift(element1, ..., elementN)
 
-// TODO
+assert(a5.unshift('oh') === 6);
+assert(a5.length === 6);
+assert(a5.unshift('!', 'my') === 8);
+assert(a5.length === 8);
 
 
 // Array.prototype.reverse()
+
+// Just for fun.
+// TODO: assert(a5.reverse().join(' ') === 'lions and tigers and bears oh my !');
 
 // Even and odd length arrays.
 var a6 = ['a', 'b', 'c', 'd'];
@@ -119,7 +125,18 @@ assert(a7[1] === 'a');
 assert(a7[2] === 'c');
 
 
+// Array.prototype.concat(value1, value2, ..., valueN)
+
+var concat = a7.concat('t', ['f', 'u', 'l'], 'n', 'e', ['s', 's']);
+assert(concat[0] === 't');
+assert(concat[3] === 't');
+assert(concat[6] === 'l');
+assert(concat[9] === 's');
+
+
 // Array.prototype.join(sep)
+
+assert(concat.join('') === 'tactfulness');
 
 var a8 = ['foo', 'bar'];
 assert(a8.join('') === 'foobar');
@@ -128,6 +145,34 @@ assert(a8.join('baz') === 'foobazbar');
 
 var a9 = [1,2,3,4,5,6,7,8,9];
 assert(a9.join(',') === '1,2,3,4,5,6,7,8,9');
+
+
+// Array.prototype.slice(begin[, end])
+
+var slice1 = a9.slice(6);
+assert(slice1.length === 3);
+assert(slice1[0] === 7);
+assert(slice1[1] === 8);
+assert(slice1[2] === 9);
+
+var slice2 = a9.slice(0, 2);
+assert(slice2.length === 2);
+assert(slice2[0] === 1);
+assert(slice2[1] === 2);
+
+var slice3 = a9.slice(1, -5);
+assert(slice3.length === 3);
+assert(slice3[0] === 2);
+assert(slice3[1] === 3);
+assert(slice3[2] === 4);
+
+var slice4 = a9.slice(99);
+assert(slice4.length === 0);
+
+var slice5 = a9.slice(-50, 100);
+assert(slice5.length === 9);
+assert(slice5[0] === 1);
+assert(slice5[8] === 9);
 
 
 // Array.prototype.indexOf()
@@ -212,5 +257,17 @@ assert(result[2] === 9);
 assert(result[3] === 16);
 
 
-// Array.prototype.reduce(callback[, ctx])
+// Array.prototype.reduce(callback[, seed])
 
+var a14 = [0, 1, 2, 3, 4];
+var f5 = function(prev, cur, index, arr) {
+  return prev + cur;
+};
+assert(a14.reduce(f5) === 10);
+assert(a14.reduce(f5, 10) === 20);
+
+
+// Array.prototype.reduceRight(callback[, seed])
+
+assert(a14.reduceRight(f5) === 10);
+assert(a14.reduceRight(f5, 10) === 20);

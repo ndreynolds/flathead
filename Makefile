@@ -20,7 +20,7 @@ YACC = bison -y -d -t -v
 LEX = flex
 
 SRC_FILES = $(wildcard src/*.c)
-LIB_FILES = $(wildcard lib/*.c)
+LIB_FILES = $(wildcard src/runtime/*.c) $(wildcard src/runtime/lib/*.c)
 
 OUT_FILE = bin/flat
 YACC_FILE = src/grammar.y

@@ -100,8 +100,8 @@ obj_keys(JSValue *instance, JSArgs *args, State *state)
       i++;
     }
   }
-  fh_arr_set_len(keys, i);
 
+  fh_arr_set_len(keys, i);
   return keys;
 }
 
@@ -110,8 +110,7 @@ JSValue *
 obj_get_own_property_names(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *obj = obj_or_throw(ARG0(args), state, "getOwnPropertyNames");
-  JSValue *names = JSOBJ();
-  names->object.is_array = true;
+  JSValue *names = JSARR();
 
   // TODO: Replace array construction with helper call.
   JSProp *p;
@@ -123,6 +122,7 @@ obj_get_own_property_names(JSValue *instance, JSArgs *args, State *state)
     i++;
   }
 
+  fh_arr_set_len(names, i);
   return names;
 }
 

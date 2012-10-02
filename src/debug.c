@@ -105,7 +105,7 @@ fh_debug(FILE *stream, JSValue *val, int indent, bool newline)
         fprintf(stream, "%g", val->number.val);
       break;
     case T_STRING:
-      fprintf(stream, "%s", val->string.ptr);
+      fprintf(stream, "'%s'", val->string.ptr);
       break;
     case T_NULL:
       fprintf(stream, "null");

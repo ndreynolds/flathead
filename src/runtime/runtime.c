@@ -18,12 +18,12 @@
 
 #include <math.h>
 #include "runtime.h"
-#include "gc.h"
-#include "../lib/console.h"
-#include "../lib/Math.h"
-#include "../lib/Object.h"
-#include "../lib/Array.h"
-#include "../lib/Number.h"
+#include "lib/console.h"
+#include "lib/Math.h"
+#include "lib/Object.h"
+#include "lib/Array.h"
+#include "lib/Number.h"
+#include "lib/Boolean.h"
 
 JSValue *
 is_nan(JSValue *instance, JSArgs *args, State *state)

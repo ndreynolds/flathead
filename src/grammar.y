@@ -25,7 +25,7 @@
   #include <readline/history.h>
   #include "src/nodes.h"
   #include "src/eval.h"
-  #include "src/runtime.h"
+  #include "src/runtime/runtime.h"
   #include "src/cli.h"
 
   #define YYDEBUG 0

@@ -1,8 +1,7 @@
 // Number.h
 // --------
 
-#include "../src/flathead.h"
-#include "../src/props.h"
+#include "../runtime.h"
 
 JSValue * number_proto_to_exponential(JSValue *, JSArgs *, State *);
 JSValue * number_proto_to_fixed(JSValue *, JSArgs *, State *);

@@ -318,12 +318,12 @@ fh_get_arg(JSArgs *args, int n)
   int i;
   for (i=0; i<=n; i++) {
     if (i == n) 
-      return args->arg != NULL ? args->arg : JSNULL();
+      return args->arg != NULL ? args->arg : JSUNDEF();
     if (args->next == NULL) 
       break;
     args = args->next;
   }
-  return JSNULL();
+  return JSUNDEF();
 }
 
 int

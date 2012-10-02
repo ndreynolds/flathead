@@ -42,6 +42,7 @@
 #define JSFUNC(x)      fh_new_function(x)
 #define JSNFUNC(x)     fh_new_native_function(x)
 #define JSCAST(x,t)    fh_cast((x),(t))
+#define JSNUMKEY(x)    fh_cast(JSNUM((x)), T_STRING)
 #define JSDEBUG(x)     fh_debug(stdout,(x),0,1);
 
 #define ARG0(args)     ((args)->arg == NULL ? JSUNDEF() : (args)->arg)       

@@ -19,7 +19,10 @@
 #ifndef RUNTIME_H
 #define RUNTIME_H
 
-#include "flathead.h"
+#include "../flathead.h"
+#include "../props.h"
+#include "../eval.h"
+#include "../gc.h"
 
 JSValue * is_nan(JSValue *, JSArgs *, State *);
 JSValue * is_finite(JSValue *, JSArgs *, State *);
