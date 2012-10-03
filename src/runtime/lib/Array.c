@@ -120,18 +120,69 @@ arr_proto_sort(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 arr_proto_splice(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *index = ARG0(args);
+  JSValue *how_many = ARGN(args, 1);
+
+  JSValue *rejects = JSARR();             // elements we've spliced out
+  JSValue *keepers = JSARR();             // elements we've kept + added elements
+
+  int i = 0;                              // instance index
+  int j = 0;                              // rejects index
+  int k = 0;                              // keepers index
+  int len = instance->object.length;      // instance array length
+  int splice_ind = index->number.val;     // splice start index
+  int splice_len = how_many->number.val;  // splice length
+  int args_ind = 2;                       // args splice start index
+  int args_len = ARGLEN(args);            // number of args
+
+  if (j < 0) j = len + j;
+
+  // For each element in the array.
+  JSValue *val;
+  while(i < len) {
+
+    // If we're at the splice point:
+    if (i == splice_ind) {
+
+      // Add any new elements
+      while(args_ind < args_len) {
+        fh_set(keepers, JSNUMKEY(k)->string.ptr, ARGN(args, args_ind));
+        args_ind++;
+        k++;
+      }
+      // Add the spliced region to the rejects, skip over those indices.
+      while(splice_len > 0) {
+        val = fh_get(instance, JSNUMKEY(i)->string.ptr);
+        fh_set(rejects, JSNUMKEY(j)->string.ptr, val);
+        splice_len--, i++, j++;
+      }
+      // Don't hit this branch twice.
+      splice_ind = -1;
+
+    }
+    else {
+      val = fh_get(instance, JSNUMKEY(i)->string.ptr);
+      fh_set(keepers, JSNUMKEY(k)->string.ptr, val); 
+      k++, i++;
+    }
+  }
+
+  // We're doing a hotswap of the keepers hash into the instance array.  
+  // Still technically mutates the instance array (its pointer hasn't changed)
+  instance->object.map = keepers->object.map;
+
+  // GC will take the hash if we don't remove the reference.
+  keepers->object.map = NULL;
+
+  fh_arr_set_len(instance, k);
+  fh_arr_set_len(rejects, j);
+  return rejects;
 }
 
 // Array.prototype.unshift(element1, ..., elementN)
 JSValue *
 arr_proto_unshift(JSValue *instance, JSArgs *args, State *state)
 {
-  // Create a new hash map (simplified by creating a new array)
-  // to replace into our instance. We're still mutating the array
-  // from a high level (no references will be broken).
-  
   JSValue *newarr = JSARR();
   int nargs = ARGLEN(args);
   int len = instance->object.length;
@@ -152,9 +203,6 @@ arr_proto_unshift(JSValue *instance, JSArgs *args, State *state)
   }
 
   // Replace the map into our instance.
-  //
-  // GC assumes that maps belong to a single object, so we need to delete the
-  // second reference, or the hash map will get collected.
   instance->object.map = newarr->object.map;
   newarr->object.map = NULL;
 
@@ -168,7 +216,7 @@ arr_proto_concat(JSValue *instance, JSArgs *args, State *state)
 {
   int nargs = ARGLEN(args);
   int len = instance->object.length;
-  JSValue *newarr = JSARR();
+  JSValue *concat = JSARR();
   JSValue *key;
 
   int i = 0; // newarr index
@@ -177,7 +225,7 @@ arr_proto_concat(JSValue *instance, JSArgs *args, State *state)
   // Add the current array to the new array.
   for (; i<len; i++) {
     key = JSNUMKEY(i);
-    fh_set(newarr, key->string.ptr, fh_get(instance, key->string.ptr));
+    fh_set(concat, key->string.ptr, fh_get(instance, key->string.ptr));
   }
 
   // Add the arguments to the new array.
@@ -192,18 +240,18 @@ arr_proto_concat(JSValue *instance, JSArgs *args, State *state)
       for (k=0; k<arg->object.length; k++) {
         key = JSNUMKEY(i);
         inner_key = JSNUMKEY(k);
-        fh_set(newarr, key->string.ptr, fh_get(arg, inner_key->string.ptr));
+        fh_set(concat, key->string.ptr, fh_get(arg, inner_key->string.ptr));
         // Let the outer loop increment i if we're at the end:
         if (k < arg->object.length - 1) i++;
       }
     } 
     else {
-      fh_set(newarr, key->string.ptr, arg);
+      fh_set(concat, key->string.ptr, arg);
     }
   }
 
-  fh_arr_set_len(newarr, i);
-  return newarr;
+  fh_arr_set_len(concat, i);
+  return concat;
 }
 
 // Array.prototype.join(separator)

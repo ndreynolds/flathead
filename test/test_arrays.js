@@ -200,6 +200,31 @@ assert(a10.lastIndexOf(3) === 3);
 assert(a10.lastIndexOf(999) === -1);
 
 
+// Array.prototype.splice(index, howMany[, element1[, ...[, elementN]]])
+
+var a11 = ["angel", "clown", "mandarin", "surgeon"], removed;
+
+removed = a11.splice(2, 0, "drum");
+assert(a11.length === 5);
+assert(removed.length === 0);
+
+removed = a11.splice(3, 1);
+assert(a11.length === 4);
+assert(removed.length === 1);
+assert(removed[0] === "mandarin");
+
+removed = a11.splice(2, 1, "trumpet");
+assert(a11.length === 4);
+assert(removed.length === 1);
+assert(removed[0] === "drum");
+
+removed = a11.splice(0, 2, "parrot", "anemone", "blue");
+assert(a11.length === 5);
+assert(removed.length === 2);
+assert(removed[0] === "angel");
+assert(removed[1] === "clown");
+
+
 // Array.prototype.sort()
 
 // a11.sort();

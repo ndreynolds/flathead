@@ -148,8 +148,11 @@ typedef struct JSValue * (*JSNativeFunction)(struct JSValue *, JSArgs *, State *
 
 struct JSFunction {
   bool is_native;
+  bool is_generator;
   struct Node *node; 
   struct JSValue *closure;
+  struct JSValue *bound_this;
+  struct JSArgs *bound_args;
   struct JSValue *prototype;
   struct JSValue *instance;
   JSNativeFunction native;

@@ -229,9 +229,8 @@ fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
 {
   JSValue *result;
 
-  if (exp_grp->e1) {
+  if (exp_grp->e1)
     fh_eval(ctx, exp_grp->e1);
-  }
 
   while(JSCAST(exp_grp->e2 ? fh_eval(ctx, exp_grp->e2) : JSBOOL(1), T_BOOLEAN)->boolean.val) {
     result = fh_eval(ctx, stmt);

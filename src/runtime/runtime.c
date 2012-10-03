@@ -21,7 +21,9 @@
 #include "lib/console.h"
 #include "lib/Math.h"
 #include "lib/Object.h"
+#include "lib/Function.h"
 #include "lib/Array.h"
+#include "lib/String.h"
 #include "lib/Number.h"
 #include "lib/Boolean.h"
 
@@ -73,8 +75,11 @@ fh_bootstrap()
   fh_gc_register_global(global);
 
   fh_set(global, "Object", bootstrap_object());
+  fh_set(global, "Function", bootstrap_function());
   fh_set(global, "Array", bootstrap_array());
+  fh_set(global, "String", bootstrap_string());
   fh_set(global, "Number", bootstrap_number());
+  fh_set(global, "Boolean", bootstrap_boolean());
 
   fh_set(global, "console", bootstrap_console());
   fh_set(global, "Math", bootstrap_math());
