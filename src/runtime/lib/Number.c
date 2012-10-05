@@ -4,13 +4,17 @@
 #include <float.h>
 #include "Number.h"
 
+// Number.prototype.toExponential([fractionalDigits])
 JSValue *
 number_proto_to_exponential(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  int size = snprintf(NULL, 0, "%e", instance->number.val);
+  char *exp_str = malloc(size + 1);
+  sprintf(exp_str, "%e", instance->number.val);
+  return JSSTR(exp_str);
 }
 
+// Number.prototype.toFixed([digits])
 JSValue *
 number_proto_to_fixed(JSValue *instance, JSArgs *args, State *state)
 {
@@ -18,13 +22,14 @@ number_proto_to_fixed(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
+// Number.prototype.toLocaleString()
 JSValue *
 number_proto_to_locale_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  return number_proto_to_string(instance, args, state);
 }
 
+// Number.prototype.toPrecision([precision])
 JSValue *
 number_proto_to_precision(JSValue *instance, JSArgs *args, State *state)
 {
@@ -32,18 +37,18 @@ number_proto_to_precision(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
+// Number.prototype.toString()
 JSValue *
 number_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  return JSCAST(instance, T_STRING);
 }
 
+// Number.prototype.valueOf()
 JSValue *
 number_proto_value_of(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  return instance;
 }
 
 JSValue *

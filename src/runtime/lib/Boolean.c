@@ -4,6 +4,14 @@
 
 #include "Boolean.h"
 
+// new Boolean(value)
+JSValue *
+bool_new(JSValue *instance, JSArgs *args, State *state)
+{
+  // TODO
+  return JSUNDEF();
+}
+
 // Boolean.prototype.toString()
 JSValue *
 bool_proto_to_string(JSValue *instance, JSArgs *args, State *state)
