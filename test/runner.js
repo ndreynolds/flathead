@@ -67,6 +67,8 @@ var testRunner = exports.testRunner = {
     console.log(
       '\n', this.stats.passed + ' passed,', this.stats.failed + ' failed'
     );
+    if (this.stats.failed > 0)
+      process.exit(1);
   },
 
   // Execute the given (or default) command providing the file as an argument.
@@ -111,6 +113,7 @@ var testRunner = exports.testRunner = {
   // Start running tests.
   run: function() {
     this.parseArgs();
+
     if (this.options.files.length)
       return this.runEach(this.options.files);
     return this.runAll();
