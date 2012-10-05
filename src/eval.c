@@ -321,11 +321,12 @@ JSArgs *
 fh_build_args(JSValue *ctx, Node *args_node)
 {
   JSArgs *args = malloc(sizeof(JSArgs));
+  args->arg = NULL;
+  args->next = NULL;
   if (args_node->e1 == NULL) return args;
   if (!args_node->visited) {
     args->arg = fh_eval(ctx, pop_node(args_node));
-    if (!args_node->visited)
-      args->next = fh_build_args(ctx, args_node);
+    args->next = args_node->visited ? NULL : fh_build_args(ctx, args_node);
   }
   rewind_node(args_node);
   return args;

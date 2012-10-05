@@ -47,6 +47,10 @@ fh_new_container()
   ContainerMetadata *container = malloc(sizeof(ContainerMetadata));
   container->num_slots = SLOTS_PER_CONTAINER;
   container->slots = slots;
+  container->global = NULL;
+  int i;
+  for (i=0; i<SLOTS_PER_CONTAINER; i++)
+    container->freelist[i] = false;
   return container;
 }
 

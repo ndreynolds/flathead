@@ -31,6 +31,8 @@ fh_new_val(JSType type)
 {
   JSValue *val = fh_malloc(true);
   val->type = type;
+  val->signal = S_NONE;
+  val->proto = NULL;
   return val;
 }
 
@@ -70,8 +72,15 @@ JSValue *
 fh_new_object()
 {
   JSValue *val = fh_new_val(T_OBJECT);
-  JSProp *map = NULL;
-  val->object.map = map;
+
+  val->object.map = NULL;
+
+  val->object.length = 0;
+  val->object.is_array = false;
+  val->object.frozen = false;
+  val->object.sealed = false;
+  val->object.extensible = false;
+
   val->proto = fh_try_get_proto("Object");
   return val;
 }
@@ -80,8 +89,10 @@ JSValue *
 fh_new_array()
 {
   JSValue *arr = fh_new_object();
+
   arr->object.is_array = true;
   arr->proto = fh_try_get_proto("Array");
+
   fh_arr_set_len(arr, 0);
   return arr;
 }
@@ -90,7 +101,14 @@ JSValue *
 fh_new_function(struct Node *node)
 {
   JSValue *val = fh_new_val(T_FUNCTION);
+
+  val->function.is_native = false;
+  val->function.is_generator = false;
   val->function.node = node;
+  val->function.closure = NULL;
+  val->function.instance = NULL;
+  val->proto = fh_try_get_proto("Function");
+
   return val;
 }
 
@@ -98,8 +116,12 @@ JSValue *
 fh_new_native_function(JSNativeFunction func)
 {
   JSValue *val = fh_new_val(T_FUNCTION);
+
   val->function.is_native = true;
+  val->function.is_generator = false;
   val->function.native = func;
+  val->function.instance = NULL;
+
   return val;
 }
 
@@ -114,6 +136,7 @@ fh_new_prop(JSPropFlags flags)
 
   prop->circular = false;
   prop->ptr = NULL;
+
   return prop;
 }
 
@@ -132,13 +155,16 @@ fh_new_args(JSValue *arg1, JSValue *arg2, JSValue *arg3)
   JSArgs *args = malloc(sizeof(JSArgs));
 
   args->arg = arg1;
+  args->next = NULL;
   if (arg2) {
     args->next = malloc(sizeof(JSArgs));
     args->next->arg = arg2;
+    args->next->next = NULL;
   }
   if (arg3) {
     args->next->next = malloc(sizeof(JSArgs));
     args->next->next->arg = arg3;
+    args->next->next->next = NULL;
   }
 
   return args;

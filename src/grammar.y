@@ -634,10 +634,9 @@ fh_get_input(char *buf, int size)
   else {
     if (!yyin)
       fh_error(NULL, E_ERROR, "invalid input file");
-    if (feof(yyin)) 
+    if (feof(yyin))
       return 0;
-    size_t read;
-    read = fread(buf, size, 1, yyin);
+    fread(buf, size, 1, yyin);
   }
   return strlen(buf);
 }

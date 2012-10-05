@@ -65,7 +65,8 @@ typedef struct State {
 
 typedef enum Signal {
   S_BREAK = 1,
-  S_NOOP
+  S_NOOP,
+  S_NONE
 } Signal;
 
 typedef enum JSType {
