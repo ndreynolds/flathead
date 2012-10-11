@@ -1,16 +1,48 @@
 // Number.c
 // --------
+// TODO: Work on precision 
 
 #include <float.h>
+#include <math.h>
 #include "Number.h"
 
 // Number.prototype.toExponential([fractionalDigits])
 JSValue *
 number_proto_to_exponential(JSValue *instance, JSArgs *args, State *state)
 {
-  int size = snprintf(NULL, 0, "%e", instance->number.val);
-  char *exp_str = malloc(size + 1);
-  sprintf(exp_str, "%e", instance->number.val);
+  JSValue *digits = ARG0(args);
+
+  if (instance->number.is_nan || instance->number.is_inf) 
+    return JSCAST(instance, T_STRING);
+
+  if (digits->type != T_UNDEF) {
+    if (digits->number.val < 0 || digits->number.val > 20)
+      fh_error(state, E_RANGE, "fractionDigits must be between 0 and 20");
+  }
+
+  double x, m;
+  int e;
+  char *sign;
+
+  x = instance->number.val;
+  e = (int)log10(x);
+  m = x / pow(10, e);
+  if (m < 1) m *= 10, e--;
+  sign = e > 0 ? "+" : "";
+
+  char *exp_str;
+  int size, ndigits;
+  if (digits->type != T_UNDEF) {
+    ndigits = digits->number.val;
+    size = snprintf(NULL, 0, "%.*fe%s%d", ndigits, m, sign, e);
+    exp_str = malloc(size + 1);
+    sprintf(exp_str, "%.*gfe%s%d", ndigits, m, sign, e);
+  }
+  else {
+    size = snprintf(NULL, 0, "%ge%s%d", m, sign, e);
+    exp_str = malloc(size + 1);
+    sprintf(exp_str, "%ge%s%d", m, sign, e);
+  }
   return JSSTR(exp_str);
 }
 
@@ -18,8 +50,11 @@ number_proto_to_exponential(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 number_proto_to_fixed(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  int digits = ARG0(args)->type == T_NUMBER ? ARG0(args)->number.val : 0;
+  int size = snprintf(NULL, 0, "%.*f", digits, instance->number.val);
+  char *exp_str = malloc(size + 1);
+  sprintf(exp_str, "%.*f", digits, instance->number.val);
+  return JSSTR(exp_str);
 }
 
 // Number.prototype.toLocaleString()
