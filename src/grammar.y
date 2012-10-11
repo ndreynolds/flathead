@@ -19,6 +19,7 @@
 %{
   #include <unistd.h>
   #include <stdio.h>
+  #include <math.h>
   #include <stdlib.h>
   #include <getopt.h>
   #include <readline/readline.h>
@@ -76,6 +77,7 @@
   int yylex(void);
   int yydebug;
   bool interactive = false;
+  int print_tokens = 0;
   FILE *yyin;
   int fh_get_input(char *, int);
   Node *root;
@@ -145,7 +147,7 @@
 %type<node> PropertyNameAndValueList Function FunctionBody FunctionExpression 
 %type<node> FormalParameterList CallExpression MemberExpression NewExpression 
 %type<node> Arguments ArgumentList Elision VariableDeclarationList 
-%type<node> VariableDeclaration Initializer
+%type<node> VariableDeclaration Initializer ExponentPart ExponentIndicator
 
 %%
 
@@ -337,10 +339,27 @@ NullLiteral              : NULLT
                              { $$ = NEW_NULL(); }
                          ;
 
-NumericLiteral           : INTEGER               
+NumericLiteral           : FLOAT ExponentPart
+                             { $$ = NEW_NUM(pow($1, $2->val)); }
+                         | INTEGER ExponentPart
+                             { $$ = NEW_NUM(pow($1, $2->val)); }
+                         | INTEGER               
                              { $$ = NEW_NUM((double)$1); }
                          | FLOAT               
                              { $$ = NEW_NUM($1); }
+
+ExponentPart             : ExponentIndicator INTEGER
+                             { $$ = NEW_NUM($2); }
+                         | ExponentIndicator '+' INTEGER
+                             { $$ = NEW_NUM($3); }
+                         | ExponentIndicator '-' INTEGER
+                             { $$ = NEW_NUM(-1 * $3); }
+                         ;
+
+ExponentIndicator        : 'e'
+                            { $$ = NULL; }
+                         | 'E'
+                            { $$ = NULL; }
                          ;
 
 ObjectLiteral            : '{' '}'                                
@@ -645,7 +664,6 @@ int
 main(int argc, char **argv)
 {
   static int print_ast = 0;
-  static int print_tokens = 0;
 
   int c = 0, fakeind = 0, optind = 1;
   static struct option long_options[] = {
