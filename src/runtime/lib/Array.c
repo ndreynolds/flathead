@@ -103,6 +103,7 @@ arr_proto_shift(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 arr_proto_sort(JSValue *instance, JSArgs *args, State *state)
 {
+  /*
   arr_compare_func = ARG0(args);
   if (arr_compare_func)
     HASH_SORT(instance->object.map, arr_custom_sort);
@@ -112,6 +113,7 @@ arr_proto_sort(JSValue *instance, JSArgs *args, State *state)
   JSProp *p;
   int i = 0;
   JSValue *key = JSNUMKEY(i);
+  */
 
   return instance;
 }

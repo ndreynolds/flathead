@@ -19,11 +19,22 @@ JSValue *
 func_proto_apply(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *this = ARG0(args);
-  // TODO: Incorrect, need to transform array into args.
-  args->arg = NULL;
-  if (args->next) 
-    args = args->next;
-  return fh_function_call(this, state, instance, args);
+  JSValue *arr = ARGN(args, 1);
+  JSArgs *func_args = malloc(sizeof(JSArgs));
+  JSArgs *func_args_head = func_args;
+
+  int len = arr->object.length;
+  int i;
+
+  for (i=0; i<len; i++) {
+    func_args->arg = fh_get(arr, JSNUMKEY(i)->string.ptr);
+    if (i < len+1) {
+      func_args->next = malloc(sizeof(JSArgs));
+      func_args = func_args->next;
+    }
+  }
+
+  return fh_function_call(this, state, instance, func_args_head);
 }
 
 // Function.prototype.apply(thisValue[, arg1[, arg2[, ...]]])
@@ -31,6 +42,8 @@ JSValue *
 func_proto_bind(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *this = ARG0(args);
+
+  // Shift off the first argument.
   args->arg = NULL;
   if (args->next) 
     args = args->next;

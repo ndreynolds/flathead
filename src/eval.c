@@ -158,7 +158,7 @@ fh_member(JSValue *ctx, Node *member)
 
   parent = member->e2->type == NODE_MEMBER ? 
     fh_member(ctx, member->e2) :
-    fh_get(ctx, id2->string.ptr);
+    fh_get_rec(ctx, id2->string.ptr);
   return fh_get_proto(parent, id1->string.ptr);
 }
 
@@ -314,6 +314,11 @@ fh_call(JSValue *ctx, Node *call)
   if (maybe_func->type != T_FUNCTION)
     fh_error(state, E_TYPE, "%s is not a function", fh_typeof(maybe_func));
   JSArgs *args = fh_build_args(ctx, call->e2);
+
+  // Check for a bound this (see Function#bind)
+  if (maybe_func->function.bound_this)
+    ctx = maybe_func->function.bound_this;
+
   return fh_function_call(ctx, state, maybe_func, args);
 }
 
@@ -354,37 +359,30 @@ fh_setup_func_env(JSValue *ctx, JSValue *func, JSArgs *args)
   JSValue *scope = func->function.closure ? func->function.closure : JSOBJ();
 
   scope->object.parent = ctx;
+
+  fh_set(scope, "this", ctx);
   fh_set(scope, "arguments", arguments);
+
+  // Add the function name as ref to itself (if it has a name)
   if (func_node->sval != NULL)
     fh_set(scope, func_node->sval, func);
 
-  // Setup the (array-like) arguments object.
+  // Set up the (array-like) arguments object.
   fh_set(arguments, "callee", func);
-  int i = 0;
-  bool first = true;
-  JSArgs *tmp = args;
-  while(first || args->next != NULL)
-  {
-    if (!first)
-      args = args->next;
-    if (args->arg != NULL) {
-      JSValue *id = JSCAST(JSNUM(i), T_STRING);
-      fh_set(arguments, id->string.ptr, args->arg);
-      i++;
-    }
-    first = false;
-  }
-  args = tmp;
-  fh_set(arguments, "length", JSNUM((double)i));
+  fh_set(arguments, "length", JSNUM(ARGLEN(args)));
+  int i;
+  for(i=0; i<ARGLEN(args); i++)
+    fh_set(arguments, JSNUMKEY(i)->string.ptr, ARGN(args, i));
 
-  // Setup params as locals, if any
+  // Set up params as locals (if any)
   if (func_node->e1 != NULL) {
     Node *params = func_node->e1;
     rewind_node(params);
+    // Go through each param and match it by position with an arg.
     while(!params->visited) {
-      if (args->arg != NULL) {
+      if (args->arg) {
         fh_set(scope, pop_node(params)->sval, args->arg);
-        if (args->next != NULL) 
+        if (args->next)
           args = args->next;
         else
           args->arg = NULL;
