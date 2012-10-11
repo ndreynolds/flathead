@@ -34,15 +34,30 @@ print_help()
 void
 print_startup()
 {
+  printf(ANSI_BLUE);
   printf("   ______     __  __               __    \n"
          "  / __/ /__ _/ /_/ /  ___ ___ ____/ /    \n"
          " / _// / _ `/ __/ _ \\/ -_) _ `/ _  /    \n"
-         "/_/ /_/\\_,_/\\__/_//_/\\__/\\_,_/\\_,_/ \n"
-         "\nVersion %s (<ctrl-d> to quit)          \n", VERSION);
+         "/_/ /_/\\_,_/\\__/_//_/\\__/\\_,_/\\_,_/ \n");
+  printf(ANSI_RESET);
+  printf("\nVersion %s (<ctrl-d> to quit)          \n", VERSION);
 }
 
 void
 print_version()
 {
   printf("%s\n", VERSION);
+}
+
+void
+cfprintf(FILE *stream, const char *color, const char *tpl, ...)
+{
+  if (isatty(fileno(stream))) fputs(color, stream);
+
+  va_list ap;
+  va_start(ap, tpl);
+  vfprintf(stream, tpl, ap);
+  va_end(ap);
+
+  if (isatty(fileno(stream))) fputs(ANSI_RESET, stream);
 }

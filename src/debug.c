@@ -98,23 +98,23 @@ fh_debug(FILE *stream, JSValue *val, int indent, bool newline)
       break;
     case T_NUMBER:
       if (val->number.is_nan)
-        fprintf(stream, "NaN");
+        cfprintf(stream, ANSI_ORANGE, "NaN");
       else if (val->number.is_inf) 
-        fprintf(stream, "%sInfinity", val->number.is_neg ? "-" : "");
+        cfprintf(stream, ANSI_ORANGE, "%sInfinity", val->number.is_neg ? "-" : "");
       else 
-        fprintf(stream, "%g", val->number.val);
+        cfprintf(stream, ANSI_ORANGE, "%g", val->number.val);
       break;
     case T_STRING:
-      fprintf(stream, "'%s'", val->string.ptr);
+      cfprintf(stream, ANSI_YELLOW, "'%s'", val->string.ptr);
       break;
     case T_NULL:
-      fprintf(stream, "null");
+      cfprintf(stream, ANSI_GRAY, "null");
       break;
     case T_FUNCTION:
-      fprintf(stream, "[Function]");
+      cfprintf(stream, ANSI_BLUE, "[Function]");
       break;
     case T_UNDEF:
-      fprintf(stream, "undefined");
+      cfprintf(stream, ANSI_GRAY, "undefined");
       break;
     case T_OBJECT:
       if (val->object.is_array)

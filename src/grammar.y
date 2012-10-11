@@ -698,7 +698,7 @@ main(int argc, char **argv)
   // Bootstrap our runtime
   JSValue *global = fh_bootstrap();
 
-  // We can operate as a REPL or file/stdin mode.
+  // We can operate as a REPL or in file/stdin mode.
   if (interactive) {
     print_startup();
     while(true) {
