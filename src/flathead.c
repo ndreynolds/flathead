@@ -333,7 +333,7 @@ char *
 fh_str_concat(char *dst, char *new)
 {
   dst = realloc(dst, strlen(dst) + strlen(new) + sizeof(char));
-  if (!dst) exit(1);
+  if (!dst) fh_error(NULL, E_ERROR, "process out of memory");
   strcat(dst, new);
   return dst;
 }

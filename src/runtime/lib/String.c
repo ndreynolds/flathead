@@ -14,29 +14,47 @@ str_new(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 str_from_char_code(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
+  fh_error(state, E_EVAL, "Unicode is not supported");
   return JSUNDEF();
 }
 
+// String.prototype.charAt(index)
 JSValue *
 str_proto_char_at(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  int index = JSCAST(ARG0(args), T_NUMBER)->number.val;
+
+  if (index < 0 || index >= instance->string.length)
+    return JSSTR("");
+  char *str = malloc(2);
+  sprintf(str, "%c", instance->string.ptr[index]);
+  return JSSTR(str);
 }
 
+// String.prototype.charCodeAt(index)
 JSValue *
 str_proto_char_code_at(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
+  fh_error(state, E_EVAL, "Unicode is not supported");
   return JSUNDEF();
 }
 
+// String.prototype.concat(string2, string3[, ..., stringN])
 JSValue *
 str_proto_concat(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *new_str = JSSTR(instance->string.ptr);
+
+  JSValue *arg;
+  int i;
+  for (i=0; i<ARGLEN(args); i++) {
+    arg = JSCAST(ARGN(args, i), T_STRING);
+    printf("%s : %s\n", new_str->string.ptr, arg->string.ptr);
+    fh_str_concat(new_str->string.ptr, arg->string.ptr);
+  }
+
+  new_str->string.length = strlen(new_str->string.ptr);
+  return new_str;
 }
 
 JSValue *
@@ -175,8 +193,7 @@ str_proto_trim_right(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 str_proto_value_of(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return instance;
 }
 
 JSValue *

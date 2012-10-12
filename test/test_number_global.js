@@ -45,3 +45,13 @@ num = 12345.6789;
 assert(num.toFixed() === '12346');
 assert(num.toFixed(1) === '12345.7');
 assert(num.toFixed(6) === '12345.678900');
+
+
+// Number.prototype.toPrecision([precision])
+
+num = 5.123456;
+// TODO: precision is off (though otherwise correct)
+// assert(num.toPrecision() === '5.123456');
+assert(num.toPrecision(5) === '5.1235');
+assert(num.toPrecision(2) === '5.1');
+assert(num.toPrecision(1) === '5');

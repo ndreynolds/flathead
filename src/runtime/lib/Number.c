@@ -36,7 +36,7 @@ number_proto_to_exponential(JSValue *instance, JSArgs *args, State *state)
     ndigits = digits->number.val;
     size = snprintf(NULL, 0, "%.*fe%s%d", ndigits, m, sign, e);
     exp_str = malloc(size + 1);
-    sprintf(exp_str, "%.*gfe%s%d", ndigits, m, sign, e);
+    sprintf(exp_str, "%.*fe%s%d", ndigits, m, sign, e);
   }
   else {
     size = snprintf(NULL, 0, "%ge%s%d", m, sign, e);
@@ -68,8 +68,18 @@ number_proto_to_locale_string(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 number_proto_to_precision(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: stub
-  return JSUNDEF();
+  JSValue *precision = ARG0(args);
+  if (precision->type == T_UNDEF)
+    return number_proto_to_string(instance, args, state);
+
+  int digits = floor(precision->number.val + 0.5);
+  if (digits < 1 || digits > 100)
+    fh_error(state, E_RANGE, "precision must be between 1 and 100");
+
+  int size = snprintf(NULL, 0, "%.*g", digits, instance->number.val);
+  char *str = malloc(size + 1);
+  sprintf(str, "%.*g", digits, instance->number.val);
+  return JSSTR(str);
 }
 
 // Number.prototype.toString()
