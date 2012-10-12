@@ -18,17 +18,17 @@
 
 #include "gc.h"
 
-ContainerMetadata *container;
+PoolMetadata *pool;
 
 JSValue *
 fh_malloc(bool first_attempt)
 {
-  ContainerMetadata *container = fh_get_container();
+  PoolMetadata *pool = fh_get_pool();
   int i;
-  for (i=0; i<SLOTS_PER_CONTAINER; i++) {
-    if (!container->freelist[i]) {
-      container->freelist[i] = true;
-      return &(container->slots[i]);
+  for (i=0; i<SLOTS_PER_POOL; i++) {
+    if (!pool->freelist[i]) {
+      pool->freelist[i] = true;
+      return &(pool->slots[i]);
     }
   }
   if (first_attempt) {
@@ -39,33 +39,33 @@ fh_malloc(bool first_attempt)
   assert(0);
 }
 
-ContainerMetadata *
-fh_new_container()
+PoolMetadata *
+fh_new_pool()
 {
-  size_t container_size = sizeof(JSValue) * SLOTS_PER_CONTAINER;
-  JSValue *slots = malloc(container_size);
-  ContainerMetadata *container = malloc(sizeof(ContainerMetadata));
-  container->num_slots = SLOTS_PER_CONTAINER;
-  container->slots = slots;
-  container->global = NULL;
+  size_t pool_size = sizeof(JSValue) * SLOTS_PER_POOL;
+  JSValue *slots = malloc(pool_size);
+  PoolMetadata *pool = malloc(sizeof(PoolMetadata));
+  pool->num_slots = SLOTS_PER_POOL;
+  pool->slots = slots;
+  pool->global = NULL;
   int i;
-  for (i=0; i<SLOTS_PER_CONTAINER; i++)
-    container->freelist[i] = false;
-  return container;
+  for (i=0; i<SLOTS_PER_POOL; i++)
+    pool->freelist[i] = false;
+  return pool;
 }
 
-ContainerMetadata *
-fh_get_container()
+PoolMetadata *
+fh_get_pool()
 {
-  if (!container) 
-    container = fh_new_container();
-  return container;
+  if (!pool) 
+    pool = fh_new_pool();
+  return pool;
 }
 
 JSValue *
 fh_global()
 {
-  return fh_get_container()->global;
+  return fh_get_pool()->global;
 }
 
 void
@@ -74,43 +74,52 @@ fh_gc()
 #ifdef fh_gc_profile
   puts("GC running.");
 #endif
-  ContainerMetadata *container = fh_get_container();
-  fh_gc_mark(container->global);
-  fh_gc_sweep(container);
+  PoolMetadata *pool = fh_get_pool();
+  fh_gc_mark(pool->global);
+  fh_gc_sweep(pool);
 }
 
 void
 fh_gc_register_global(JSValue *global)
 {
-  ContainerMetadata *container = fh_get_container();
-  container->global = global;
+  PoolMetadata *pool = fh_get_pool();
+  pool->global = global;
 }
 
 void
-fh_gc_mark(JSValue *obj)
+fh_gc_mark(JSValue *val)
 {
-  obj->marked = true;
-  JSProp *prop, *tmp;
-  JSValue *val;
-  HASH_ITER(hh, obj->object.map, prop, tmp) {
-    val = prop->ptr;
-    if (val == NULL) continue;
-    if (val->type == T_OBJECT && !prop->circular) 
-      fh_gc_mark(val);
-    else
-      val->marked = true;
+  if (!val || val->marked) return;
+
+  val->marked = true;
+
+  if (val->proto) fh_gc_mark(val->proto);
+
+  if (val->type == T_FUNCTION) {
+    fh_gc_mark(val->function.closure);
+    fh_gc_mark(val->function.bound_this);
+    fh_gc_mark(val->function.prototype);
+    fh_gc_mark(val->function.instance);
+  }
+
+  if (val->type == T_OBJECT) {
+    JSProp *prop;
+    OBJ_ITER(val, prop) {
+      if (prop->ptr && !prop->circular) 
+        fh_gc_mark(prop->ptr);
+    }
   }
 }
 
 void
-fh_gc_sweep(ContainerMetadata *container)
+fh_gc_sweep(PoolMetadata *pool)
 {
   int i;
   JSValue val;
-  for (i=0; i<SLOTS_PER_CONTAINER; i++) {
-    val = container->slots[i];
+  for (i=0; i<SLOTS_PER_POOL; i++) {
+    val = pool->slots[i];
     if (!val.marked) {
-      container->freelist[i] = false;
+      pool->freelist[i] = false;
       fh_gc_free_val(&val);
     }
     val.marked = false;
@@ -120,8 +129,6 @@ fh_gc_sweep(ContainerMetadata *container)
 void
 fh_gc_free_val(JSValue *val)
 {
-  /*
-  printf("Freeing %s (%d)\n", fh_typeof(val), val->type);
   // Free the object hashtable
   if (val->type == T_OBJECT) {
     JSProp *prop, *tmp;
@@ -131,11 +138,9 @@ fh_gc_free_val(JSValue *val)
     }
   }
   // Free any strings (dynamically alloc-ed outside slots)
-  if (val->string.ptr != NULL) {
-    printf("(String '%s')\n", val->string.ptr);
+  if (val->type == T_STRING && val->string.ptr != NULL) {
     free(val->string.ptr);
   }
-  */
 
   memset(val, 0, sizeof(JSValue));
 }

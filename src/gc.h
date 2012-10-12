@@ -22,23 +22,23 @@
 #include <stddef.h>
 #include "flathead.h"
 
-#define SLOTS_PER_CONTAINER 10000
+#define SLOTS_PER_POOL 10000
 
-typedef struct ContainerMetadata {
+typedef struct PoolMetadata {
   JSValue *slots;
   JSValue *global;
   int num_slots;
-  bool freelist[SLOTS_PER_CONTAINER];
-} ContainerMetadata;
+  bool freelist[SLOTS_PER_POOL];
+} PoolMetadata;
 
-ContainerMetadata * fh_new_container(void);
-ContainerMetadata * fh_get_container(void);
+PoolMetadata * fh_new_pool(void);
+PoolMetadata * fh_get_pool(void);
 JSValue * fh_global(void);
 JSValue * fh_malloc(bool);
 void fh_gc(void);
 void fh_gc_register_global(JSValue *);
 void fh_gc_mark(JSValue *);
 void fh_gc_free_val(JSValue *);
-void fh_gc_sweep(ContainerMetadata *);
+void fh_gc_sweep(PoolMetadata *);
 
 #endif
