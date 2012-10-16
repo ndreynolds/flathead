@@ -45,8 +45,10 @@
   #define NEW_NUM(x)                 NEW_NODE(NODE_NUM,0,0,0,x,0)
   #define NEW_BOOL(x)                NEW_NODE(NODE_BOOL,0,0,0,x,0)
   #define NEW_STR(x)                 NEW_NODE(NODE_STR,0,0,0,0,x)
+  #define NEW_REGEXP(x)              NEW_NODE(NODE_REGEXP,0,0,0,0,x)
   #define NEW_NULL()                 NEW_NODE(NODE_NULL,0,0,0,0,0)
   #define NEW_RETURN(exp)            NEW_NODE(NODE_RETURN,exp,0,0,0,0)
+  #define NEW_THROW(exp)             NEW_NODE(NODE_THROW,exp,0,0,0,0)
   #define NEW_CONT()                 NEW_NODE(NODE_CONT,0,0,0,0,0)
   #define NEW_BREAK()                NEW_NODE(NODE_BREAK,0,0,0,0,0)
   #define NEW_THIS()                 NEW_NODE(NODE_THIS,0,0,0,0,0)
@@ -72,6 +74,10 @@
   #define NEW_VARSTMT(declst)        NEW_NODE(NODE_VAR_STMT,declst,0,0,0,0)
   #define NEW_VARDEC(id,exp)         NEW_NODE(NODE_VAR_DEC,id,exp,0,0,0)
   #define NEW_VARDECLST(head,tail)   NEW_NODE(NODE_VAR_DEC_LST,head,tail,0,0,0)
+  #define NEW_SWITCH(exp,cases)      NEW_NODE(NODE_SWITCH_STMT,exp,cases,0,0,0)
+  #define NEW_CASEBLOCK(c1,def,c2)   NEW_NODE(NODE_CASE_BLOCK,c1,def,c2,0,0)
+  #define NEW_CLAUSELST(head,tail)   NEW_NODE(NODE_CLAUSE_LST,head,tail,0,0,0)
+  #define NEW_CLAUSE(exp,stmtlst)    NEW_NODE(NODE_CLAUSE,exp,stmtlst,0,0,0)
 
   void yyerror(const char *);
   int yylex(void);
@@ -91,33 +97,25 @@
 
 %token<floatval> FLOAT
 %token<intval> INTEGER
-%token<val> IDENT STRING TRUE FALSE
+%token<val> IDENT STRING REGEXP TRUE FALSE
 
 
 /* OPERATORS */
 
-/* Boolean */
 %token<val> AND OR
-/* Unary */
-%token<val> PLUSPLUS MINUSMINUS VOID DELETE TYPEOF
-/* Relational */
-%token<val> EQEQ GTE LTE NE STEQ STNE
-/* Bitwise */
+%token<val> PLUSPLUS MINUSMINUS VOID DELETE TYPEOF 
+%token<val> EQEQ GTE LTE NE STEQ STNE INSTANCEOF
 %token<val> LSHIFT RSHIFT
-/* Assignment */
 %token<val> PLUSEQ MINUSEQ MULTEQ DIVEQ MODEQ
 
 
 /* KEYWORDS */
 
-/* Iteration */
 %token<val> WHILE DO FOR
-/* Branch */
 %token<val> IF ELSE
-/* Control */
-%token<val> BREAK CONTINUE RETURN
-/* Misc */
+%token<val> BREAK CONTINUE RETURN THROW
 %token<val> VAR IN THIS NULLT FUNCTION NEW 
+%token<val> SWITCH CASE DEFAULT
 
 
 /* ASSOCIATIVITY */
@@ -144,10 +142,12 @@
 %type<node> BitwiseXORExpression LogicalORExpression LogicalANDExpression 
 %type<node> MultiplicativeExpression ConditionalExpression StatementList 
 %type<node> AssignmentExpression ElementList PropertyName PropertyAssignment 
-%type<node> PropertyNameAndValueList Function FunctionBody FunctionExpression 
+%type<node> PropertyNameAndValueList Function FunctionExpression FunctionBody 
 %type<node> FormalParameterList CallExpression MemberExpression NewExpression 
 %type<node> Arguments ArgumentList Elision VariableDeclarationList 
 %type<node> VariableDeclaration Initializer ExponentPart ExponentIndicator
+%type<node> ThrowStatement SwitchStatement CaseBlock CaseClauses CaseClause
+%type<node> DefaultClause RegularExpressionLiteral
 
 %%
 
@@ -184,6 +184,10 @@ Statement                : Block
                          | BreakStatement                                  
                              { $$ = $1; }
                          | ReturnStatement                                 
+                             { $$ = $1; }
+                         | ThrowStatement                                 
+                             { $$ = $1; }
+                         | SwitchStatement                                 
                              { $$ = $1; }
                          ; 
 
@@ -285,6 +289,39 @@ ReturnStatement          : RETURN ';'
                              { $$ = NEW_RETURN($2); }
                          ;
 
+ThrowStatement           : THROW Expression ';'
+                             { $$ = NEW_THROW($2); }
+                         ;
+
+SwitchStatement          : SWITCH '(' Expression ')' CaseBlock
+                             { $$ = NEW_SWITCH($3, $5); }
+                         ;
+
+CaseBlock                : '{' CaseClauses '}'
+                             { $$ = NEW_CASEBLOCK($2, NULL, NULL); }
+                         | '{' CaseClauses DefaultClause '}'
+                             { $$ = NEW_CASEBLOCK($2, $3, NULL); }
+                         | '{' CaseClauses DefaultClause CaseClauses '}'
+                             { $$ = NEW_CASEBLOCK($2, $3, $4); }
+                         ;
+
+CaseClauses              : CaseClause
+                             { $$ = NEW_CLAUSELST($1, NULL); }
+                         | CaseClauses CaseClause
+                             { $$ = NEW_CLAUSELST($2, $1); }
+
+CaseClause               : CASE Expression ':' StatementList
+                             { $$ = NEW_CLAUSE($2, $4); }
+                         | CASE Expression ':'
+                             { $$ = NEW_CLAUSE($2, NULL); }
+                         ;
+
+DefaultClause            : DEFAULT ':' StatementList
+                             { $$ = NEW_CLAUSE(NULL, $3); }
+                         | DEFAULT ':'
+                             { $$ = NEW_CLAUSE(NULL, NULL); }
+                         ;
+
 Literal                  : NullLiteral                        
                              { $$ = $1; }
                          | BooleanLiteral                   
@@ -294,6 +331,8 @@ Literal                  : NullLiteral
                          | StringLiteral                    
                              { $$ = $1; }
                          | ObjectLiteral                    
+                             { $$ = $1; }
+                         | RegularExpressionLiteral
                              { $$ = $1; }
                          ;
 
@@ -386,6 +425,10 @@ PropertyName             : Identifier
                              { $$ = $1; }
                          | NumericLiteral              
                              { $$ = $1; }
+                         ;
+
+RegularExpressionLiteral : REGEXP
+                             { $$ = NEW_REGEXP(NULL); }
                          ;
                          
                          /* Whether a named function is a declaration or expression is ambiguous
@@ -489,6 +532,12 @@ RelationalExpression     : ShiftExpression
                              { $$ = NEW_EXP($1, $3, "<="); }
                          | RelationalExpression GTE ShiftExpression           
                              { $$ = NEW_EXP($1, $3, ">="); }
+                         | RelationalExpression INSTANCEOF ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, "instanceof"); }
+                         /*
+                         | RelationalExpression IN ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, "in"); }
+                         */
                          ;
 
 ShiftExpression          : AdditiveExpression  

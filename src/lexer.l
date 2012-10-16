@@ -10,9 +10,8 @@
   int print_tokens;
   char * fh_extract_string(char *);
   int fh_get_input(char *, int);
-  int fh_token(char *, int, int);
-  #define TOKEN(name,tok) fh_token((name),(tok),0)
-  #define TOKEN2(name,tok) fh_token((name),(tok),1)
+  int fh_token(char *, int);
+  #define TOKEN(name,tok) fh_token((name),(tok))
   #define YY_USER_ACTION yyuseraction();
   #undef YY_INPUT
   #define YY_INPUT(buf,result,max_size) result = fh_get_input(buf, max_size);
@@ -25,62 +24,71 @@
 %%
 
     /* KEYWORDS */
-"while"     return TOKEN("WHILE", WHILE);
-"do"        return TOKEN("DO", DO);
-"for"       return TOKEN("FOR", FOR);
-"if"        return TOKEN("IF", IF);
-"in"        return TOKEN("IN", IN);
-"else"      return TOKEN("ELSE", ELSE);
-"break"     return TOKEN("BREAK", BREAK);
-"continue"  return TOKEN("CONTINUE", CONTINUE);
-"return"    return TOKEN("RETURN", RETURN);
-"function"  return TOKEN("FUNCTION", FUNCTION);
-"delete"    return TOKEN("DELETE", DELETE);
-"void"      return TOKEN("VOID", VOID);
-"typeof"    return TOKEN("TYPEOF", TYPEOF);
-"new"       return TOKEN("NEW", NEW);
-"var"       return TOKEN("VAR", VAR);
-"null"      return TOKEN("NULL", NULLT);
-"true"      return TOKEN("TRUE", TRUE); 
-"false"     return TOKEN("FALSE", FALSE);
+"while"      return TOKEN("LITERAL", WHILE);
+"do"         return TOKEN("LITERAL", DO);
+"for"        return TOKEN("LITERAL", FOR);
+"if"         return TOKEN("LITERAL", IF);
+"in"         return TOKEN("LITERAL", IN);
+"else"       return TOKEN("LITERAL", ELSE);
+"break"      return TOKEN("LITERAL", BREAK);
+"continue"   return TOKEN("LITERAL", CONTINUE);
+"return"     return TOKEN("LITERAL", RETURN);
+"throw"      return TOKEN("LITERAL", THROW);
+"function"   return TOKEN("LITERAL", FUNCTION);
+"delete"     return TOKEN("LITERAL", DELETE);
+"void"       return TOKEN("LITERAL", VOID);
+"typeof"     return TOKEN("LITERAL", TYPEOF);
+"instanceof" return TOKEN("LITERAL", INSTANCEOF);
+"switch"     return TOKEN("LITERAL", SWITCH);
+"case"       return TOKEN("LITERAL", CASE);
+"default"    return TOKEN("LITERAL", DEFAULT);
+"new"        return TOKEN("LITERAL", NEW);
+"var"        return TOKEN("LITERAL", VAR);
+"null"       return TOKEN("LITERAL", NULLT);
+"true"       return TOKEN("LITERAL", TRUE); 
+"false"      return TOKEN("LITERAL", FALSE);
 
     /* LITERALS */
 L?\"(\\.|[^\\"])*\"          { yylval.val = fh_extract_string(yytext); 
-                               return TOKEN2("STR", STRING); } 
+                               return TOKEN("STR", STRING); } 
 L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext); 
-                               return TOKEN2("STR", STRING); } 
+                               return TOKEN("STR", STRING); } 
 [_\$A-Za-z][_\$0-9A-Za-z]*   { yylval.val = yytext; 
-                               return TOKEN2("IDENT", IDENT); }
+                               return TOKEN("IDENT", IDENT); }
 [0-9]+                       { yylval.intval = atoi(yytext); 
-                               return TOKEN2("INT", INTEGER); }
+                               return TOKEN("INT", INTEGER); }
 [0-9]+\.[0-9]+               { yylval.floatval = atof(yytext); 
-                               return TOKEN2("FLOAT", FLOAT); }
+                               return TOKEN("FLOAT", FLOAT); }
+    /* TODO: This is very incomplete */
+\/[^\ ]+\/([imgy]{0,4})      { yylval.val = yytext;
+                               return TOKEN("REGEXP", REGEXP); }
 
     /* COMMENTS */
 [/][/].*       ; /* ignore comments */
 
     /* OPERATORS */
-"||"        return TOKEN2("OP", OR); 
-"&&"        return TOKEN2("OP", AND); 
-"++"        return TOKEN2("OP", PLUSPLUS); 
-"--"        return TOKEN2("OP", MINUSMINUS); 
-"=="        return TOKEN2("OP", EQEQ); 
-"!="        return TOKEN2("OP", NE); 
-"<="        return TOKEN2("OP", LTE); 
-">="        return TOKEN2("OP", GTE); 
-"+="        return TOKEN2("OP", PLUSEQ);
-"-="        return TOKEN2("OP", MINUSEQ); 
-"*="        return TOKEN2("OP", MULTEQ); 
-"/="        return TOKEN2("OP", DIVEQ); 
-"%="        return TOKEN2("OP", MODEQ);
-"<<"        return TOKEN2("OP", LSHIFT);
-">>"        return TOKEN2("OP", RSHIFT);
-"==="       return TOKEN2("OP", STEQ);
-"!=="       return TOKEN2("OP", STNE);
+"||"        return TOKEN("OP", OR); 
+"&&"        return TOKEN("OP", AND); 
+"++"        return TOKEN("OP", PLUSPLUS); 
+"--"        return TOKEN("OP", MINUSMINUS); 
+"=="        return TOKEN("OP", EQEQ); 
+"!="        return TOKEN("OP", NE); 
+"<="        return TOKEN("OP", LTE); 
+">="        return TOKEN("OP", GTE); 
+"+="        return TOKEN("OP", PLUSEQ);
+"-="        return TOKEN("OP", MINUSEQ); 
+"*="        return TOKEN("OP", MULTEQ); 
+"/="        return TOKEN("OP", DIVEQ); 
+"%="        return TOKEN("OP", MODEQ);
+"<<"        return TOKEN("OP", LSHIFT);
+">>"        return TOKEN("OP", RSHIFT);
+"==="       return TOKEN("OP", STEQ);
+"!=="       return TOKEN("OP", STNE);
 
 [-+()\[\]=*/%<>,.:;?!{}]  return *yytext;
 [ \t\v\f]   ;
 \n          { yycolumn = 0; 
+              yytext = NULL;
               TOKEN("NEWLINE", 0);
               if (interactive) return EOF; }
 <<EOF>>     { yycolumn = 0; 
@@ -116,10 +124,10 @@ yyuseraction(void)
 
 // Wrap token returns for debugging.
 int
-fh_token(char *name, int token, int show_text)
+fh_token(char *name, int token)
 {
   if (print_tokens) {
-    if (show_text)
+    if (yytext)
       printf("(%s %s)\n", name, yytext);
     else
       printf("(%s)\n", name);

@@ -103,6 +103,7 @@ print_node(Node *node, bool rec, int depth)
     case NODE_NUM:         printf("number (%f)\n", node->val); return;
     case NODE_BOOL:        printf("bool (%d)\n", (int)node->val); return;
     case NODE_STR:         printf("string (%s)\n", node->sval); return;
+    case NODE_REGEXP:      printf("regexp (%s)\n", node->sval); return;
     case NODE_NULL:        printf("null (NULL)\n"); return;
     case NODE_VAR_STMT:    printf("variable statement"); break;
     case NODE_VAR_DEC:     printf("variable declaration"); break;
@@ -121,6 +122,7 @@ print_node(Node *node, bool rec, int depth)
     case NODE_CONT:        printf("continue"); break;
     case NODE_THIS:        printf("this"); break;
     case NODE_RETURN:      printf("return"); break;
+    case NODE_THROW:       printf("throw"); break;
     case NODE_BLOCK:       printf("block"); break;
     case NODE_OBJ:         printf("object"); break;
     case NODE_PROP:        printf("property"); break;
@@ -136,6 +138,10 @@ print_node(Node *node, bool rec, int depth)
     case NODE_EL_LST:      printf("element list"); break;
     case NODE_ELISION:     printf("elision"); break;
     case NODE_SRC_LST:     printf("source list"); break;
+    case NODE_SWITCH_STMT: printf("switch statement"); break;
+    case NODE_CASE_BLOCK:  printf("case block"); break;
+    case NODE_CLAUSE_LST:  printf("case clause list"); break;
+    case NODE_CLAUSE:      printf("case clause"); break;
     case NODE_EXP:
       printf("expression ");
       if (node->sub_type == NODE_UNARY_PRE) printf("(unary prefix)");

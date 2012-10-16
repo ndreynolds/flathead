@@ -7,7 +7,7 @@ var assertEquals = function(a, b) {
 };
 
 
-// Normal variable assignment
+// Variable assignment
 
 var x = 0;
 
