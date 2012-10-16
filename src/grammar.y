@@ -33,10 +33,10 @@
 
   #define NEW_NODE(t,e1,e2,e3,d,s)   new_node(t,e1,e2,e3,d,s,yylloc.first_line,yylloc.first_column) 
 
-  // The Node is a one-size-fits-all struct, differentiatiable by its `type`
-  // members.  These macros serve as convenience functions for creating new
-  // nodes of certain types, and as reference to where child nodes and values
-  // are stored.
+  // The Node is a one-size-fits-all struct. Nodes are differentiable by their
+  // `type` members.  These macros serve as convenience functions for creating
+  // new nodes of certain types, and as reference to where child nodes and
+  // values are stored.
 
   #define NEW_ARGLST(head,tail)      NEW_NODE(NODE_ARG_LST,head,tail,0,0,0)
   #define NEW_ARR(ellst)             NEW_NODE(NODE_ARR,ellst,0,0,0,0)
@@ -433,6 +433,8 @@ SwitchStatement          : SWITCH '(' Expression ')' CaseBlock
 
 CaseBlock                : '{' CaseClauses '}'
                              { $$ = NEW_CASEBLOCK($2, NULL, NULL); }
+                         | '{' DefaultClause '}'
+                             { $$ = NEW_CASEBLOCK(NULL, $2, NULL); }
                          | '{' CaseClauses DefaultClause '}'
                              { $$ = NEW_CASEBLOCK($2, $3, NULL); }
                          | '{' CaseClauses DefaultClause CaseClauses '}'

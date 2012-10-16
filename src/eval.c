@@ -42,6 +42,7 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_EXP: return fh_exp(ctx, node);
     case NODE_IF: return fh_if(ctx, node);
     case NODE_TERN: return fh_if(ctx, node);
+    case NODE_SWITCH_STMT: return fh_switch(ctx, node);
     case NODE_ASGN: return fh_assign(ctx, node);
     case NODE_RETURN: return fh_return(ctx, node);
     case NODE_VAR_STMT: return fh_eval(ctx, node->e1);
@@ -297,6 +298,68 @@ fh_if(JSValue *ctx, Node *node)
     return fh_eval(ctx, node->e2);
   else if (node->e3 != NULL)
     return fh_eval(ctx, node->e3);
+  return JSUNDEF();
+}
+
+JSValue *
+fh_switch(JSValue *ctx, Node *node)
+{
+  JSValue *val, *result, *test = fh_eval(ctx, node->e1);
+
+  Node *current,
+       *caseblock = node->e2,
+       *clauses_a = caseblock->e1, 
+       *defaultclause = caseblock->e2, 
+       *clauses_b = caseblock->e3;
+
+  bool matched = false;
+
+  // TODO: DRY these up
+  
+  // Check case clauses before the default case
+  if (clauses_a) {
+    while(!clauses_a->visited) {
+      current = pop_node(clauses_a);
+      val = fh_eval(ctx, current->e1);
+      // Cases fall-through to the next when breaks are omitted.
+      if (matched || fh_eq(test, val, true)->boolean.val) {
+        matched = true;
+        if (!current->e2) continue;
+        result = fh_eval(ctx, current->e2);
+        if (result->signal == S_BREAK) {
+          result->signal = S_NONE;
+          return result;
+        }
+      }
+    }
+  }
+
+  // Check case clauses after the default case
+  if (clauses_b) {
+    while(!clauses_b->visited) {
+      current = pop_node(clauses_b);
+      val = fh_eval(ctx, current->e1);
+      if (matched || fh_eq(test, val, true)->boolean.val) {
+        matched = true;
+        if (!current->e2) continue;
+        result = fh_eval(ctx, current->e2);
+        if (result->signal == S_BREAK) {
+          result->signal = S_NONE;
+          return result;
+        }
+      }
+    }
+  }
+
+  // Take the default case if it exists and we haven't matched 
+  // anything yet.
+  if (defaultclause && !matched) {
+    result = fh_eval(ctx, defaultclause->e2);
+    if (result->signal == S_BREAK)
+      result->signal = S_NONE;
+    return result;
+  }
+
   return JSUNDEF();
 }
 

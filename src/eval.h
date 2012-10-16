@@ -35,6 +35,7 @@ JSValue * fh_eval(JSValue *, Node *);
 JSValue * fh_eval_each(JSValue *, Node *);
 JSValue * fh_exp(JSValue *, Node *);
 JSValue * fh_if(JSValue *, Node *);
+JSValue * fh_switch(JSValue *, Node *);
 JSValue * fh_assign(JSValue *, Node *);
 JSValue * fh_return(JSValue *, Node *);
 JSValue * fh_prop_lst(JSValue *, Node *);
