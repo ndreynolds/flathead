@@ -1,4 +1,20 @@
-/* lexer.l */
+/*
+ * lexer.l - Flex scanner spec
+ *
+ * Copyright (c) 2012 Nick Reynolds
+ *  
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *  
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
 
 %{
   #include "y.tab.h"
@@ -11,7 +27,11 @@
   char * fh_extract_string(char *);
   int fh_get_input(char *, int);
   int fh_token(char *, int);
-  #define TOKEN(name,tok) fh_token((name),(tok))
+
+  #define TOKEN(name,tok)   fh_token((name),(tok))
+  #define OP(tok)           fh_token("OP",(tok))
+  #define KEYWORD(tok)      fh_token("KEYWORD",(tok))
+
   #define YY_USER_ACTION yyuseraction();
   #undef YY_INPUT
   #define YY_INPUT(buf,result,max_size) result = fh_get_input(buf, max_size);
@@ -23,30 +43,35 @@
 
 %%
 
-    /* KEYWORDS */
-"while"      return TOKEN("LITERAL", WHILE);
-"do"         return TOKEN("LITERAL", DO);
-"for"        return TOKEN("LITERAL", FOR);
-"if"         return TOKEN("LITERAL", IF);
-"in"         return TOKEN("LITERAL", IN);
-"else"       return TOKEN("LITERAL", ELSE);
-"break"      return TOKEN("LITERAL", BREAK);
-"continue"   return TOKEN("LITERAL", CONTINUE);
-"return"     return TOKEN("LITERAL", RETURN);
-"throw"      return TOKEN("LITERAL", THROW);
-"function"   return TOKEN("LITERAL", FUNCTION);
-"delete"     return TOKEN("LITERAL", DELETE);
-"void"       return TOKEN("LITERAL", VOID);
-"typeof"     return TOKEN("LITERAL", TYPEOF);
-"instanceof" return TOKEN("LITERAL", INSTANCEOF);
-"switch"     return TOKEN("LITERAL", SWITCH);
-"case"       return TOKEN("LITERAL", CASE);
-"default"    return TOKEN("LITERAL", DEFAULT);
-"new"        return TOKEN("LITERAL", NEW);
-"var"        return TOKEN("LITERAL", VAR);
-"null"       return TOKEN("LITERAL", NULLT);
-"true"       return TOKEN("LITERAL", TRUE); 
-"false"      return TOKEN("LITERAL", FALSE);
+    /* KEYWORDS (reserved words) */
+"while"      return KEYWORD(WHILE);
+"do"         return KEYWORD(DO);
+"for"        return KEYWORD(FOR);
+"if"         return KEYWORD(IF);
+"in"         return KEYWORD(IN);
+"else"       return KEYWORD(ELSE);
+"break"      return KEYWORD(BREAK);
+"continue"   return KEYWORD(CONTINUE);
+"return"     return KEYWORD(RETURN);
+"throw"      return KEYWORD(THROW);
+"try"        return KEYWORD(TRY);
+"catch"      return KEYWORD(CATCH);
+"finally"    return KEYWORD(FINALLY);
+"with"       return KEYWORD(WITH);
+"function"   return KEYWORD(FUNCTION);
+"delete"     return KEYWORD(DELETE);
+"void"       return KEYWORD(VOID);
+"typeof"     return KEYWORD(TYPEOF);
+"instanceof" return KEYWORD(INSTANCEOF);
+"switch"     return KEYWORD(SWITCH);
+"case"       return KEYWORD(CASE);
+"default"    return KEYWORD(DEFAULT);
+"debugger"   return KEYWORD(DEBUGGER);
+"new"        return KEYWORD(NEW);
+"var"        return KEYWORD(VAR);
+"null"       return KEYWORD(NULLT);
+"true"       return KEYWORD(TRUE); 
+"false"      return KEYWORD(FALSE);
 
     /* LITERALS */
 L?\"(\\.|[^\\"])*\"          { yylval.val = fh_extract_string(yytext); 
@@ -59,38 +84,53 @@ L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext);
                                return TOKEN("INT", INTEGER); }
 [0-9]+\.[0-9]+               { yylval.floatval = atof(yytext); 
                                return TOKEN("FLOAT", FLOAT); }
-    /* TODO: This is very incomplete */
+    /* FIXME: This is very incomplete */
 \/[^\ ]+\/([imgy]{0,4})      { yylval.val = yytext;
                                return TOKEN("REGEXP", REGEXP); }
 
     /* COMMENTS */
 [/][/].*       ; /* ignore comments */
 
-    /* OPERATORS */
-"||"        return TOKEN("OP", OR); 
-"&&"        return TOKEN("OP", AND); 
-"++"        return TOKEN("OP", PLUSPLUS); 
-"--"        return TOKEN("OP", MINUSMINUS); 
-"=="        return TOKEN("OP", EQEQ); 
-"!="        return TOKEN("OP", NE); 
-"<="        return TOKEN("OP", LTE); 
-">="        return TOKEN("OP", GTE); 
-"+="        return TOKEN("OP", PLUSEQ);
-"-="        return TOKEN("OP", MINUSEQ); 
-"*="        return TOKEN("OP", MULTEQ); 
-"/="        return TOKEN("OP", DIVEQ); 
-"%="        return TOKEN("OP", MODEQ);
-"<<"        return TOKEN("OP", LSHIFT);
-">>"        return TOKEN("OP", RSHIFT);
-"==="       return TOKEN("OP", STEQ);
-"!=="       return TOKEN("OP", STNE);
+    /* MULTI-CHARACTER PUNCTUATORS & OPERATORS */
+"||"        return OP(OR); 
+"&&"        return OP(AND); 
+"++"        return OP(PLUSPLUS); 
+"--"        return OP(MINUSMINUS); 
+"=="        return OP(EQEQ); 
+"!="        return OP(NE); 
+"<="        return OP(LTE); 
+">="        return OP(GTE); 
+"+="        return OP(PLUSEQ);
+"-="        return OP(MINUSEQ); 
+"*="        return OP(MULTEQ); 
+"/="        return OP(DIVEQ); 
+"%="        return OP(MODEQ);
+"&="        return OP(ANDEQ);
+"^="        return OP(XOREQ);
+"|="        return OP(OREQ);
+"<<"        return OP(LSHIFT);
+">>"        return OP(RSHIFT);
+"<<="       return OP(LSHIFTEQ);
+">>="       return OP(RSHIFTEQ);
+"<<<"       return OP(ULSHIFT);
+">>>"       return OP(URSHIFT);
+"==="       return OP(STEQ);
+"!=="       return OP(STNE);
+">>>="      return OP(URSHIFTEQ);
 
+    /* SINGLE-CHARACTER PUNCTUATORS & OPERATORS */
 [-+()\[\]=*/%<>,.:;?!{}]  return *yytext;
+
+    /* WHITESPACE & TABS */
 [ \t\v\f]   ;
+
+    /* NEWLINES */
 \n          { yycolumn = 0; 
               yytext = NULL;
               TOKEN("NEWLINE", 0);
               if (interactive) return EOF; }
+
+    /* END OF FILE */
 <<EOF>>     { yycolumn = 0; 
               if (interactive) exit(0);
               return EOF; }

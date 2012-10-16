@@ -32,52 +32,63 @@
   #define YYDEBUG 0
 
   #define NEW_NODE(t,e1,e2,e3,d,s)   new_node(t,e1,e2,e3,d,s,yylloc.first_line,yylloc.first_column) 
-  #define NEW_IDENT(name)            NEW_NODE(NODE_IDENT,0,0,0,0,name)
-  #define NEW_WHILE(cnd,blck)        NEW_NODE(NODE_WHILE,cnd,blck,0,0,0)
-  #define NEW_DOWHILE(cnd,blck)      NEW_NODE(NODE_DOWHILE,cnd,blck,0,0,0)
+
+  // The Node is a one-size-fits-all struct, differentiatiable by its `type`
+  // members.  These macros serve as convenience functions for creating new
+  // nodes of certain types, and as reference to where child nodes and values
+  // are stored.
+
+  #define NEW_ARGLST(head,tail)      NEW_NODE(NODE_ARG_LST,head,tail,0,0,0)
+  #define NEW_ARR(ellst)             NEW_NODE(NODE_ARR,ellst,0,0,0,0)
+  #define NEW_ASGN(a,b,op)           NEW_NODE(NODE_ASGN,a,b,0,0,op)
   #define NEW_BLOCK(stmtlst)         NEW_NODE(NODE_BLOCK,stmtlst,0,0,0,0)
-  #define NEW_STMTLST(head,tail)     NEW_NODE(NODE_STMT_LST,head,tail,0,0,0)
-  #define NEW_IF(p,q,r)              NEW_NODE(NODE_IF,p,q,r,0,0)
-  #define NEW_TERN(p,q,r)            NEW_NODE(NODE_TERN,p,q,r,0,0)
-  #define NEW_FOR(exps,stmt)         NEW_NODE(NODE_FOR,exps,stmt,0,0,0)
-  #define NEW_EXPGRP(e1,e2,e3)       NEW_NODE(NODE_EXPGRP,e1,e2,e3,0,0)
-  #define NEW_FORIN(lhs,in,stmt)     NEW_NODE(NODE_FORIN,lhs,in,stmt,0,0)
-  #define NEW_NUM(x)                 NEW_NODE(NODE_NUM,0,0,0,x,0)
   #define NEW_BOOL(x)                NEW_NODE(NODE_BOOL,0,0,0,x,0)
-  #define NEW_STR(x)                 NEW_NODE(NODE_STR,0,0,0,0,x)
-  #define NEW_REGEXP(x)              NEW_NODE(NODE_REGEXP,0,0,0,0,x)
-  #define NEW_NULL()                 NEW_NODE(NODE_NULL,0,0,0,0,0)
-  #define NEW_RETURN(exp)            NEW_NODE(NODE_RETURN,exp,0,0,0,0)
-  #define NEW_THROW(exp)             NEW_NODE(NODE_THROW,exp,0,0,0,0)
-  #define NEW_CONT()                 NEW_NODE(NODE_CONT,0,0,0,0,0)
   #define NEW_BREAK()                NEW_NODE(NODE_BREAK,0,0,0,0,0)
-  #define NEW_THIS()                 NEW_NODE(NODE_THIS,0,0,0,0,0)
+  #define NEW_CALL(call,args)        NEW_NODE(NODE_CALL,call,args,0,0,0);
+  #define NEW_CASEBLOCK(c1,def,c2)   NEW_NODE(NODE_CASE_BLOCK,c1,def,c2,0,0)
+  #define NEW_CATCH(id,block)        NEW_NODE(NODE_CATCH,id,block,0,0,0)
+  #define NEW_CLAUSE(exp,stmtlst)    NEW_NODE(NODE_CLAUSE,exp,stmtlst,0,0,0)
+  #define NEW_CLAUSELST(head,tail)   NEW_NODE(NODE_CLAUSE_LST,head,tail,0,0,0)
+  #define NEW_CONT()                 NEW_NODE(NODE_CONT,0,0,0,0,0)
+  #define NEW_DEBUGGER()             NEW_NODE(NODE_DEBUG_STMT,0,0,0,0,0)
+  #define NEW_DOWHILE(cnd,blck)      NEW_NODE(NODE_DOWHILE,cnd,blck,0,0,0)
+  #define NEW_ELISION()              NEW_NODE(NODE_ELISION,0,0,0,0,0)
+  #define NEW_ELLST(head,tail)       NEW_NODE(NODE_EL_LST,head,tail,0,0,0)
   #define NEW_EMPTSTMT()             NEW_NODE(NODE_EMPT_STMT,0,0,0,0,0)
   #define NEW_EXP(a,b,op)            NEW_NODE(NODE_EXP,a,b,0,0,op)
-  #define NEW_UNPOST(a,op)           NEW_NODE(NODE_UNARY_POST,a,0,0,0,op)
-  #define NEW_UNPRE(a,op)            NEW_NODE(NODE_UNARY_PRE,a,0,0,0,op)
+  #define NEW_EXPGRP(e1,e2,e3)       NEW_NODE(NODE_EXPGRP,e1,e2,e3,0,0)
   #define NEW_EXPSTMT(exp)           NEW_NODE(NODE_EXP_STMT,exp,0,0,0,0)
-  #define NEW_ASGN(a,b,op)           NEW_NODE(NODE_ASGN,a,b,0,0,op)
-  #define NEW_ARR(ellst)             NEW_NODE(NODE_ARR,ellst,0,0,0,0)
-  #define NEW_ELLST(head,tail)       NEW_NODE(NODE_EL_LST,head,tail,0,0,0)
+  #define NEW_FINALLY(block)         NEW_NODE(NODE_FINALLY,block,0,0,0,0)
+  #define NEW_FOR(exps,stmt)         NEW_NODE(NODE_FOR,exps,stmt,0,0,0)
+  #define NEW_FORIN(lhs,in,stmt)     NEW_NODE(NODE_FORIN,lhs,in,stmt,0,0)
+  #define NEW_FUNC(params,body,id)   NEW_NODE(NODE_FUNC,params,body,id,0,0)
+  #define NEW_IDENT(name)            NEW_NODE(NODE_IDENT,0,0,0,0,name)
+  #define NEW_IF(p,q,r)              NEW_NODE(NODE_IF,p,q,r,0,0)
+  #define NEW_MEMBER(head,tail,exp)  NEW_NODE(NODE_MEMBER,head,tail,0,exp,0)
+  #define NEW_NEW(exp)               NEW_NODE(NODE_NEW,exp,0,0,0,0);
+  #define NEW_NULL()                 NEW_NODE(NODE_NULL,0,0,0,0,0)
+  #define NEW_NUM(x)                 NEW_NODE(NODE_NUM,0,0,0,x,0)
   #define NEW_OBJ(proplst)           NEW_NODE(NODE_OBJ,proplst,0,0,0,0)
+  #define NEW_PARAMLST(head,tail)    NEW_NODE(NODE_PARAM_LST,head,tail,0,0,0)
   #define NEW_PROP(name,exp)         NEW_NODE(NODE_PROP,name,exp,0,0,0)
   #define NEW_PROPLST(head,tail)     NEW_NODE(NODE_PROP_LST,head,tail,0,0,0)
-  #define NEW_ARGLST(head,tail)      NEW_NODE(NODE_ARG_LST,head,tail,0,0,0)
-  #define NEW_CALL(call,args)        NEW_NODE(NODE_CALL,call,args,0,0,0);
-  #define NEW_NEW(exp)               NEW_NODE(NODE_NEW,exp,0,0,0,0);
-  #define NEW_MEMBER(head,tail,exp)  NEW_NODE(NODE_MEMBER,head,tail,0,exp,0)
-  #define NEW_FUNC(params,body,id)   NEW_NODE(NODE_FUNC,params,body,id,0,0)
-  #define NEW_PARAMLST(head,tail)    NEW_NODE(NODE_PARAM_LST,head,tail,0,0,0)
-  #define NEW_ELISION()              NEW_NODE(NODE_ELISION,0,0,0,0,0)
+  #define NEW_REGEXP(x)              NEW_NODE(NODE_REGEXP,0,0,0,0,x)
+  #define NEW_RETURN(exp)            NEW_NODE(NODE_RETURN,exp,0,0,0,0)
   #define NEW_SRCLST(head,tail)      NEW_NODE(NODE_SRC_LST,head,tail,0,0,0)
-  #define NEW_VARSTMT(declst)        NEW_NODE(NODE_VAR_STMT,declst,0,0,0,0)
+  #define NEW_STMTLST(head,tail)     NEW_NODE(NODE_STMT_LST,head,tail,0,0,0)
+  #define NEW_STR(x)                 NEW_NODE(NODE_STR,0,0,0,0,x)
+  #define NEW_SWITCH(exp,cases)      NEW_NODE(NODE_SWITCH_STMT,exp,cases,0,0,0)
+  #define NEW_TERN(p,q,r)            NEW_NODE(NODE_TERN,p,q,r,0,0)
+  #define NEW_THIS()                 NEW_NODE(NODE_THIS,0,0,0,0,0)
+  #define NEW_THROW(exp)             NEW_NODE(NODE_THROW,exp,0,0,0,0)
+  #define NEW_TRY(block,catch,final) NEW_NODE(NODE_TRY_STMT,block,catch,final,0,0)
+  #define NEW_UNPOST(a,op)           NEW_NODE(NODE_UNARY_POST,a,0,0,0,op)
+  #define NEW_UNPRE(a,op)            NEW_NODE(NODE_UNARY_PRE,a,0,0,0,op)
   #define NEW_VARDEC(id,exp)         NEW_NODE(NODE_VAR_DEC,id,exp,0,0,0)
   #define NEW_VARDECLST(head,tail)   NEW_NODE(NODE_VAR_DEC_LST,head,tail,0,0,0)
-  #define NEW_SWITCH(exp,cases)      NEW_NODE(NODE_SWITCH_STMT,exp,cases,0,0,0)
-  #define NEW_CASEBLOCK(c1,def,c2)   NEW_NODE(NODE_CASE_BLOCK,c1,def,c2,0,0)
-  #define NEW_CLAUSELST(head,tail)   NEW_NODE(NODE_CLAUSE_LST,head,tail,0,0,0)
-  #define NEW_CLAUSE(exp,stmtlst)    NEW_NODE(NODE_CLAUSE,exp,stmtlst,0,0,0)
+  #define NEW_VARSTMT(declst)        NEW_NODE(NODE_VAR_STMT,declst,0,0,0,0)
+  #define NEW_WHILE(cnd,blck)        NEW_NODE(NODE_WHILE,cnd,blck,0,0,0)
+  #define NEW_WITH(exp,stmt)         NEW_NODE(NODE_WITH_STMT,exp,stmt,0,0,0)
 
   void yyerror(const char *);
   int yylex(void);
@@ -88,10 +99,12 @@
   int fh_get_input(char *, int);
   Node *root;
   State *state;
+
 %}
 
 %error-verbose
 %locations
+
 
 /* LITERALS */
 
@@ -105,8 +118,10 @@
 %token<val> AND OR
 %token<val> PLUSPLUS MINUSMINUS VOID DELETE TYPEOF 
 %token<val> EQEQ GTE LTE NE STEQ STNE INSTANCEOF
-%token<val> LSHIFT RSHIFT
+%token<val> LSHIFT RSHIFT ULSHIFT URSHIFT
 %token<val> PLUSEQ MINUSEQ MULTEQ DIVEQ MODEQ
+%token<val> LSHIFTEQ RSHIFTEQ URSHIFTEQ 
+%token<val> ANDEQ XOREQ OREQ
 
 
 /* KEYWORDS */
@@ -114,8 +129,9 @@
 %token<val> WHILE DO FOR
 %token<val> IF ELSE
 %token<val> BREAK CONTINUE RETURN THROW
-%token<val> VAR IN THIS NULLT FUNCTION NEW 
+%token<val> VAR IN THIS NULLT FUNCTION NEW WITH DEBUGGER
 %token<val> SWITCH CASE DEFAULT
+%token<val> TRY CATCH FINALLY
 
 
 /* ASSOCIATIVITY */
@@ -131,23 +147,95 @@
 
 %type<val> AssignmentOperator 
 
-%type<node> Program SourceElements SourceElement Statement Block 
-%type<node> VariableStatement EmptyStatement ExpressionStatement IfStatement 
-%type<node> IterationStatement ContinueStatement BreakStatement ReturnStatement 
-%type<node> Literal NumericLiteral BooleanLiteral StringLiteral NullLiteral 
-%type<node> ArrayLiteral ObjectLiteral Identifier Expression PrimaryExpression 
-%type<node> LeftHandSideExpression UnaryExpression PostfixExpression 
-%type<node> ShiftExpression RelationalExpression AdditiveExpression 
-%type<node> EqualityExpression BitwiseANDExpression BitwiseORExpression 
-%type<node> BitwiseXORExpression LogicalORExpression LogicalANDExpression 
-%type<node> MultiplicativeExpression ConditionalExpression StatementList 
-%type<node> AssignmentExpression ElementList PropertyName PropertyAssignment 
-%type<node> PropertyNameAndValueList Function FunctionExpression FunctionBody 
-%type<node> FormalParameterList CallExpression MemberExpression NewExpression 
-%type<node> Arguments ArgumentList Elision VariableDeclarationList 
-%type<node> VariableDeclaration Initializer ExponentPart ExponentIndicator
-%type<node> ThrowStatement SwitchStatement CaseBlock CaseClauses CaseClause
-%type<node> DefaultClause RegularExpressionLiteral
+%type<node> AdditiveExpression
+%type<node> ArgumentList
+%type<node> Arguments
+%type<node> ArrayLiteral
+%type<node> AssignmentExpression
+%type<node> AssignmentExpressionNoIn
+%type<node> BitwiseANDExpression
+%type<node> BitwiseANDExpressionNoIn
+%type<node> BitwiseORExpression
+%type<node> BitwiseORExpressionNoIn
+%type<node> BitwiseXORExpression
+%type<node> BitwiseXORExpressionNoIn
+%type<node> Block
+%type<node> BooleanLiteral
+%type<node> BreakStatement
+%type<node> CallExpression
+%type<node> CaseBlock
+%type<node> CaseClause
+%type<node> CaseClauses
+%type<node> Catch
+%type<node> ConditionalExpression
+%type<node> ConditionalExpressionNoIn
+%type<node> ContinueStatement
+%type<node> DebuggerStatement
+%type<node> DefaultClause
+%type<node> ElementList
+%type<node> Elision
+%type<node> EmptyStatement
+%type<node> EqualityExpression
+%type<node> EqualityExpressionNoIn
+%type<node> ExponentIndicator
+%type<node> ExponentPart
+%type<node> Expression
+%type<node> ExpressionNoIn
+%type<node> ExpressionStatement
+%type<node> Finally
+%type<node> FormalParameterList
+%type<node> Function
+%type<node> FunctionBody
+%type<node> FunctionExpression
+%type<node> Identifier
+%type<node> IfStatement
+%type<node> Initializer
+%type<node> InitializerNoIn
+%type<node> IterationStatement
+%type<node> LeftHandSideExpression
+%type<node> Literal
+%type<node> LogicalANDExpression
+%type<node> LogicalANDExpressionNoIn
+%type<node> LogicalORExpression
+%type<node> LogicalORExpressionNoIn
+%type<node> MemberExpression
+%type<node> MultiplicativeExpression
+%type<node> NewExpression
+%type<node> NullLiteral
+%type<node> NumericLiteral
+%type<node> ObjectLiteral
+%type<node> PostfixExpression
+%type<node> PrimaryExpression
+%type<node> Program
+%type<node> PropertyAssignment
+%type<node> PropertyName
+%type<node> PropertyNameAndValueList
+%type<node> RegularExpressionLiteral
+%type<node> RelationalExpression
+%type<node> RelationalExpressionNoIn
+%type<node> ReturnStatement
+%type<node> ShiftExpression
+%type<node> SourceElement
+%type<node> SourceElements
+%type<node> Statement
+%type<node> StatementList
+%type<node> StringLiteral
+%type<node> SwitchStatement
+%type<node> ThrowStatement
+%type<node> TryStatement
+%type<node> UnaryExpression
+%type<node> VariableDecList
+%type<node> VariableDecListNoIn
+%type<node> VariableDeclaration
+%type<node> VariableDeclarationNoIn
+%type<node> VariableStatement
+%type<node> WithStatement
+
+/**
+ * 'NoIn' variants are used to differentiate between the 'in' operatior in a
+ * relational expression and the 'in' operator in a for-statement. 
+ * (see ECMA-252 11.8)
+ */
 
 %%
 
@@ -187,7 +275,13 @@ Statement                : Block
                              { $$ = $1; }
                          | ThrowStatement                                 
                              { $$ = $1; }
+                         | TryStatement
+                             { $$ = $1; }
+                         | WithStatement
+                             { $$ = $1; }
                          | SwitchStatement                                 
+                             { $$ = $1; }
+                         | DebuggerStatement
                              { $$ = $1; }
                          ; 
 
@@ -201,13 +295,19 @@ StatementList            : Statement
                              { $$ = NEW_STMTLST($2, $1); }
                          ;
 
-VariableStatement        : VAR VariableDeclarationList ';'
+VariableStatement        : VAR VariableDecList ';'
                              { $$ = NEW_VARSTMT($2); }
                          ;
 
-VariableDeclarationList  : VariableDeclaration
+VariableDecList          : VariableDeclaration
                              { $$ = NEW_VARDECLST($1, NULL); }
-                         | VariableDeclarationList ',' VariableDeclaration
+                         | VariableDecList ',' VariableDeclaration
+                             { $$ = NEW_VARDECLST($3, $1); }
+                         ;
+
+VariableDecListNoIn      : VariableDeclarationNoIn
+                             { $$ = NEW_VARDECLST($1, NULL); }
+                         | VariableDecListNoIn ',' VariableDeclarationNoIn
                              { $$ = NEW_VARDECLST($3, $1); }
                          ;
 
@@ -217,7 +317,17 @@ VariableDeclaration      : Identifier Initializer
                              { $$ = NEW_VARDEC($1, NULL); }
                          ;
 
+VariableDeclarationNoIn  : Identifier InitializerNoIn
+                             { $$ = NEW_VARDEC($1, $2); }
+                         | Identifier
+                             { $$ = NEW_VARDEC($1, NULL); }
+                         ;
+
 Initializer              : '=' AssignmentExpression
+                             { $$ = $2; }
+                         ;
+
+InitializerNoIn          : '=' AssignmentExpressionNoIn
                              { $$ = $2; }
                          ;
 
@@ -244,26 +354,26 @@ IterationStatement       : DO Statement WHILE '(' Expression ')' ';'
 
                          | FOR '(' LeftHandSideExpression IN Expression ')' Statement
                              { $$ = NEW_FORIN($3, $5, $7); }
-                         | FOR '(' VAR VariableDeclaration IN Expression ')' Statement
+                         | FOR '(' VAR VariableDeclarationNoIn IN Expression ')' Statement
                              { $$ = NEW_FORIN($4, $6, $8); }
 
                          /* for ( Expression/VarDecl ; Expresion ; Expression ) Statement */
 
-                         | FOR '(' Expression ';' Expression ';' Expression ')' Statement    
+                         | FOR '(' ExpressionNoIn ';' Expression ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, $5, $7), $9); }
-                         | FOR '(' VAR VariableDeclarationList ';' Expression ';' Expression ')' Statement    
+                         | FOR '(' VAR VariableDecListNoIn ';' Expression ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($4, $6, $8), $10); }
-                         | FOR '(' Expression ';' Expression ';' ')' Statement    
+                         | FOR '(' ExpressionNoIn ';' Expression ';' ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, $5, NULL), $8); }
-                         | FOR '(' VAR VariableDeclarationList ';' Expression ';' ')' Statement    
+                         | FOR '(' VAR VariableDecListNoIn ';' Expression ';' ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($4, $6, NULL), $9); }
-                         | FOR '(' Expression ';' ';' Expression ')' Statement    
+                         | FOR '(' ExpressionNoIn ';' ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, NULL, $6), $8); }
-                         | FOR '(' VAR VariableDeclarationList ';' ';' Expression ')' Statement    
+                         | FOR '(' VAR VariableDecListNoIn ';' ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($4, NULL, $7), $9); }
-                         | FOR '(' Expression ';' ';' ')' Statement    
+                         | FOR '(' ExpressionNoIn ';' ';' ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($3, NULL, NULL), $7); }
-                         | FOR '(' VAR VariableDeclarationList ';' ';' ')' Statement    
+                         | FOR '(' VAR VariableDecListNoIn ';' ';' ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP($4, NULL, NULL), $8); }
                          | FOR '(' ';' Expression ';' Expression ')' Statement    
                              { $$ = NEW_FOR(NEW_EXPGRP(NULL, $4, $6), $8); }
@@ -287,6 +397,30 @@ ReturnStatement          : RETURN ';'
                              { $$ = NEW_RETURN(NULL); }
                          | RETURN Expression ';'            
                              { $$ = NEW_RETURN($2); }
+                         ;
+
+WithStatement            : WITH '(' Expression ')' Statement
+                             { $$ = NEW_WITH($3, $5); }
+                         ;
+
+TryStatement             : TRY Block Catch
+                             { $$ = NEW_TRY($2, $3, NULL); }
+                         | TRY Block Finally
+                             { $$ = NEW_TRY($2, NULL, $3); }
+                         | TRY Block Catch Finally
+                             { $$ = NEW_TRY($2, $3, $4); }
+                         ;
+
+Catch                    : CATCH '(' Identifier ')' Block
+                             { $$ = NEW_CATCH($3, $5); }
+                         ;
+
+Finally                  : FINALLY Block
+                             { $$ = NEW_FINALLY($2); }
+                         ;
+
+DebuggerStatement        : DEBUGGER ';'
+                             { $$ = NEW_DEBUGGER(); }
                          ;
 
 ThrowStatement           : THROW Expression ';'
@@ -480,9 +614,21 @@ ConditionalExpression    : LogicalORExpression
                              { $$ = NEW_TERN($1, $3, $5); }
                          ;
 
+ConditionalExpressionNoIn: LogicalORExpressionNoIn                                  
+                             { $$ = $1; }
+                         | LogicalORExpressionNoIn '?' AssignmentExpression ':' AssignmentExpressionNoIn
+                             { $$ = NEW_TERN($1, $3, $5); }
+                         ;
+
 LogicalORExpression      : LogicalANDExpression                                 
                              { $$ = $1; }
                          | LogicalORExpression OR LogicalANDExpression        
+                             { $$ = NEW_EXP($1, $3, "||"); }
+                         ;
+
+LogicalORExpressionNoIn  : LogicalANDExpressionNoIn
+                             { $$ = $1; }
+                         | LogicalORExpressionNoIn OR LogicalANDExpressionNoIn
                              { $$ = NEW_EXP($1, $3, "||"); }
                          ;
 
@@ -492,9 +638,21 @@ LogicalANDExpression     : BitwiseORExpression
                              { $$ = NEW_EXP($1, $3, "&&"); }
                          ;
 
+LogicalANDExpressionNoIn : BitwiseORExpressionNoIn
+                             { $$ = $1; }
+                         | LogicalANDExpressionNoIn AND BitwiseORExpressionNoIn
+                             { $$ = NEW_EXP($1, $3, "&&"); }
+                         ;
+
 BitwiseORExpression      : BitwiseXORExpression                                 
                              { $$ = $1; }
                          | BitwiseORExpression '|' BitwiseXORExpression       
+                             { $$ = NEW_EXP($1, $3, "|"); }
+                         ;
+
+BitwiseORExpressionNoIn  : BitwiseXORExpressionNoIn
+                             { $$ = $1; }
+                         | BitwiseORExpressionNoIn '|' BitwiseXORExpressionNoIn
                              { $$ = NEW_EXP($1, $3, "|"); }
                          ;
 
@@ -504,9 +662,21 @@ BitwiseXORExpression     : BitwiseANDExpression
                              { $$ = NEW_EXP($1, $3, "^"); }
                          ;
 
+BitwiseXORExpressionNoIn : BitwiseANDExpressionNoIn
+                             { $$ = $1; }
+                         | BitwiseXORExpressionNoIn '^' BitwiseANDExpressionNoIn
+                             { $$ = NEW_EXP($1, $3, "^"); }
+                         ;
+
 BitwiseANDExpression     : EqualityExpression                                   
                              { $$ = $1; }
                          | BitwiseANDExpression '&' EqualityExpression        
+                             { $$ = NEW_EXP($1, $3, "&"); }
+                         ;
+
+BitwiseANDExpressionNoIn : EqualityExpressionNoIn
+                             { $$ = $1; }
+                         | BitwiseANDExpressionNoIn '&' EqualityExpressionNoIn
                              { $$ = NEW_EXP($1, $3, "&"); }
                          ;
 
@@ -522,6 +692,18 @@ EqualityExpression       : RelationalExpression
                              { $$ = NEW_EXP($1, $3, "!=="); }
                          ;
 
+EqualityExpressionNoIn   : RelationalExpressionNoIn
+                             { $$ = $1; }
+                         | EqualityExpressionNoIn EQEQ RelationalExpressionNoIn
+                             { $$ = NEW_EXP($1, $3, "=="); }
+                         | EqualityExpressionNoIn NE RelationalExpressionNoIn         
+                             { $$ = NEW_EXP($1, $3, "!="); }
+                         | EqualityExpressionNoIn STEQ RelationalExpressionNoIn       
+                             { $$ = NEW_EXP($1, $3, "==="); }
+                         | EqualityExpressionNoIn STNE RelationalExpressionNoIn
+                             { $$ = NEW_EXP($1, $3, "!=="); }
+                         ;
+
 RelationalExpression     : ShiftExpression
                              { $$ = $1; }
                          | RelationalExpression '<' ShiftExpression           
@@ -534,18 +716,34 @@ RelationalExpression     : ShiftExpression
                              { $$ = NEW_EXP($1, $3, ">="); }
                          | RelationalExpression INSTANCEOF ShiftExpression           
                              { $$ = NEW_EXP($1, $3, "instanceof"); }
-                         /*
                          | RelationalExpression IN ShiftExpression           
                              { $$ = NEW_EXP($1, $3, "in"); }
-                         */
+                         ;
+
+RelationalExpressionNoIn : ShiftExpression
+                             { $$ = $1; }
+                         | RelationalExpressionNoIn '<' ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, "<"); }
+                         | RelationalExpressionNoIn '>' ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, ">"); }
+                         | RelationalExpressionNoIn LTE ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, "<="); }
+                         | RelationalExpressionNoIn GTE ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, ">="); }
+                         | RelationalExpressionNoIn INSTANCEOF ShiftExpression           
+                             { $$ = NEW_EXP($1, $3, "instanceof"); }
                          ;
 
 ShiftExpression          : AdditiveExpression  
                              { $$ = $1; }
                          | ShiftExpression LSHIFT AdditiveExpression          
-                             { $$ = NEW_EXP($1, $3, $2); }
+                             { $$ = NEW_EXP($1, $3, "<<"); }
                          | ShiftExpression RSHIFT AdditiveExpression          
-                             { $$ = NEW_EXP($1, $3, $2); }
+                             { $$ = NEW_EXP($1, $3, ">>"); }
+                         | ShiftExpression ULSHIFT AdditiveExpression
+                             { $$ = NEW_EXP($1, $3, "<<<"); }
+                         | ShiftExpression URSHIFT AdditiveExpression
+                             { $$ = NEW_EXP($1, $3, ">>>"); }
                          ;
 
 AdditiveExpression       : MultiplicativeExpression                             
@@ -600,11 +798,25 @@ Expression               : AssignmentExpression
                              { $$ = NEW_ASGN($1, $3, 0); }
                          ;
 
+ExpressionNoIn           : AssignmentExpressionNoIn
+                             { $$ = $1; }
+                         | ExpressionNoIn ',' AssignmentExpressionNoIn
+                             { $$ = NEW_ASGN($1, $3, 0); }
+                         ;
+
 AssignmentExpression     : ConditionalExpression                                                 
                              { $$ = $1; }
                          | LeftHandSideExpression '=' AssignmentExpression                     
                              { $$ = NEW_ASGN($1, $3, "="); }
                          | LeftHandSideExpression AssignmentOperator AssignmentExpression      
+                             { $$ = NEW_ASGN($1, $3, $2); }
+                         ;
+
+AssignmentExpressionNoIn : ConditionalExpressionNoIn                                                 
+                             { $$ = $1; }
+                         | LeftHandSideExpression '=' AssignmentExpressionNoIn
+                             { $$ = NEW_ASGN($1, $3, "="); }
+                         | LeftHandSideExpression AssignmentOperator AssignmentExpressionNoIn
                              { $$ = NEW_ASGN($1, $3, $2); }
                          ;
 
@@ -618,6 +830,18 @@ AssignmentOperator       : PLUSEQ
                              { $$ = "/="; }
                          | MODEQ                                   
                              { $$ = "%="; }
+                         | LSHIFTEQ                                   
+                             { $$ = "<<="; }
+                         | RSHIFTEQ                                   
+                             { $$ = ">>="; }
+                         | URSHIFTEQ                                   
+                             { $$ = ">>>="; }
+                         | ANDEQ
+                             { $$ = "&="; }
+                         | XOREQ
+                             { $$ = "^="; }
+                         | OREQ
+                             { $$ = "|="; }
                          ;
 
 LeftHandSideExpression   : NewExpression                             
