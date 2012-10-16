@@ -27,41 +27,62 @@
 #include "lib/Number.h"
 #include "lib/Boolean.h"
 
+
+// isNaN(value)
 JSValue *
-is_nan(JSValue *instance, JSArgs *args, State *state)
+global_is_nan(JSValue *instance, JSArgs *args, State *state)
 {
-  if (args->arg != NULL) {
-    JSValue *num = JSCAST((JSValue *)args->arg, T_NUMBER);
-    return JSBOOL(num->number.is_nan);
-  }
-  // undefined also coerces to NaN.
-  return JSBOOL(1);
+  JSValue *num = JSCAST(ARG0(args), T_NUMBER);
+  return JSBOOL(num->number.is_nan);
 }
 
+// isFinite(number)
 JSValue *
-is_finite(JSValue *instance, JSArgs *args, State *state)
+global_is_finite(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *num = JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
+  JSValue *num = JSCAST(ARG0(args), T_NUMBER);
   return JSBOOL(!(num->number.is_nan || num->number.is_inf));
 }
 
+// parseInt(string[, radix])
 JSValue *
-parse_int(JSValue *instance, JSArgs *args, State *state)
+global_parse_int(JSValue *instance, JSArgs *args, State *state)
 {
-  // Ecma 15.1.2.2
-  // TODO: use radix argument, strip whitespace.
-  JSValue *num = JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
-  return num->number.is_nan ? JSNAN() : JSNUM(floor(num->number.val));
+  JSValue *to_parse = JSCAST(ARG0(args), T_STRING);
+  JSValue *radix_arg = ARGN(args, 1);
+  
+  // FIXME: determine radix based on start of string
+  int radix = radix_arg->type == T_NUMBER ? radix_arg->number.val : 10;
+  char *ep;
+  long l;
+
+  l = strtol(to_parse->string.ptr, &ep, radix);
+  if (*ep != 0) {
+    JSValue *num = JSCAST(to_parse, T_NUMBER);
+    return num->number.is_nan ? JSNAN() : JSNUM(floor(num->number.val));
+  }
+
+  return JSNUM((int)l);
 }
 
+// parseFloat(string)
 JSValue *
-parse_float(JSValue *instance, JSArgs *args, State *state)
+global_parse_float(JSValue *instance, JSArgs *args, State *state)
 {
-  return JSCAST(args->arg == NULL ? JSUNDEF() : args->arg, T_NUMBER);
+  return JSCAST(ARG0(args), T_NUMBER);
 }
 
+// eval(string)
 JSValue *
-gc_collect_manual(JSValue *instance, JSArgs *args, State *state)
+global_eval(JSValue *instance, JSArgs *args, State *state)
+{
+  // TODO
+  return JSUNDEF();
+}
+
+// gc()
+JSValue *
+global_gc(JSValue *instance, JSArgs *args, State *state)
 {
   fh_gc();
   return JSUNDEF();
@@ -85,15 +106,16 @@ fh_bootstrap()
   fh_set(global, "Math", bootstrap_math());
   fh_set(global, "NaN", JSNAN());
   fh_set(global, "Infinity", JSINF());
-  fh_set(global, "isNaN", JSNFUNC(&is_nan));
-  fh_set(global, "isFinite", JSNFUNC(&is_finite));
-  fh_set(global, "parseInt", JSNFUNC(&parse_int));
-  fh_set(global, "parseFloat", JSNFUNC(&parse_float));
+  fh_set(global, "isNaN", JSNFUNC(&global_is_nan));
+  fh_set(global, "isFinite", JSNFUNC(&global_is_finite));
+  fh_set(global, "parseInt", JSNFUNC(&global_parse_int));
+  fh_set(global, "parseFloat", JSNFUNC(&global_parse_float));
+  fh_set(global, "eval", JSNFUNC(&global_eval));
   fh_set(global, "undefined", JSUNDEF());
   fh_set(global, "this", global);
 
 #ifdef fh_gc_expose
-  fh_set(global, "gc", JSNFUNC(&gc_collect_manual));
+  fh_set(global, "gc", JSNFUNC(&global_gc));
 #endif
 
   return global;

@@ -24,10 +24,12 @@
 #include "../eval.h"
 #include "../gc.h"
 
-JSValue * is_nan(JSValue *, JSArgs *, State *);
-JSValue * is_finite(JSValue *, JSArgs *, State *);
-JSValue * parse_float(JSValue *, JSArgs *, State *);
-JSValue * parse_int(JSValue *, JSArgs *, State *);
+JSValue * global_is_nan(JSValue *, JSArgs *, State *);
+JSValue * global_is_finite(JSValue *, JSArgs *, State *);
+JSValue * global_parse_float(JSValue *, JSArgs *, State *);
+JSValue * glboal_parse_int(JSValue *, JSArgs *, State *);
+JSValue * global_eval(JSValue *, JSArgs *, State *);
+JSValue * global_gc(JSValue *, JSArgs *, State *);
 JSValue * fh_bootstrap(void);
 
 #endif
