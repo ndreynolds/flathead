@@ -160,6 +160,18 @@ fh_member(JSValue *ctx, Node *member)
   parent = member->e2->type == NODE_MEMBER ? 
     fh_member(ctx, member->e2) :
     fh_get_rec(ctx, id2->string.ptr);
+
+  // Handle array-like string character access.
+  if (parent->type == T_STRING && member->e1->type == NODE_NUM) {
+    int i = member->e1->val, len = parent->string.length;
+    if (i < len && i >= 0) {
+      char *str = malloc(2);
+      sprintf(str, "%c", parent->string.ptr[i]);
+      return JSSTR(str);
+    }
+    return JSUNDEF();
+  }
+
   return fh_get_proto(parent, id1->string.ptr);
 }
 
