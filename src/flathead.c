@@ -318,6 +318,22 @@ fh_typeof(JSValue *value)
 }
 
 JSValue *
+fh_has_instance(JSValue *func, JSValue *val)
+{
+  if (func->type != T_FUNCTION)
+    fh_error(NULL, E_TYPE, "");
+  // TODO: implement
+  return JSBOOL(0);
+}
+
+JSValue *
+fh_has_property(JSValue *obj, char *prop)
+{
+  JSValue *val = fh_get_proto(obj, prop);
+  return JSBOOL(val->type != T_UNDEF);
+}
+
+JSValue *
 fh_try_get_proto(char *type)
 {
   JSValue *global = fh_global();

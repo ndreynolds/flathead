@@ -469,11 +469,11 @@ fh_exp(JSValue *ctx, Node *node)
 {
   switch (node->sub_type) {
     case NODE_UNARY_POST: 
-      return fh_eval_postfix_exp(ctx, node);
+      return fh_postfix_exp(ctx, node);
     case NODE_UNARY_PRE:
-      return fh_eval_prefix_exp(ctx, node);
+      return fh_prefix_exp(ctx, node);
     default:
-      return fh_eval_bin_exp(ctx, node);
+      return fh_bin_exp(ctx, node);
   }
 }
 
@@ -483,7 +483,7 @@ fh_exp(JSValue *ctx, Node *node)
 // ----------------------------------------------------------------------------
 
 JSValue *
-fh_eval_postfix_exp(JSValue *ctx, Node *node)
+fh_postfix_exp(JSValue *ctx, Node *node)
 {
   JSValue *old_val = JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
   char *op = node->sval;
@@ -499,7 +499,7 @@ fh_eval_postfix_exp(JSValue *ctx, Node *node)
 }
 
 JSValue *
-fh_eval_prefix_exp(JSValue *ctx, Node *node)
+fh_prefix_exp(JSValue *ctx, Node *node)
 {
   char *op = node->sval;
 
@@ -549,7 +549,7 @@ fh_eval_prefix_exp(JSValue *ctx, Node *node)
 // ----------------------------------------------------------------------------
 
 JSValue *
-fh_eval_bin_exp(JSValue *ctx, Node *node)
+fh_bin_exp(JSValue *ctx, Node *node)
 {
   char *op = node->sval;
 
@@ -581,6 +581,15 @@ fh_eval_bin_exp(JSValue *ctx, Node *node)
     return JSBOOL(fh_lt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val);
   if (STREQ(op, ">="))
     return JSBOOL(fh_gt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val);
+  if (STREQ(op, "instanceof")) {
+    if (b->type != T_FUNCTION)
+      fh_error(NULL, E_TYPE, "Expecting a function in 'instanceof' check");
+    return fh_has_instance(b, a);
+  }
+  if (STREQ(op, "in"))
+    if (b->type != T_OBJECT)
+      fh_error(NULL, E_TYPE, "Expecting an object with 'in' operator");
+    return fh_has_property(b, JSCAST(a, T_STRING)->string.ptr);
 
   assert(0);
 }

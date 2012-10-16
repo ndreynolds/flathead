@@ -188,6 +188,8 @@ State * fh_new_state(int, int);
 
 JSValue * fh_try_get_proto(char *);
 JSValue * fh_cast(JSValue *, JSType);
+JSValue * fh_has_instance(JSValue *, JSValue *);
+JSValue * fh_has_property(JSValue *, char *);
 char * fh_typeof(JSValue *);
 char * fh_str_concat(char *, char *);
 void fh_arr_set_len(JSValue *, int);
