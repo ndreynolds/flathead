@@ -2,6 +2,8 @@
 // --------
 // String properties, methods, and prototype
 
+#include <ctype.h>
+#include <math.h>
 #include "../runtime.h"
 
 JSValue * str_new(JSValue *, JSArgs *, State *);
@@ -14,7 +16,6 @@ JSValue * str_proto_index_of(JSValue *, JSArgs *, State *);
 JSValue * str_proto_last_index_of(JSValue *, JSArgs *, State *);
 JSValue * str_proto_locale_compare(JSValue *, JSArgs *, State *);
 JSValue * str_proto_match(JSValue *, JSArgs *, State *);
-JSValue * str_proto_quote(JSValue *, JSArgs *, State *);
 JSValue * str_proto_replace(JSValue *, JSArgs *, State *);
 JSValue * str_proto_search(JSValue *, JSArgs *, State *);
 JSValue * str_proto_slice(JSValue *, JSArgs *, State *);

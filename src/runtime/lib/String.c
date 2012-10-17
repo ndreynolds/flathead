@@ -11,6 +11,7 @@ str_new(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
+// String.fromCharCode(num1, ..., numN)
 JSValue *
 str_from_char_code(JSValue *instance, JSArgs *args, State *state)
 {
@@ -22,7 +23,7 @@ str_from_char_code(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 str_proto_char_at(JSValue *instance, JSArgs *args, State *state)
 {
-  int index = JSCAST(ARG0(args), T_NUMBER)->number.val;
+  int index = TO_NUM(ARG(args, 0))->number.val;
 
   if (index < 0 || index >= instance->string.length)
     return JSSTR("");
@@ -43,83 +44,172 @@ str_proto_char_code_at(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 str_proto_concat(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *new_str = JSSTR(instance->string.ptr);
+  JSValue *new = JSSTR(instance->string.ptr);
 
   JSValue *arg;
+  char *tmp;
   int i;
   for (i=0; i<ARGLEN(args); i++) {
-    arg = JSCAST(ARGN(args, i), T_STRING);
-    printf("%s : %s\n", new_str->string.ptr, arg->string.ptr);
-    fh_str_concat(new_str->string.ptr, arg->string.ptr);
+    arg = TO_STR(ARG(args, i));
+    tmp = new->string.ptr;
+    new->string.ptr = fh_str_concat(new->string.ptr, arg->string.ptr);
+    // Free the old string (GC can't reach it anymore).
+    free(tmp);
   }
 
-  new_str->string.length = strlen(new_str->string.ptr);
-  return new_str;
+  new->string.length = strlen(new->string.ptr);
+  return new;
 }
 
+// String.prototype.indexOf(searchValue[, fromIndex])
 JSValue *
 str_proto_index_of(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *search_str = TO_STR(ARG(args, 0));
+
+  char *haystack = instance->string.ptr;
+  char *needle = search_str->string.ptr;
+  JSValue *from = ARG(args, 1);
+
+  int i = IS_NUM(from) ? from->number.val : 0;
+  int match = 0;
+
+  // Searching for an empty string returns the fromIndex when less than
+  // the instance string length, and the instance string length otherwise.
+  if (strlen(needle) == 0)
+    return JSNUM(i <= strlen(haystack) ? i : strlen(haystack));
+
+  if (strlen(needle) > strlen(haystack) || i > strlen(haystack))
+    return JSNUM(-1);
+
+  for (; i<strlen(haystack); i++) {
+    if (haystack[i] == needle[match])
+      match++;
+    else
+      match = haystack[i] == needle[0] ? 1 : 0;
+    if (match == strlen(needle))
+      return JSNUM(i - strlen(needle) + 1);
+  }
+
+  return JSNUM(-1);
 }
 
+// String.prototype.lastIndexOf(searchValue[, fromIndex])
 JSValue *
 str_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *search_str = TO_STR(ARG(args, 0));
+  JSValue *from = ARG(args, 1);
+
+  char *haystack = instance->string.ptr;
+  char *needle = search_str->string.ptr;
+
+  int max = IS_NUM(from) ? from->number.val : strlen(haystack) - 1;
+  int match = strlen(needle) - 1;
+  int i = strlen(haystack) - 1;
+
+  if (max < 0) max = 0;
+
+  if (strlen(needle) == 0)
+    return JSNUM(max <= strlen(haystack) ? max : strlen(haystack));
+
+  if (strlen(needle) > strlen(haystack))
+    return JSNUM(-1);
+
+  for (; i>=0; i--) {
+    if (haystack[i] == needle[match])
+      match--;
+    else
+      match = strlen(needle) - (haystack[i] == needle[0] ? 2 : 1);
+    if (match < 0 && i <= max)
+      return JSNUM(i);
+  }
+
+  return JSNUM(-1);
 }
 
+// String.prototype.localeCompare(compareString)
 JSValue *
 str_proto_locale_compare(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *compare_str = TO_STR(ARG(args, 0));
+  return JSNUM(strcmp(instance->string.ptr, compare_str->string.ptr));
 }
 
+// String.prototype.match(regexp)
 JSValue *
 str_proto_match(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
+  // TODO: requires regex
   return JSUNDEF();
 }
 
-JSValue *
-str_proto_quote(JSValue *instance, JSArgs *args, State *state)
-{
-  // TODO
-  return JSUNDEF();
-}
-
+// String.prototype.replace(regexp|substr, newSubStr|function[, flags])
 JSValue *
 str_proto_replace(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
+  // NOTE: flags parameter is non-standard
+  // TODO: requires regex
   return JSUNDEF();
 }
 
+// String.prototype.search(regexp)
 JSValue *
 str_proto_search(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
+  // TODO: requires regex
   return JSUNDEF();
 }
 
+// String.prototype.slice(beginSlice[, endSlice])
 JSValue *
 str_proto_slice(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *end_arg = ARG(args, 1);
+  int len = strlen(instance->string.ptr);
+  int end = IS_UNDEF(end_arg) ? len : TO_NUM(end_arg)->number.val;
+  int begin = TO_NUM(ARG(args, 0))->number.val;
+
+  if (begin < 0) begin = len + begin > 0 ? len + begin : 0;
+  if (end < 0) end = len + end > 0 ? len + end : 0;
+  if (end > len) end = len;
+  if (end - begin == 0) return JSSTR("");
+
+  int size = end - begin + 1;
+  char *new = malloc(size);
+  snprintf(new, size, "%.*s", end - begin, instance->string.ptr + begin);
+  return JSSTR(new);
 }
 
+// String.prototype.split([separator][, limit])
 JSValue *
 str_proto_split(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
+  JSValue *sep_arg = ARG(args, 0);
+  JSValue *limit_arg = ARG(args, 1);
+
+  JSValue *arr = JSARR();
+
+  int limit = IS_UNDEF(limit_arg) ? pow(2, 32) - 1 : TO_NUM(limit_arg)->number.val;
+  int len = instance->string.length;
+
+  if (limit == 0) 
+    return arr;
+
+  if (IS_UNDEF(sep_arg)) { 
+    fh_set(arr, "0", instance);
+    fh_arr_set_len(arr, 1);
+    return arr;
+  }
+  
+  // Find the separator indexes (with strtok ?)
+  // Take the substrings on either side of the seps
+  // Add them to the array
+  // Set the array length
   return JSUNDEF();
 }
 
+// String.prototype.substr(start[, length])
 JSValue *
 str_proto_substr(JSValue *instance, JSArgs *args, State *state)
 {
@@ -127,6 +217,7 @@ str_proto_substr(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
+// String.prototype.substring(indexA[, indexB])
 JSValue *
 str_proto_substring(JSValue *instance, JSArgs *args, State *state)
 {
@@ -134,62 +225,92 @@ str_proto_substring(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
+// String.prototype.toLocaleLowerCase()
 JSValue *
 str_proto_to_locale_lower_case(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return str_proto_to_lower_case(instance, args, state);
 }
 
+// String.prototype.toLocaleUpperCase()
 JSValue *
 str_proto_to_locale_upper_case(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return str_proto_to_upper_case(instance, args, state);
 }
 
+// String.prototype.toLowerCase()
 JSValue *
 str_proto_to_lower_case(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *new = JSSTR(instance->string.ptr);
+  char *str = new->string.ptr;
+  int i = 0;
+  while(str[i]) {
+    str[i] = tolower(str[i]);
+    i++;
+  }
+  return new;
 }
 
+// String.prototype.toString()
 JSValue *
 str_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return instance;
 }
 
+// String.prototype.toUpperCase()
 JSValue *
 str_proto_to_upper_case(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *new = JSSTR(instance->string.ptr);
+  char *str = new->string.ptr;
+  int i = 0;
+  while(str[i]) {
+    str[i] = toupper(str[i]);
+    i++;
+  }
+  return new;
 }
 
+// String.prototype.trim()
 JSValue *
 str_proto_trim(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *rtrimmed = str_proto_trim_right(instance, args, state);
+  return str_proto_trim_left(rtrimmed, args, state);
 }
 
+// String.prototype.trimLeft()
 JSValue *
 str_proto_trim_left(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *new = JSSTR(instance->string.ptr);
+  char *str = new->string.ptr;
+  int n = 0;
+  while(str[n] != '\0' && isspace((unsigned char)str[n]))
+    n++;
+  memmove(str, str + n, strlen(str) - n + 1);
+  new->string.length = strlen(str);
+  return new;
 }
 
+// String.prototype.trimRight()
 JSValue *
 str_proto_trim_right(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *new = JSSTR(instance->string.ptr);
+  char *str = new->string.ptr;
+  int n = strlen(str);
+  while(n > 0 && isspace((unsigned char)str[n - 1]))
+    n--;
+  str[n] = '\0';
+  new->string.length = n;
+  return new;
 }
 
+// String.prototype.valueOf()
 JSValue *
 str_proto_value_of(JSValue *instance, JSArgs *args, State *state)
 {
@@ -206,6 +327,7 @@ bootstrap_string()
   // ------
 
   BUILTIN(string, "prototype", prototype);
+  BUILTIN(string, "fromCharCode", JSNFUNC(&str_from_char_code));
 
   // String.prototype
   // ----------------
@@ -224,7 +346,6 @@ bootstrap_string()
   BUILTIN(prototype, "lastIndexOf", JSNFUNC(&str_proto_last_index_of));
   BUILTIN(prototype, "localeCompare", JSNFUNC(&str_proto_locale_compare));
   BUILTIN(prototype, "match", JSNFUNC(&str_proto_match));
-  BUILTIN(prototype, "quote", JSNFUNC(&str_proto_quote));
   BUILTIN(prototype, "replace", JSNFUNC(&str_proto_replace));
   BUILTIN(prototype, "search", JSNFUNC(&str_proto_search));
   BUILTIN(prototype, "slice", JSNFUNC(&str_proto_slice));

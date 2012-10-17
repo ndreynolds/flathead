@@ -32,7 +32,7 @@
 JSValue *
 global_is_nan(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *num = JSCAST(ARG0(args), T_NUMBER);
+  JSValue *num = TO_NUM(ARG(args, 0));
   return JSBOOL(num->number.is_nan);
 }
 
@@ -40,7 +40,7 @@ global_is_nan(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 global_is_finite(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *num = JSCAST(ARG0(args), T_NUMBER);
+  JSValue *num = TO_NUM(ARG(args, 0));
   return JSBOOL(!(num->number.is_nan || num->number.is_inf));
 }
 
@@ -48,18 +48,18 @@ global_is_finite(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 global_parse_int(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *to_parse = JSCAST(ARG0(args), T_STRING);
-  JSValue *radix_arg = ARGN(args, 1);
+  JSValue *to_parse = TO_STR(ARG(args, 0));
+  JSValue *radix_arg = ARG(args, 1);
   
   // FIXME: determine radix based on start of string
-  int radix = radix_arg->type == T_NUMBER ? radix_arg->number.val : 10;
+  int radix = IS_NUM(radix_arg) ? radix_arg->number.val : 10;
   char *ep;
   long l;
 
   l = strtol(to_parse->string.ptr, &ep, radix);
   if (*ep != 0) {
-    JSValue *num = JSCAST(to_parse, T_NUMBER);
-    return num->number.is_nan ? JSNAN() : JSNUM(floor(num->number.val));
+    JSValue *num = TO_NUM(to_parse);
+    return IS_NAN(num) ? JSNAN() : JSNUM(floor(num->number.val));
   }
 
   return JSNUM((int)l);
@@ -69,7 +69,7 @@ global_parse_int(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 global_parse_float(JSValue *instance, JSArgs *args, State *state)
 {
-  return JSCAST(ARG0(args), T_NUMBER);
+  return TO_NUM(ARG(args, 0));
 }
 
 // eval(string)

@@ -187,9 +187,10 @@ fh_cast(JSValue *val, JSType type)
     if (type == T_STRING) {
       if (val->number.is_nan) return JSSTR("NaN");
       if (val->number.is_inf) return JSSTR("Infinity");
-      char tmp[100];
-      sprintf(tmp, "%g", val->number.val);
-      return JSSTR(tmp);
+      int size = snprintf(NULL, 0, "%g", val->number.val) + 1;
+      char *num = malloc(size);
+      snprintf(num, size, "%g", val->number.val);
+      return JSSTR(num);
     }
     if (type == T_BOOLEAN) {
       // O is false, x < 0 & x > 0 true
@@ -320,7 +321,7 @@ fh_typeof(JSValue *value)
 JSValue *
 fh_has_instance(JSValue *func, JSValue *val)
 {
-  if (func->type != T_FUNCTION)
+  if (!IS_FUNC(func))
     fh_error(NULL, E_TYPE, "");
   // TODO: implement
   return JSBOOL(0);
@@ -339,19 +340,19 @@ fh_try_get_proto(char *type)
   JSValue *global = fh_global();
   if (global != NULL) {
     JSValue *obj = fh_get(global, type);
-    if (obj->type != T_UNDEF)
+    if (!IS_UNDEF(obj))
       return fh_get(obj, "prototype");
   }
   return NULL;
 }
 
 char *
-fh_str_concat(char *dst, char *new)
+fh_str_concat(char *a, char *b)
 {
-  dst = realloc(dst, strlen(dst) + strlen(new) + sizeof(char));
-  if (!dst) fh_error(NULL, E_ERROR, "process out of memory");
-  strcat(dst, new);
-  return dst;
+  size_t size = strlen(a) + strlen(b) + 1;
+  char *new = malloc(size);
+  snprintf(new, size, "%s%s", a, b);
+  return new;
 }
   
 JSValue *

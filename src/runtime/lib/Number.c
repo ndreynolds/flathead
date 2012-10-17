@@ -10,10 +10,10 @@
 JSValue *
 number_proto_to_exponential(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *digits = ARG0(args);
+  JSValue *digits = ARG(args, 0);
 
   if (instance->number.is_nan || instance->number.is_inf) 
-    return JSCAST(instance, T_STRING);
+    return TO_STR(instance);
 
   if (digits->type != T_UNDEF) {
     if (digits->number.val < 0 || digits->number.val > 20)
@@ -50,7 +50,7 @@ number_proto_to_exponential(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 number_proto_to_fixed(JSValue *instance, JSArgs *args, State *state)
 {
-  int digits = ARG0(args)->type == T_NUMBER ? ARG0(args)->number.val : 0;
+  int digits = ARG(args, 0)->type == T_NUMBER ? ARG(args, 0)->number.val : 0;
   int size = snprintf(NULL, 0, "%.*f", digits, instance->number.val);
   char *exp_str = malloc(size + 1);
   sprintf(exp_str, "%.*f", digits, instance->number.val);
@@ -68,8 +68,8 @@ number_proto_to_locale_string(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 number_proto_to_precision(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *precision = ARG0(args);
-  if (precision->type == T_UNDEF)
+  JSValue *precision = ARG(args, 0);
+  if (IS_UNDEF(precision))
     return number_proto_to_string(instance, args, state);
 
   int digits = floor(precision->number.val + 0.5);
@@ -86,7 +86,7 @@ number_proto_to_precision(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 number_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 {
-  return JSCAST(instance, T_STRING);
+  return TO_STR(instance);
 }
 
 // Number.prototype.valueOf()

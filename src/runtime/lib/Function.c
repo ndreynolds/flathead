@@ -18,8 +18,8 @@ func_new(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 func_proto_apply(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *this = ARG0(args);
-  JSValue *arr = ARGN(args, 1);
+  JSValue *this = ARG(args, 0);
+  JSValue *arr = ARG(args, 1);
   JSArgs *func_args = malloc(sizeof(JSArgs));
   JSArgs *func_args_head = func_args;
 
@@ -41,7 +41,7 @@ func_proto_apply(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 func_proto_bind(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *this = ARG0(args);
+  JSValue *this = ARG(args, 0);
 
   // Shift off the first argument.
   args->arg = NULL;
@@ -58,9 +58,9 @@ func_proto_bind(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 func_proto_call(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *this = ARG0(args);
+  JSValue *this = ARG(args, 0);
   args->arg = NULL;
-  if (args->next) 
+  if (args->next)
     args = args->next;
   return fh_function_call(this, state, instance, args);
 }

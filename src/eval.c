@@ -129,11 +129,8 @@ fh_arr(JSValue *ctx, Node *node)
   JSValue *arr = JSARR();
   if (node->e1 != NULL) {
     int i = 0;
-    JSValue *str;
     while(!node->e1->visited) {
-      str = JSCAST(JSNUM(i), T_STRING);
-      fh_set(arr, str->string.ptr, fh_eval(ctx, pop_node(node->e1)));
-      i++;
+      fh_set(arr, JSNUMKEY(i++)->string.ptr, fh_eval(ctx, pop_node(node->e1)));
     }
     fh_arr_set_len(arr, i);
   }
@@ -153,7 +150,7 @@ fh_member(JSValue *ctx, Node *member)
   // In `x.foo` we'll take 'foo' literally, in `x[foo]` we need to eval 'foo'.
   // This distinction is stored as 0/1 in the val slot.
   id1 = member->val ? 
-    JSCAST(fh_eval(ctx, member->e1), T_STRING) :
+    TO_STR(fh_eval(ctx, member->e1)) :
     fh_str_from_node(ctx, member->e1);
   id2 = fh_str_from_node(ctx, member->e2);
 
@@ -161,15 +158,23 @@ fh_member(JSValue *ctx, Node *member)
     fh_member(ctx, member->e2) :
     fh_get_rec(ctx, id2->string.ptr);
 
-  // Handle array-like string character access.
-  if (parent->type == T_STRING && member->e1->type == NODE_NUM) {
-    int i = member->e1->val, len = parent->string.length;
-    if (i < len && i >= 0) {
-      char *str = malloc(2);
-      sprintf(str, "%c", parent->string.ptr[i]);
-      return JSSTR(str);
+  // Special string type considerations
+  if (parent->type == T_STRING) {
+
+    // Handle array-like string character access.
+    if (member->e1->type == NODE_NUM) {
+      int i = member->e1->val, len = parent->string.length;
+      if (i < len && i >= 0) {
+        char *str = malloc(2);
+        sprintf(str, "%c", parent->string.ptr[i]);
+        return JSSTR(str);
+      }
+      return JSUNDEF();
     }
-    return JSUNDEF();
+
+    // Strings don't have a hashmap, so we cheat a bit with the 'length' prop.
+    if (STREQ(id1->string.ptr, "length"))
+      return JSNUM(parent->string.length);
   }
 
   return fh_get_proto(parent, id1->string.ptr);
@@ -231,7 +236,7 @@ fh_while(JSValue *ctx, Node *cnd, Node *stmt)
 {
   JSValue *result;
 
-  while(JSCAST(fh_eval(ctx, cnd), T_BOOLEAN)->boolean.val) {
+  while(TO_BOOL(fh_eval(ctx, cnd))->boolean.val) {
     result = fh_eval(ctx, stmt);
     if (result->signal == S_BREAK) break;
   }
@@ -245,7 +250,7 @@ fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
   if (exp_grp->e1)
     fh_eval(ctx, exp_grp->e1);
 
-  while(JSCAST(exp_grp->e2 ? fh_eval(ctx, exp_grp->e2) : JSBOOL(1), T_BOOLEAN)->boolean.val) {
+  while(TO_BOOL(exp_grp->e2 ? fh_eval(ctx, exp_grp->e2) : JSBOOL(1))->boolean.val) {
     result = fh_eval(ctx, stmt);
     if (result->signal == S_BREAK) break;
     if (exp_grp->e3)
@@ -306,7 +311,7 @@ fh_break()
 JSValue *
 fh_if(JSValue *ctx, Node *node)
 {
-  if (JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val)
+  if (TO_BOOL(fh_eval(ctx, node->e1))->boolean.val)
     return fh_eval(ctx, node->e2);
   else if (node->e3 != NULL)
     return fh_eval(ctx, node->e3);
@@ -447,7 +452,7 @@ fh_setup_func_env(JSValue *ctx, JSValue *func, JSArgs *args)
   fh_set(arguments, "length", JSNUM(ARGLEN(args)));
   int i;
   for(i=0; i<ARGLEN(args); i++)
-    fh_set(arguments, JSNUMKEY(i)->string.ptr, ARGN(args, i));
+    fh_set(arguments, JSNUMKEY(i)->string.ptr, ARG(args, i));
 
   // Set up params as locals (if any)
   if (func_node->e1 != NULL) {
@@ -497,7 +502,7 @@ fh_exp(JSValue *ctx, Node *node)
 JSValue *
 fh_postfix_exp(JSValue *ctx, Node *node)
 {
-  JSValue *old_val = JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
+  JSValue *old_val = TO_NUM(fh_eval(ctx, node->e1));
   char *op = node->sval;
   if (STREQ(op, "++")) {
     fh_set(ctx, node->e1->sval, fh_add(old_val, JSNUM(1)));
@@ -528,18 +533,18 @@ fh_prefix_exp(JSValue *ctx, Node *node)
   }
 
   if (STREQ(op, "+"))
-    return JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
+    return TO_NUM(fh_eval(ctx, node->e1));
   if (STREQ(op, "!"))
-    return JSBOOL(!JSCAST(fh_eval(ctx, node->e1), T_BOOLEAN)->boolean.val);
+    return JSBOOL(!TO_BOOL(fh_eval(ctx, node->e1))->boolean.val);
   if (STREQ(op, "-")) {
-    JSValue *x = JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
+    JSValue *x = TO_NUM(fh_eval(ctx, node->e1));
     if (x->number.is_inf) return JSNINF();
     if (x->number.is_nan) return JSNAN();
     return JSNUM(-1 * x->number.val);
   }
 
   // Increment and decrement.
-  JSValue *old_val = JSCAST(fh_eval(ctx, node->e1), T_NUMBER);
+  JSValue *old_val = TO_NUM(fh_eval(ctx, node->e1));
   JSValue *new_val;
   if (STREQ(op, "++")) {
     new_val = fh_add(old_val, JSNUM(1));
@@ -601,7 +606,7 @@ fh_bin_exp(JSValue *ctx, Node *node)
   if (STREQ(op, "in"))
     if (b->type != T_OBJECT)
       fh_error(NULL, E_TYPE, "Expecting an object with 'in' operator");
-    return fh_has_property(b, JSCAST(a, T_STRING)->string.ptr);
+    return fh_has_property(b, TO_STR(a)->string.ptr);
 
   assert(0);
 }
@@ -624,7 +629,7 @@ fh_add(JSValue *a, JSValue *b)
       T_XOR(a, b, T_BOOLEAN, T_STRING) ||
       T_XOR(a, b, T_NUMBER, T_STRING) ||
       T_XOR(a, b, T_UNDEF, T_STRING))
-    return fh_add(JSCAST(a, T_STRING), JSCAST(b, T_STRING));
+    return fh_add(TO_STR(a), TO_STR(b));
 
   // Number and undefined => NaN
   if (T_XOR(a, b, T_NUMBER, T_UNDEF)) 
@@ -632,11 +637,11 @@ fh_add(JSValue *a, JSValue *b)
 
   // Number and null => Null
   if (T_XOR(a, b, T_NULL, T_NUMBER))
-    return fh_add(JSCAST(a, T_NUMBER), JSCAST(b, T_NUMBER));
+    return fh_add(TO_NUM(a), TO_NUM(b));
 
   // Number and Boolean => Number
   if (T_XOR(a, b, T_NUMBER, T_BOOLEAN))
-    return fh_add(JSCAST(a, T_NUMBER), JSCAST(b, T_NUMBER));
+    return fh_add(TO_NUM(a), TO_NUM(b));
 
   assert(0);
 }
@@ -650,7 +655,7 @@ fh_sub(JSValue *a, JSValue *b)
     if (a->number.is_inf || b->number.is_inf) return JSNAN();
     return JSNUM(a->number.val - b->number.val);
   }
-  return fh_sub(JSCAST(a, T_NUMBER), JSCAST(b, T_NUMBER));
+  return fh_sub(TO_NUM(a), TO_NUM(b));
 }
 
 JSValue *
@@ -661,7 +666,7 @@ fh_mul(JSValue *a, JSValue *b)
     if (a->number.is_inf || b->number.is_inf) return JSNAN();
     return JSNUM(a->number.val * b->number.val);
   }
-  return fh_mul(JSCAST(a, T_NUMBER), JSCAST(b, T_NUMBER));
+  return fh_mul(TO_NUM(a), TO_NUM(b));
 }
 
 JSValue *
@@ -674,7 +679,7 @@ fh_div(JSValue *a, JSValue *b)
     if (b->number.val == 0) return JSINF();
     return JSNUM(a->number.val / b->number.val);
   }
-  return fh_div(JSCAST(a, T_NUMBER), JSCAST(b, T_NUMBER));
+  return fh_div(TO_NUM(a), TO_NUM(b));
 }
 
 JSValue *
@@ -685,7 +690,7 @@ fh_mod(JSValue *a, JSValue *b)
     if (a->number.is_inf || b->number.is_inf) return JSNAN();
     return JSNUM(fmod(a->number.val, b->number.val));
   }
-  return fh_mod(JSCAST(a, T_NUMBER), JSCAST(b, T_NUMBER));
+  return fh_mod(TO_NUM(a), TO_NUM(b));
 }
 
 JSValue *
@@ -715,7 +720,7 @@ fh_eq(JSValue *a, JSValue *b, bool strict)
   if (T_BOTH(a, b, T_OBJECT))
     return JSBOOL(a == b);
 
-  return fh_eq(JSCAST(a, T_NUMBER), JSCAST(b, T_NUMBER), false);
+  return fh_eq(TO_NUM(a), TO_NUM(b), false);
 }
 
 JSValue *
@@ -755,7 +760,7 @@ fh_and(JSValue *ctx, Node *a, Node *b)
 {
   // && operator returns the first false value, or the second true value. 
   JSValue *aval = fh_eval(ctx, a);
-  if (JSCAST(aval, T_BOOLEAN)->boolean.val) return fh_eval(ctx, b);
+  if (TO_BOOL(aval)->boolean.val) return fh_eval(ctx, b);
   return aval;
 }
 
@@ -764,7 +769,7 @@ fh_or(JSValue *ctx, Node *a, Node *b)
 {
   // || returns the first true value, or the second false value.
   JSValue *aval = fh_eval(ctx, a);
-  if (JSCAST(aval, T_BOOLEAN)->boolean.val) return aval;
+  if (TO_BOOL(aval)->boolean.val) return aval;
   return fh_eval(ctx, b);
 }
 
@@ -781,7 +786,7 @@ fh_str_from_node(JSValue *ctx, Node *node)
 
   if (node->type == NODE_IDENT)
     return JSSTR(node->sval);
-  return JSCAST(fh_eval(ctx, node), T_STRING);
+  return TO_STR(fh_eval(ctx, node));
 }
 
 JSValue *

@@ -8,18 +8,18 @@
 JSValue *
 obj_create(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *proto = ARG0(args);
-  JSValue *props = ARGN(args, 1);
+  JSValue *proto = ARG(args, 0);
+  JSValue *props = ARG(args, 1);
 
   JSValue *obj = JSOBJ();
   obj->proto = proto;
 
-  if (props->type == T_OBJECT) {
+  if (IS_OBJ(props)) {
     JSProp *p;
     JSPropFlags flags;
     OBJ_ITER(props, p) {
       if (!p->enumerable) continue;
-      if (p->ptr && p->ptr->type == T_OBJECT) {
+      if (p->ptr && IS_OBJ(p->ptr)) {
         flags = flags_from_descriptor(p->ptr);
         fh_set_prop(obj, p->name, fh_get(p->ptr, "value"), flags);
       }
@@ -33,10 +33,10 @@ obj_create(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_define_property(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "defineProperty");
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "defineProperty");
 
-  JSValue *prop = ARGN(args, 1);
-  JSValue *desc = ARGN(args, 2);
+  JSValue *prop = ARG(args, 1);
+  JSValue *desc = ARG(args, 2);
   JSPropFlags flags = flags_from_descriptor(desc);
 
   fh_set_prop(obj, prop->string.ptr, fh_get(desc, "value"), flags);
@@ -47,15 +47,15 @@ obj_define_property(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_define_properties(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "defineProperties");
-  JSValue *props = ARGN(args, 1);
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "defineProperties");
+  JSValue *props = ARG(args, 1);
 
-  if (props->type == T_OBJECT) {
+  if (IS_OBJ(props)) {
     JSProp *p;
     JSPropFlags flags;
     OBJ_ITER(props, p) {
       if (!p->enumerable) continue;
-      if (p->ptr && p->ptr->type == T_OBJECT) {
+      if (p->ptr && IS_OBJ(p->ptr)) {
         flags = flags_from_descriptor(p->ptr);
         fh_set_prop(obj, p->name, fh_get(p->ptr, "value"), flags);
       }
@@ -69,8 +69,8 @@ obj_define_properties(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_get_own_property_descriptor(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "getOwnPropertyDescriptor");
-  JSValue *prop_name = ARGN(args, 1);
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "getOwnPropertyDescriptor");
+  JSValue *prop_name = ARG(args, 1);
   JSProp *prop = fh_get_prop(obj, prop_name->string.ptr);
   JSValue *descriptor = JSOBJ();
 
@@ -86,19 +86,14 @@ obj_get_own_property_descriptor(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_keys(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "keys");
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "keys");
   JSValue *keys = JSARR();
 
-  // TODO: Replace array construction with helper call.
   JSProp *p;
-  JSValue *name;
   int i = 0;
   OBJ_ITER(obj, p) {
-    if (p->enumerable) {
-      name = JSCAST(JSNUM(i), T_STRING);
-      fh_set(keys, name->string.ptr, JSSTR(p->name));
-      i++;
-    }
+    if (p->enumerable)
+      fh_set(keys, JSNUMKEY(i++)->string.ptr, JSSTR(p->name));
   }
 
   fh_arr_set_len(keys, i);
@@ -109,17 +104,13 @@ obj_keys(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_get_own_property_names(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "getOwnPropertyNames");
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "getOwnPropertyNames");
   JSValue *names = JSARR();
 
-  // TODO: Replace array construction with helper call.
   JSProp *p;
-  JSValue *name;
   int i = 0;
   OBJ_ITER(obj, p) {
-    name = JSCAST(JSNUM(i), T_STRING);
-    fh_set(names, name->string.ptr, JSSTR(p->name));
-    i++;
+    fh_set(names, JSNUMKEY(i++)->string.ptr, JSSTR(p->name));
   }
 
   fh_arr_set_len(names, i);
@@ -130,7 +121,7 @@ obj_get_own_property_names(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_get_prototype_of(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "getPrototypeOf");
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "getPrototypeOf");
   return obj->proto ? obj->proto : JSUNDEF();
 }
 
@@ -138,7 +129,7 @@ obj_get_prototype_of(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_prevent_extensions(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "preventExtensions");
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "preventExtensions");
   obj->object.extensible = true;  
   return obj;
 }
@@ -147,7 +138,7 @@ obj_prevent_extensions(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_is_extensible(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "isExtensible");
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "isExtensible");
   return JSBOOL(obj->object.extensible);
 }
 
@@ -155,7 +146,7 @@ obj_is_extensible(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_seal(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "seal");
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "seal");
   obj->object.sealed = true;  
   return obj;
 }
@@ -164,7 +155,7 @@ obj_seal(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_is_sealed(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "isSealed");
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "isSealed");
   return JSBOOL(obj->object.sealed);
 }
 
@@ -172,7 +163,7 @@ obj_is_sealed(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_freeze(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "freeze");
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "freeze");
   obj->object.frozen = true;  
   return obj;
 }
@@ -181,7 +172,7 @@ obj_freeze(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_is_frozen(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = obj_or_throw(ARG0(args), state, "isFrozen");
+  JSValue *obj = obj_or_throw(ARG(args, 0), state, "isFrozen");
   return JSBOOL(obj->object.frozen);
 }
 
@@ -189,7 +180,7 @@ obj_is_frozen(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_proto_has_own_property(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *prop_name = ARG0(args);
+  JSValue *prop_name = ARG(args, 0);
   return JSBOOL(fh_get_prop(instance, prop_name->string.ptr) != NULL);
 }
 
@@ -197,7 +188,7 @@ obj_proto_has_own_property(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_proto_is_prototype_of(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *obj = ARG0(args);
+  JSValue *obj = ARG(args, 0);
   JSValue *proto = obj->proto;
 
   while(proto != NULL) {
@@ -211,7 +202,7 @@ obj_proto_is_prototype_of(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_proto_property_is_enumerable(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *prop_name = ARG0(args);
+  JSValue *prop_name = ARG(args, 0);
   // TODO: restricted to own properties?
   JSProp *prop = fh_get_prop(instance, prop_name->string.ptr);
   return JSBOOL(prop != NULL && prop->enumerable);
@@ -241,7 +232,7 @@ obj_proto_value_of(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 obj_or_throw(JSValue *maybe_obj, State *state, const char *name)
 {
-  if (!maybe_obj || maybe_obj->type != T_OBJECT)
+  if (!maybe_obj || !IS_OBJ(maybe_obj))
     fh_error(state, E_TYPE, "Object.%s called on a non-object", name);
   return maybe_obj;
 }
@@ -253,11 +244,11 @@ flags_from_descriptor(JSValue *desc)
   JSValue *enumerable = fh_get(desc, "enumerable");
   JSValue *configurable = fh_get(desc, "configurable");
   JSValue *writable = fh_get(desc, "writable");
-  if (enumerable->type == T_BOOLEAN && enumerable->boolean.val)
+  if (IS_BOOL(enumerable) && enumerable->boolean.val)
     flags |= P_ENUM;
-  if (configurable->type == T_BOOLEAN && configurable->boolean.val)
+  if (IS_BOOL(configurable) && configurable->boolean.val)
     flags |= P_CONF;
-  if (writable->type == T_BOOLEAN && writable->boolean.val)
+  if (IS_BOOL(writable) && writable->boolean.val)
     flags |= P_WRITE;
   return flags;
 }

@@ -7,16 +7,18 @@
 JSValue *
 console_log(JSValue *instance, JSArgs *args, State *state)
 {
-  // https://developer.mozilla.org/en/DOM/console.log
-  log_args(stdout, args);
+  int i;
+  for (i=0; i<ARGLEN(args); i++)
+    fh_debug(stdout, ARG(args, i), 0, 1);
   return JSUNDEF();
 }
 
 JSValue *
 console_error(JSValue *instance, JSArgs *args, State *state)
 {
-  // https://developer.mozilla.org/en/DOM/console.error
-  log_args(stderr, args);
+  int i;
+  for (i=0; i<ARGLEN(args); i++)
+    fh_debug(stderr, ARG(args, i), 0, 1);
   return JSUNDEF();
 }
 
@@ -24,10 +26,8 @@ JSValue *
 console_assert(JSValue *instance, JSArgs *args, State *state)
 {
   // Non-standard, found in new Webkit builds and Firebug
-  if (args->arg != NULL) {
-    JSValue *result = JSCAST((JSValue *)args->arg, T_BOOLEAN);
-    if (result->boolean.val) return JSUNDEF();
-  }
+  if (TO_BOOL(ARG(args, 0))->boolean.val)
+    return JSUNDEF();
   fh_error(state, E_ASSERTION, "assertion failed");
   assert(0);
 }
@@ -38,20 +38,6 @@ console_time(JSValue *instance, JSArgs *args, State *state)
   // https://developer.mozilla.org/en/DOM/console.time
   // TODO
   return JSUNDEF();
-}
-
-void
-log_args(FILE *stream, JSArgs *args)
-{
-  bool first = true;
-  while(first || args->next != 0)
-  {
-    if (!first)
-      args = args->next;
-    if (args->arg != 0)
-      fh_debug(stream, args->arg, 0, 1);
-    first = false;
-  }
 }
 
 JSValue *

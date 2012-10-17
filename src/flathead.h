@@ -25,7 +25,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <assert.h>
-#include <float.h>
+#include <limits.h>
 
 #define VERSION        "0.5.1"
 
@@ -35,23 +35,39 @@
 #define JSUNDEF()      fh_new_val(T_UNDEF)
 #define JSNUM(x)       fh_new_number((x),0,0,0)
 #define JSNAN()        fh_new_number(0,1,0,0)
-#define JSINF(n)       fh_new_number(DBL_MAX,0,1,0)
-#define JSNINF(n)      fh_new_number(DBL_MIN,0,1,1)
+#define JSINF(n)       fh_new_number(INT_MAX,0,1,0)
+#define JSNINF(n)      fh_new_number(-INT_MAX,0,1,1)
 #define JSOBJ()        fh_new_object()
 #define JSARR()        fh_new_array()
 #define JSFUNC(x)      fh_new_function(x)
 #define JSNFUNC(x)     fh_new_native_function(x)
-#define JSCAST(x,t)    fh_cast((x),(t))
 #define JSNUMKEY(x)    fh_cast(JSNUM((x)), T_STRING)
-#define JSDEBUG(x)     fh_debug(stdout,(x),0,1);
 
-#define ARG0(args)     ((args)->arg == NULL ? JSUNDEF() : (args)->arg)       
-#define ARGN(args, n)  fh_get_arg((args), (n))
+#define IS_STR(x)      ((x)->type == T_STRING)
+#define IS_NUM(x)      ((x)->type == T_NUMBER)
+#define IS_FUNC(x)     ((x)->type == T_FUNCTION)
+#define IS_BOOL(x)     ((x)->type == T_BOOLEAN)
+#define IS_OBJ(x)      ((x)->type == T_OBJECT)
+#define IS_NULL(x)     ((x)->type == T_NULL)
+#define IS_UNDEF(x)    ((x)->type == T_UNDEF)
+#define IS_ARR(x)      ((x)->type == T_OBJECT && (x)->object.is_array)
+#define IS_NAN(x)      ((x)->type == T_NUMBER && (x)->number.is_nan)
+#define IS_INF(x)      ((x)->type == T_NUMBER && (x)->number.is_inf)
+
+#define TO_STR(x)      fh_cast((x),T_STRING)
+#define TO_NUM(x)      fh_cast((x),T_NUMBER)
+#define TO_BOOL(x)     fh_cast((x),T_BOOLEAN)
+#define TO_OBJ(x)      fh_cast((x),T_OBJECT)
+
+#define ARG(args, n)   fh_get_arg((args), (n))
 #define ARGLEN(args)   fh_arg_len(args)
 
 #define STREQ(a,b)     (strcmp((a),(b)) == 0)
 #define OBJ_ITER(o,p)  JSProp *_tmp; HASH_ITER(hh,(o)->object.map,p,_tmp)
 #define BUILTIN(o,k,v) fh_set_prop((o),(k),(v),P_BUILTIN)
+
+#define DEBUG(x)       fh_debug(stdout,(x),0,1)
+
 
 struct JSArgs;
 struct JSValue;

@@ -979,7 +979,7 @@ main(int argc, char **argv)
     while(true) {
       yyparse();
       if (print_ast) print_node(root, true, 0);
-      JSDEBUG(fh_eval(global, root));
+      DEBUG(fh_eval(global, root));
     }
   } else {
     yyparse();
