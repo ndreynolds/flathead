@@ -1,6 +1,6 @@
 /*
- * runtime.h -- Bootstrap global object and friends 
- * 
+ * str.c -- String functions
+ *
  * Copyright (c) 2012 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,22 +16,22 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RUNTIME_H
-#define RUNTIME_H
+#include "str.h"
 
-#include "../flathead.h"
-#include "../props.h"
-#include "../str.h"
-#include "../debug.h"
-#include "../eval.h"
-#include "../gc.h"
+char *
+fh_str_concat(char *a, char *b)
+{
+  size_t size = strlen(a) + strlen(b) + 1;
+  char *new = malloc(size);
+  snprintf(new, size, "%s%s", a, b);
+  return new;
+}
 
-JSValue * global_is_nan(JSValue *, JSArgs *, State *);
-JSValue * global_is_finite(JSValue *, JSArgs *, State *);
-JSValue * global_parse_float(JSValue *, JSArgs *, State *);
-JSValue * glboal_parse_int(JSValue *, JSArgs *, State *);
-JSValue * global_eval(JSValue *, JSArgs *, State *);
-JSValue * global_gc(JSValue *, JSArgs *, State *);
-JSValue * fh_bootstrap(void);
-
-#endif
+char *
+fh_str_slice(char *str, int start, int end)
+{
+  int size = end - start + 1;
+  char *new = malloc(size);
+  snprintf(new, size, "%.*s", end - start, str + start);
+  return new;
+}

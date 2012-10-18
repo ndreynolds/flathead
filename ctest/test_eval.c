@@ -7,6 +7,7 @@
 #include "../src/nodes.h"
 #include "../src/gc.c"
 #include "../src/props.c"
+#include "../src/str.c"
 #include "../src/flathead.c"
 #include "../src/nodes.c"
 #include "../src/eval.c"

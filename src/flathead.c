@@ -345,15 +345,6 @@ fh_try_get_proto(char *type)
   }
   return NULL;
 }
-
-char *
-fh_str_concat(char *a, char *b)
-{
-  size_t size = strlen(a) + strlen(b) + 1;
-  char *new = malloc(size);
-  snprintf(new, size, "%s%s", a, b);
-  return new;
-}
   
 JSValue *
 fh_get_arg(JSArgs *args, int n)

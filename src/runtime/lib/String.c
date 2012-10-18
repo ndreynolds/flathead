@@ -168,30 +168,28 @@ str_proto_slice(JSValue *instance, JSArgs *args, State *state)
   JSValue *end_arg = ARG(args, 1);
   int len = strlen(instance->string.ptr);
   int end = IS_UNDEF(end_arg) ? len : TO_NUM(end_arg)->number.val;
-  int begin = TO_NUM(ARG(args, 0))->number.val;
+  int start = TO_NUM(ARG(args, 0))->number.val;
 
-  if (begin < 0) begin = len + begin > 0 ? len + begin : 0;
+  if (start < 0) start = len + start > 0 ? len + start : 0;
   if (end < 0) end = len + end > 0 ? len + end : 0;
   if (end > len) end = len;
-  if (end - begin == 0) return JSSTR("");
+  if (end - start == 0) return JSSTR("");
 
-  int size = end - begin + 1;
-  char *new = malloc(size);
-  snprintf(new, size, "%.*s", end - begin, instance->string.ptr + begin);
-  return JSSTR(new);
+  return JSSTR(fh_str_slice(instance->string.ptr, start, end));
 }
 
 // String.prototype.split([separator][, limit])
 JSValue *
 str_proto_split(JSValue *instance, JSArgs *args, State *state)
 {
+  // TODO: regex separators
+  
   JSValue *sep_arg = ARG(args, 0);
   JSValue *limit_arg = ARG(args, 1);
 
   JSValue *arr = JSARR();
 
   int limit = IS_UNDEF(limit_arg) ? pow(2, 32) - 1 : TO_NUM(limit_arg)->number.val;
-  int len = instance->string.length;
 
   if (limit == 0) 
     return arr;
@@ -201,28 +199,73 @@ str_proto_split(JSValue *instance, JSArgs *args, State *state)
     fh_arr_set_len(arr, 1);
     return arr;
   }
-  
-  // Find the separator indexes (with strtok ?)
-  // Take the substrings on either side of the seps
-  // Add them to the array
-  // Set the array length
-  return JSUNDEF();
+
+  char *split;                         // store the split substring
+  char *sep = sep_arg->string.ptr;     // separator string
+  char *str = instance->string.ptr;    // instance string
+  int len = instance->string.length;   // instance string length
+  int match = 0;                       // number of chars of sep matched
+  int start = 0;                       // start index to split from
+  int index = 0;                       // result array index
+  int i;                               // instance string index
+
+  for (i=0; i<strlen(str); i++) {
+    if (str[i] == sep[match])
+      match++;
+    else
+      match = str[i] == sep[0] ? 1 : 0;
+    if (match == strlen(sep)) {
+      split = fh_str_slice(str, start, i - strlen(sep) + 1);
+      fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(split));
+      start = i + 1;
+      match = 0;
+      if (--limit == 0) break;
+    }
+  }
+
+  // Move the remaining string (possibly all of it) into the array.
+  if (limit > 0) {
+    split = fh_str_slice(str, start, len);
+    fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(split));
+  }
+
+  fh_arr_set_len(arr, index);
+  return arr;
 }
 
 // String.prototype.substr(start[, length])
 JSValue *
 str_proto_substr(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  int strlen = instance->string.length;
+  int start = TO_NUM(ARG(args, 0))->number.val;
+  int length = IS_UNDEF(ARG(args, 1)) ? strlen : TO_NUM(ARG(args, 1))->number.val;
+
+  if (start < 0) 
+    start = MAX(start + strlen, 0);
+
+  if (MIN(MAX(length, 0), strlen - start) <= 0)
+    return JSSTR("");
+
+  int end = MIN(strlen, start + length);
+  return JSSTR(fh_str_slice(instance->string.ptr, start, end));
 }
 
-// String.prototype.substring(indexA[, indexB])
+// String.prototype.substring(start[, end])
 JSValue *
 str_proto_substring(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  int len = instance->string.length;
+  int start = TO_NUM(ARG(args, 0))->number.val;
+  int end = IS_UNDEF(ARG(args, 1)) ? len : TO_NUM(ARG(args, 1))->number.val;
+
+  start = MIN(MAX(start, 0), len);
+  end = MIN(MAX(end, 0), len);
+
+  int from = MIN(start, end);
+  int to = MAX(start, end);
+
+  return JSSTR(fh_str_slice(instance->string.ptr, from, to));
 }
 
 // String.prototype.toLocaleLowerCase()

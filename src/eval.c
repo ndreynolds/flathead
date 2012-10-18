@@ -17,8 +17,6 @@
  */
 
 #include "eval.h"
-#include "nodes.h"
-#include <math.h>
 
 JSValue * 
 fh_eval(JSValue *ctx, Node *node)

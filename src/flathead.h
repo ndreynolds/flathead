@@ -59,7 +59,7 @@
 #define TO_BOOL(x)     fh_cast((x),T_BOOLEAN)
 #define TO_OBJ(x)      fh_cast((x),T_OBJECT)
 
-#define ARG(args, n)   fh_get_arg((args), (n))
+#define ARG(args,n)    fh_get_arg((args), (n))
 #define ARGLEN(args)   fh_arg_len(args)
 
 #define STREQ(a,b)     (strcmp((a),(b)) == 0)
@@ -67,6 +67,9 @@
 #define BUILTIN(o,k,v) fh_set_prop((o),(k),(v),P_BUILTIN)
 
 #define DEBUG(x)       fh_debug(stdout,(x),0,1)
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 
 struct JSArgs;
@@ -207,13 +210,8 @@ JSValue * fh_cast(JSValue *, JSType);
 JSValue * fh_has_instance(JSValue *, JSValue *);
 JSValue * fh_has_property(JSValue *, char *);
 char * fh_typeof(JSValue *);
-char * fh_str_concat(char *, char *);
 void fh_arr_set_len(JSValue *, int);
 void fh_error(State *, JSErrorType, const char *, ...);
-void fh_debug_obj(FILE *, JSValue *, int);
-void fh_debug_arr(FILE *, JSValue *, int);
-void fh_debug_args(FILE *, JSArgs *);
-void fh_debug(FILE *, JSValue *, int, bool);
 int fh_arg_len(JSArgs*);
 
 #endif

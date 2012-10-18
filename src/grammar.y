@@ -27,6 +27,7 @@
   #include "src/nodes.h"
   #include "src/eval.h"
   #include "src/runtime/runtime.h"
+  #include "src/debug.h"
   #include "src/cli.h"
 
   #define YYDEBUG 0

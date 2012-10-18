@@ -23,13 +23,13 @@ assert(String.prototype);
 
 // String.prototype.charAt(index)
 
-var s = 'abc';
-assert(s.charAt() === 'a');
-assert(s.charAt(0) === 'a');
-assert(s.charAt(1) === 'b');
-assert(s.charAt(2) === 'c');
-assert(s.charAt(999) === '');
-assert(s.charAt(-1) === '');
+var s = "abc";
+assert(s.charAt() === "a");
+assert(s.charAt(0) === "a");
+assert(s.charAt(1) === "b");
+assert(s.charAt(2) === "c");
+assert(s.charAt(999) === "");
+assert(s.charAt(-1) === "");
 
 
 // String.prototype.charCodeAt(index)
@@ -39,14 +39,14 @@ assert(s.charCodeAt);
 
 // String.prototype.concat(string2, string3[, ..., stringN])
 
-s = 'Hello, ';
-assert(s.concat('Kevin', ' have a nice day.') === 'Hello, Kevin have a nice day.');
-assert(s === 'Hello, ');
+s = "Hello, ";
+assert(s.concat("Kevin", " have a nice day.") === "Hello, Kevin have a nice day.");
+assert(s === "Hello, ");
 
 
 // String.prototype.indexOf(searchValue[, fromIndex])
 
-s = 'Blue Whale';
+s = "Blue Whale";
 assert(s.indexOf("Blue") === 0);
 assert(s.indexOf("Blute") === -1);
 assert(s.indexOf("Whale", 0) === 5);
@@ -88,7 +88,7 @@ assert(s.lastIndexOf("test", "not a number") === 10);
 
 // String.prototype.localeCompare(compareString)
 
-s = 'abcd';
+s = "abcd";
 assert(s.localeCompare("abcd") === 0);
 assert(s.localeCompare("abc") > 0);
 assert(s.localeCompare("abcde") < 0);
@@ -104,34 +104,99 @@ assert(s.localeCompare("aacd") > 0);
 
 // String.prototype.slice(beginSlice[, endSlice])
 
-s = 'slice me';
-assert(s.slice(0) === 'slice me');
-assert(s.slice(2) === 'ice me');
-assert(s.slice(0, 2) === 'sl');
-assert(s.slice(0, 4) === 'slic');
-assert(s.slice(2, 4) === 'ic');
-assert(s.slice(0, 24) === 'slice me');
-assert(s.slice(2, 100) === 'ice me');
-assert(s.slice(0, -3) === 'slice');
-assert(s.slice(0, -500) === '');
-assert(s.slice(-500, -500) === '');
-assert(s.slice(-500, 2) === 'sl');
+s = "slice me";
+assert(s.slice(0) === "slice me");
+assert(s.slice(2) === "ice me");
+assert(s.slice(0, 2) === "sl");
+assert(s.slice(0, 4) === "slic");
+assert(s.slice(2, 4) === "ic");
+assert(s.slice(0, 24) === "slice me");
+assert(s.slice(2, 100) === "ice me");
+assert(s.slice(0, -3) === "slice");
+assert(s.slice(0, -500) === "");
+assert(s.slice(-500, -500) === "");
+assert(s.slice(-500, 2) === "sl");
 
 
 // String.prototype.split([separator][, limit])
 
 var arr;
-s = 'abc,def,ghi';
+s = "abc,def,ghi";
 
 arr = s.split();
-assert(arr[0] === 'abc,def,ghi');
+assert(arr[0] === "abc,def,ghi");
 assert(arr.length === 1);
 
-arr = s.split(',', 0);
+arr = s.split(",", 0);
 assert(arr.length === 0);
 
-arr = s.split(',');
+arr = s.split(",");
 assert(arr.length === 3);
-assert(arr[0] === 'abc');
-assert(arr[1] === 'def');
-assert(arr[2] === 'ghi');
+assert(arr[0] === "abc");
+assert(arr[1] === "def");
+assert(arr[2] === "ghi");
+
+arr = s.split(",", 2);
+assert(arr.length === 2);
+assert(arr[0] === "abc");
+assert(arr[1] === "def");
+
+
+// String.prototype.substr(start[, length])
+
+s = "abcdefghij";
+assert(s.substr(1,2) === "bc");
+assert(s.substr(-3,2) === "hi");
+assert(s.substr(-3) === "hij");
+assert(s.substr(1) === "bcdefghij");
+assert(s.substr(-20,2) === "ab");
+assert(s.substr(20,2) === "");
+
+
+// String.prototype.substring(start[, end])
+
+s = "JavaScript";
+assert(s.substring(0, 3) === "Jav");
+assert(s.substring(3, 0) === "Jav");
+assert(s.substring(4, 7) === "Scr");
+assert(s.substring(7, 4) === "Scr");
+assert(s.substring(0, 4) === "Java");
+assert(s.substring(0, 10) === "JavaScript");
+assert(s.substring(10, 0) === "JavaScript");
+assert(s.substring(1000, 1000) === "");
+assert(s.substring(-999, 1000) === "JavaScript");
+assert(s.substring(-999, -999) === "");
+
+
+// String.prototype.toLocaleLowerCase()
+// String.prototype.toLowerCase()
+
+s = "ALPHABET";
+assert(s.toLocaleLowerCase() === "alphabet");
+assert(s.toLowerCase() === "alphabet");
+
+
+// String.prototype.toLocaleUpperCase()
+// String.prototype.toUpperCase()
+
+s = "alphabet";
+assert(s.toLocaleUpperCase() === "ALPHABET");
+assert(s.toUpperCase() === "ALPHABET");
+
+
+// String.prototype.toString()
+// String.prototype.valueOf()
+
+s = "I'm a string";
+assert(s.toString() === "I'm a string");
+assert(s.valueOf() === "I'm a string");
+
+
+// String.prototype.trim()
+// String.prototype.trimLeft()
+// String.prototype.trimRight()
+
+s = "    lots of whitespace        ";
+assert(s.trim() === "lots of whitespace");
+assert(s.trimLeft() === "lots of whitespace        ");
+assert(s.trimRight() === "    lots of whitespace");
