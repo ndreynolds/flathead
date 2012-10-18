@@ -140,8 +140,24 @@ str_proto_locale_compare(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 str_proto_match(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: requires regex
-  return JSUNDEF();
+  JSValue *regexp = ARG(args, 0);
+  JSValue *arr = JSARR();
+
+  int count;
+  char *str = instance->string.ptr;
+  int *matches = fh_regexp(str, regexp->string.ptr, &count);
+
+  if (!matches) 
+    return arr;
+
+  int i;
+  for (i = 0; i < count; i++) {
+    JSValue *match = JSSTR(fh_str_slice(str, matches[2*i], matches[2*i+1]));
+    fh_set(arr, JSNUMKEY(i)->string.ptr, match);
+  }
+  free(matches);
+  fh_arr_set_len(arr, i);
+  return arr;
 }
 
 // String.prototype.replace(regexp|substr, newSubStr|function[, flags])
@@ -157,8 +173,18 @@ str_proto_replace(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 str_proto_search(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO: requires regex
-  return JSUNDEF();
+  JSValue *regexp = ARG(args, 0);
+
+  int count;
+  char *str = instance->string.ptr;
+  int *matches = fh_regexp(str, regexp->string.ptr, &count);
+
+  if (!matches) 
+    return JSNUM(-1);
+
+  JSValue *result = JSNUM(matches[0]);
+  free(matches);
+  return result;
 }
 
 // String.prototype.slice(beginSlice[, endSlice])

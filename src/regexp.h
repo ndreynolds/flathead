@@ -1,6 +1,6 @@
 /*
- * runtime.h -- Bootstrap global object and friends 
- * 
+ * regexp.h -- String functions
+ *
  * Copyright (c) 2012 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -16,23 +16,15 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RUNTIME_H
-#define RUNTIME_H
+#ifndef REGEXP_H
+#define REGEXP_H
 
-#include "../flathead.h"
-#include "../props.h"
-#include "../str.h"
-#include "../regexp.h"
-#include "../debug.h"
-#include "../eval.h"
-#include "../gc.h"
+#include "flathead.h"
 
-JSValue * global_is_nan(JSValue *, JSArgs *, State *);
-JSValue * global_is_finite(JSValue *, JSArgs *, State *);
-JSValue * global_parse_float(JSValue *, JSArgs *, State *);
-JSValue * glboal_parse_int(JSValue *, JSArgs *, State *);
-JSValue * global_eval(JSValue *, JSArgs *, State *);
-JSValue * global_gc(JSValue *, JSArgs *, State *);
-JSValue * fh_bootstrap(void);
+#ifndef fh_no_regexp
+#include <pcre.h>
+#endif
+
+int * fh_regexp(char *, char *, int *);
 
 #endif

@@ -46,6 +46,12 @@ ifneq ($(readline), off)
   CFLAGS += -lreadline
 endif
 
+ifeq ($(regexp), off)
+  CFLAGS += -Dfh_no_regexp
+else
+  CFLAGS += -lpcre
+endif
+
 .PHONY: test
 
 all: clean default
@@ -67,8 +73,8 @@ parser:
 clean:
 	rm -rf y.* lex.yy.c bin/fh* a.out
 
-install: default
+install: default 
 	cp bin/fh /usr/local/bin/
-	
+
 default: parser lexer 
 	$(CC) $(CFLAGS) -o $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(SRC_FILES) $(LIB_FILES) -lm
