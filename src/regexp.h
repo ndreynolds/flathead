@@ -19,12 +19,6 @@
 #ifndef REGEXP_H
 #define REGEXP_H
 
-#include "flathead.h"
-
-#ifndef fh_no_regexp
-#include <pcre.h>
-#endif
-
 int * fh_regexp(char *, char *, int *);
 
 #endif

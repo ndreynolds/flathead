@@ -21,7 +21,6 @@
 #define DEBUG_H
 
 #include "flathead.h"
-#include "cli.h"
 
 void fh_debug_obj(FILE *, JSValue *, int);
 void fh_debug_arr(FILE *, JSValue *, int);

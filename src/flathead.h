@@ -19,13 +19,15 @@
 #ifndef FLATHEAD_H
 #define FLATHEAD_H
 
-#include "../ext/uthash.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <assert.h>
 #include <limits.h>
+
+#include "../ext/uthash.h"
+
 
 #define VERSION        "0.5.1"
 

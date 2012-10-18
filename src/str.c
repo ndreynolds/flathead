@@ -16,7 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "str.h"
+
 
 char *
 fh_str_concat(char *a, char *b)

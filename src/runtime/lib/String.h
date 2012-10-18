@@ -2,8 +2,6 @@
 // --------
 // String properties, methods, and prototype
 
-#include <ctype.h>
-#include <math.h>
 #include "../runtime.h"
 
 JSValue * str_new(JSValue *, JSArgs *, State *);

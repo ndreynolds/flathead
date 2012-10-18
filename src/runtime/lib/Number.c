@@ -4,6 +4,7 @@
 
 #include <float.h>
 #include <math.h>
+
 #include "Number.h"
 
 // Number.prototype.toExponential([fractionalDigits])

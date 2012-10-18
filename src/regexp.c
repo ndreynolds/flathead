@@ -16,9 +16,16 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#ifndef fh_no_regexp
+#include <pcre.h>
+#endif
+
 #include "regexp.h"
+#include "flathead.h"
+
 
 const int regexp_vector_len = 30;
+
 
 // Gateway to the PCRE library. When compiled with fh_no_regexp, this function
 // is still available, but will throw an error when called.

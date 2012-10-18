@@ -19,10 +19,8 @@
 #ifndef EVAL_H
 #define EVAL_H
 
+#include "flathead.h"
 #include "nodes.h"
-#include "props.h"
-#include "str.h"
-#include <math.h>
 
 #define T_BOTH(a,b,t)      (a->type == t && b->type == t)
 #define T_XOR(a,b,t1,t2)   ((a->type == t1 && b->type == t2) || (a->type == t2 && b->type == t1))

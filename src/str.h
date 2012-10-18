@@ -19,8 +19,6 @@
 #ifndef STR_H
 #define STR_H 
 
-#include "flathead.h"
-
 char * fh_str_concat(char *, char *);
 char * fh_str_slice(char *, int, int);
 

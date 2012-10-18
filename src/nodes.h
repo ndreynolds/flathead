@@ -19,8 +19,7 @@
 #ifndef NODES_H
 #define NODES_H
 
-#include <stdio.h>
-#include "flathead.h"
+#include <stdbool.h>
 
 enum NodeType {
   NODE_ARG_LST,
@@ -76,6 +75,8 @@ enum NodeType {
   NODE_WITH_STMT,
   NODE_WHILE,
 };
+
+struct Node;
 
 typedef struct Node {
   struct Node *e1;

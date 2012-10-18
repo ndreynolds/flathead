@@ -19,7 +19,6 @@
 #ifndef GC_H
 #define GC_H
 
-#include <stddef.h>
 #include "flathead.h"
 
 #define SLOTS_PER_POOL 10000

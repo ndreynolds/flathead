@@ -16,7 +16,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <math.h>
+
 #include "eval.h"
+#include "flathead.h"
+#include "props.h"
+#include "nodes.h"
+#include "str.h"
 
 JSValue * 
 fh_eval(JSValue *ctx, Node *node)

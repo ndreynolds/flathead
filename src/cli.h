@@ -19,9 +19,6 @@
 #ifndef CLI_H
 #define CLI_H
 
-#include "flathead.h"
-#include "unistd.h"
-
 #define ANSI_YELLOW  "\033[32m"
 #define ANSI_ORANGE  "\033[33m"
 #define ANSI_BLUE    "\033[34m"

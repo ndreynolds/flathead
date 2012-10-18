@@ -2,6 +2,9 @@
 // ----------
 // String properties, methods, and prototype
 
+#include <ctype.h>
+#include <math.h>
+
 #include "String.h"
 
 JSValue *
