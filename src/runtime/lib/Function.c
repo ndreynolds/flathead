@@ -94,12 +94,10 @@ bootstrap_function()
   // ------------------
 
   // Properties
-  
   BUILTIN(prototype, "length", JSNUM(0));
   BUILTIN(prototype, "constructor", JSNFUNC(&func_new));
 
   // Methods
-
   BUILTIN(prototype, "apply", JSNFUNC(&func_proto_apply));
   BUILTIN(prototype, "bind", JSNFUNC(&func_proto_bind));
   BUILTIN(prototype, "call", JSNFUNC(&func_proto_call));

@@ -3,6 +3,7 @@
 
 #include "../runtime.h"
 
+JSValue * arr_new(JSValue *, JSArgs *, State *);
 JSValue * arr_is_array(JSValue *, JSArgs *, State *);
 
 JSValue * arr_proto_pop(JSValue *, JSArgs *, State *);

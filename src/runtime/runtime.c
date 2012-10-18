@@ -26,6 +26,8 @@
 #include "lib/String.h"
 #include "lib/Number.h"
 #include "lib/Boolean.h"
+#include "lib/Date.h"
+#include "lib/RegExp.h"
 
 
 // isNaN(value)
@@ -101,6 +103,8 @@ fh_bootstrap()
   fh_set(global, "String", bootstrap_string());
   fh_set(global, "Number", bootstrap_number());
   fh_set(global, "Boolean", bootstrap_boolean());
+  fh_set(global, "Date", bootstrap_date());
+  fh_set(global, "RegExp", bootstrap_regexp());
 
   fh_set(global, "console", bootstrap_console());
   fh_set(global, "Math", bootstrap_math());

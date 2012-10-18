@@ -4,6 +4,15 @@
 
 #include "Object.h"
 
+
+// new Object([value])
+JSValue *
+obj_new(JSValue *instance, JSArgs *args, State *state)
+{
+  // TODO
+  return JSOBJ();
+}
+
 // Object.create(proto [, propertiesObject ])
 JSValue *
 obj_create(JSValue *instance, JSArgs *args, State *state)
@@ -284,8 +293,7 @@ bootstrap_object()
   // ----------------
 
   // Properties
-  // TODO: causing gc problems (infinite loop when marking)
-  // fh_set(prototype, "constructor", object);
+  BUILTIN(prototype, "constructor", JSNFUNC(&obj_new));
 
   // Methods
   BUILTIN(prototype, "hasOwnProperty", JSNFUNC(&obj_proto_has_own_property));

@@ -3,6 +3,8 @@
 
 #include "../runtime.h"
 
+JSValue * number_new(JSValue *, JSArgs *, State *);
+
 JSValue * number_proto_to_exponential(JSValue *, JSArgs *, State *);
 JSValue * number_proto_to_fixed(JSValue *, JSArgs *, State *);
 JSValue * number_proto_to_locale_string(JSValue *, JSArgs *, State *);

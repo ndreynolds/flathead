@@ -10,6 +10,15 @@
 
 JSValue *arr_compare_func;
 
+// new Array(element0, element1, ..., elementN)
+// new Array(arrayLength)
+JSValue *
+arr_new(JSValue *instance, JSArgs *args, State *state)
+{
+  // TODO
+  return JSARR();
+}
+
 // Array.isArray(obj)
 JSValue *
 arr_is_array(JSValue *instance, JSArgs *args, State *state)
@@ -604,8 +613,7 @@ bootstrap_array()
   // ---------------
 
   // Properties
-  // TODO: causing gc problems (infinite loop when marking)
-  // fh_set(prototype, "constructor", object);
+  BUILTIN(proto, "constructor", JSNFUNC(&arr_new));
   BUILTIN(proto, "length", JSNUM(0));
 
   // Methods
