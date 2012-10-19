@@ -565,7 +565,7 @@ PropertyName             : Identifier
                          ;
 
 RegularExpressionLiteral : REGEXP
-                             { $$ = NEW_REGEXP(NULL); }
+                             { $$ = NEW_REGEXP($1); }
                          ;
                          
                          /* Whether a named function is a declaration or expression is ambiguous
@@ -599,13 +599,13 @@ Identifier               : IDENT
                              { $$ = NEW_IDENT($1); }
                          ;
 
-PrimaryExpression        : THIS                  
+PrimaryExpression        : THIS
                              { $$ = NEW_THIS(); }
-                         | Identifier          
+                         | Identifier
                              { $$ = $1; }
-                         | Literal             
+                         | Literal
                              { $$ = $1; }
-                         | ArrayLiteral        
+                         | ArrayLiteral
                              { $$ = $1; }
                          | '(' Expression ')'  
                              { $$ = $2; }

@@ -85,7 +85,7 @@ L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext);
 [0-9]+\.[0-9]+               { yylval.floatval = atof(yytext); 
                                return TOKEN("FLOAT", FLOAT); }
     /* FIXME: This is very incomplete */
-\/[^\ ]+\/([imgy]{0,4})      { yylval.val = yytext;
+L?\/[^\ \/]+\/([imgy]{0,4})  { yylval.val = yytext;
                                return TOKEN("REGEXP", REGEXP); }
 
     /* COMMENTS */
@@ -119,7 +119,8 @@ L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext);
 ">>>="      return OP(URSHIFTEQ);
 
     /* SINGLE-CHARACTER PUNCTUATORS & OPERATORS */
-[-+()\[\]=*/%<>,.:;?!{}]  return *yytext;
+[-+()\[\]=*/%<>,.:`;?!{}]  { TOKEN("LITERAL", 0); 
+                            return *yytext; }
 
     /* WHITESPACE & TABS */
 [ \t\v\f]   ;
@@ -134,6 +135,8 @@ L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext);
 <<EOF>>     { yycolumn = 0; 
               if (interactive) exit(0);
               return EOF; }
+
+    /* UNKNOWN CHARACTER */
 .           parse_error(yytext);
 
 %%

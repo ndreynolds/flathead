@@ -23,6 +23,7 @@
 #include "props.h"
 #include "nodes.h"
 #include "str.h"
+#include "gc.h"
 
 JSValue * 
 fh_eval(JSValue *ctx, Node *node)
@@ -31,6 +32,7 @@ fh_eval(JSValue *ctx, Node *node)
   switch(node->type) {
     case NODE_BOOL: return JSBOOL(node->val);
     case NODE_STR: return JSSTR(node->sval);
+    case NODE_REGEXP: return JSREGEXP(node->sval);
     case NODE_NUM: return JSNUM(node->val);
     case NODE_NULL: return JSNULL();
     case NODE_FUNC: return JSFUNC(node);
@@ -430,6 +432,9 @@ fh_function_call(JSValue *ctx, State *state, JSValue *func, JSArgs *args)
     return (*native)(func->function.instance, args, state);
   }
 
+  if (IS_UNDEF(ctx) || IS_NULL(ctx)) 
+    ctx = fh_global();
+
   rewind_node(func->function.node);
   JSValue *func_scope = fh_setup_func_env(ctx, func, args);
   return fh_eval(func_scope, func->function.node->e2);
@@ -721,7 +726,7 @@ fh_eq(JSValue *a, JSValue *b, bool strict)
     return JSBOOL(a->number.val == b->number.val);
   }
   // Objects are equal if they occupy the same memory address
-  if (T_BOTH(a, b, T_OBJECT))
+  if (T_BOTH(a, b, T_OBJECT) || T_BOTH(a, b, T_FUNCTION))
     return JSBOOL(a == b);
 
   return fh_eq(TO_NUM(a), TO_NUM(b), false);

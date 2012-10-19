@@ -177,10 +177,10 @@ JSValue *
 str_proto_search(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *regexp = ARG(args, 0);
+  char *pattern = fh_get(regexp, "source")->string.ptr;
 
   int count;
-  char *str = instance->string.ptr;
-  int *matches = fh_regexp(str, regexp->string.ptr, &count);
+  int *matches = fh_regexp(instance->string.ptr, pattern, &count);
 
   if (!matches) 
     return JSNUM(-1);

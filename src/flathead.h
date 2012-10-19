@@ -43,6 +43,7 @@
 #define JSARR()        fh_new_array()
 #define JSFUNC(x)      fh_new_function(x)
 #define JSNFUNC(x)     fh_new_native_function(x)
+#define JSREGEXP(x)    fh_new_regexp(x)
 #define JSNUMKEY(x)    fh_cast(JSNUM((x)), T_STRING)
 
 #define IS_STR(x)      ((x)->type == T_STRING)
@@ -154,6 +155,7 @@ struct JSBoolean {
 struct JSObject {
   int length;
   bool is_array;
+  bool is_regexp;
   bool frozen;
   bool sealed;
   bool extensible;
@@ -202,6 +204,7 @@ JSValue * fh_new_object();
 JSValue * fh_new_array();
 JSValue * fh_new_function(struct Node *);
 JSValue * fh_new_native_function(JSNativeFunction);
+JSValue * fh_new_regexp(char *);
 JSValue * fh_get_arg(JSArgs *, int);
 JSArgs * fh_new_args(JSValue *, JSValue *, JSValue *);
 JSProp * fh_new_prop(JSPropFlags);

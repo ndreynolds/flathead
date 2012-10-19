@@ -31,8 +31,28 @@ regexp_proto_test(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 regexp_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *pattern = fh_get_proto(instance, "source"),
+          *g = fh_get_proto(instance, "global"),
+          *i = fh_get_proto(instance, "ignoreCase"),
+          *m = fh_get_proto(instance, "multiline"),
+          *y = fh_get_proto(instance, "sticky");
+
+  size_t size = strlen(pattern->string.ptr) + 7; // space for 2 slashes and imgy
+  char *new = malloc(size);
+  snprintf(
+    new,
+    size,
+    "/%s/%s%s%s%s",
+    pattern->string.ptr,
+    g->boolean.val ? "g" : "",
+    i->boolean.val ? "i" : "",
+    m->boolean.val ? "m" : "",
+    y->boolean.val ? "y" : ""
+  );
+
+  JSValue *res = JSSTR(new);
+  free(new);
+  return res;
 }
 
 JSValue *
@@ -58,6 +78,7 @@ bootstrap_regexp()
   BUILTIN(prototype, "lastIndex", JSBOOL(0));
   BUILTIN(prototype, "multiline", JSBOOL(0));
   BUILTIN(prototype, "source", JSSTR(""));
+  BUILTIN(prototype, "sticky", JSBOOL(0));
 
   // Methods
   BUILTIN(prototype, "exec", JSNFUNC(&regexp_proto_exec));

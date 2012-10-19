@@ -43,6 +43,8 @@ var thisValue = { x: 24 };
 
 assertEquals(6, add.call(this, 1, 2, 3));
 assertEquals(21, fib.call(this, 8));
+assertEquals(21, fib.call(null, 8));
+assertEquals(21, fib.call(undefined, 8));
 assertEquals(42, getX());
 assertEquals(24, getX.call(thisValue));
 assertThis.call(this, this);
@@ -53,6 +55,8 @@ assertThis.call(thisValue, thisValue);
 
 assertEquals(6, add.apply(this, [1, 2, 3]));
 assertEquals(21, fib.apply(this, [8]));
+assertEquals(21, fib.apply(null, [8]));
+assertEquals(21, fib.apply(undefined, [8]));
 assertEquals(24, getX.apply(thisValue, []));
 assertThis.apply(this, [this]);
 assertThis.apply(thisValue, [thisValue]);

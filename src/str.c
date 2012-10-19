@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "str.h"
 
@@ -35,7 +36,7 @@ fh_str_concat(char *a, char *b)
 char *
 fh_str_slice(char *str, int start, int end)
 {
-  int size = end - start + 1;
+  size_t size = end - start + 1;
   char *new = malloc(size);
   snprintf(new, size, "%.*s", end - start, str + start);
   return new;

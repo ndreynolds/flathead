@@ -19,6 +19,7 @@
 #include "flathead.h"
 #include "props.h"
 #include "debug.h"
+#include "str.h"
 #include "gc.h"
 
 
@@ -30,9 +31,11 @@ JSValue *
 fh_new_val(JSType type)
 {
   JSValue *val = fh_malloc(true);
+
   val->type = type;
   val->signal = S_NONE;
   val->proto = NULL;
+
   return val;
 }
 
@@ -40,11 +43,13 @@ JSValue *
 fh_new_number(double x, bool is_nan, bool is_inf, bool is_neg)
 {
   JSValue *val = fh_new_val(T_NUMBER);
+
   val->number.val = x;
   val->number.is_nan = is_nan;
   val->number.is_inf = is_inf;
   val->number.is_neg = is_neg;
   val->proto = fh_try_get_proto("Number");
+
   return val;
 }
 
@@ -52,10 +57,12 @@ JSValue *
 fh_new_string(char *x)
 {
   JSValue *val = fh_new_val(T_STRING);
+
   val->string.ptr = malloc((strlen(x) + 1) * sizeof(char));
   strcpy(val->string.ptr, x);
   val->string.length = strlen(x);
   val->proto = fh_try_get_proto("String");
+
   return val;
 }
 
@@ -63,8 +70,10 @@ JSValue *
 fh_new_boolean(bool x)
 {
   JSValue *val = fh_new_val(T_BOOLEAN);
+
   val->boolean.val = x;
   val->proto = fh_try_get_proto("Boolean");
+
   return val;
 }
 
@@ -74,27 +83,26 @@ fh_new_object()
   JSValue *val = fh_new_val(T_OBJECT);
 
   val->object.map = NULL;
-
   val->object.length = 0;
   val->object.is_array = false;
   val->object.frozen = false;
   val->object.sealed = false;
   val->object.extensible = false;
-
   val->proto = fh_try_get_proto("Object");
+
   return val;
 }
 
 JSValue *
 fh_new_array()
 {
-  JSValue *arr = fh_new_object();
+  JSValue *val = fh_new_object();
 
-  arr->object.is_array = true;
-  arr->proto = fh_try_get_proto("Array");
+  val->object.is_array = true;
+  val->proto = fh_try_get_proto("Array");
+  fh_arr_set_len(val, 0);
 
-  fh_arr_set_len(arr, 0);
-  return arr;
+  return val;
 }
 
 JSValue *
@@ -121,6 +129,33 @@ fh_new_native_function(JSNativeFunction func)
   val->function.is_generator = false;
   val->function.native = func;
   val->function.instance = NULL;
+  val->proto = fh_try_get_proto("Function");
+
+  return val;
+}
+
+JSValue *
+fh_new_regexp(char *re)
+{
+  JSValue *val = fh_new_val(T_OBJECT);
+
+  val->object.is_regexp = true;
+  val->proto = fh_try_get_proto("RegExp");
+
+  // Process the trailing options: re = /pattern/[imgy]{0,4}
+  int i = strlen(re) - 1;
+  while (re[i] != '/' && i > 0) {
+    switch(re[i]) {
+      case 'g': fh_set(val, "global", JSBOOL(1)); break;
+      case 'i': fh_set(val, "ignoreCase", JSBOOL(1)); break;
+      case 'm': fh_set(val, "multiline", JSBOOL(1)); break;
+      case 'y': fh_set(val, "sticky", JSBOOL(1)); break;
+    }
+    i--;
+  }
+
+  // Store the inner pattern 
+  fh_set(val, "source", JSSTR(fh_str_slice(re, 1, i)));
 
   return val;
 }
