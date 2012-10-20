@@ -210,6 +210,7 @@ JSArgs * fh_new_args(JSValue *, JSValue *, JSValue *);
 JSProp * fh_new_prop(JSPropFlags);
 State * fh_new_state(int, int);
 
+JSValue * fh_eval_file(FILE *, JSValue *, int);
 JSValue * fh_try_get_proto(char *);
 JSValue * fh_cast(JSValue *, JSType);
 JSValue * fh_has_instance(JSValue *, JSValue *);
@@ -218,5 +219,9 @@ char * fh_typeof(JSValue *);
 void fh_arr_set_len(JSValue *, int);
 void fh_error(State *, JSErrorType, const char *, ...);
 int fh_arg_len(JSArgs*);
+
+extern int fh_opt_interactive;
+extern int fh_opt_print_ast;
+extern int fh_opt_print_tokens;
 
 #endif

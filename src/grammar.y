@@ -24,6 +24,7 @@
   #include <getopt.h>
   #include <readline/readline.h>
   #include <readline/history.h>
+  #include "src/flathead.h"
   #include "src/nodes.h"
   #include "src/eval.h"
   #include "src/runtime/runtime.h"
@@ -92,15 +93,17 @@
   #define NEW_WITH(exp,stmt)         NEW_NODE(NODE_WITH_STMT,exp,stmt,0,0,0)
 
   void yyerror(const char *);
+  void yyrestart(FILE *);
   int yylex(void);
   int yydebug;
-  bool interactive = false;
-  int print_tokens = 0;
   FILE *yyin;
   int fh_get_input(char *, int);
   Node *root;
   State *state;
 
+  int fh_opt_interactive  = 0;
+  int fh_opt_print_tokens = 0;
+  int fh_opt_print_ast    = 0;
 %}
 
 %error-verbose
@@ -909,13 +912,13 @@ int
 fh_get_input(char *buf, int size)
 {
   // For the REPL:
-  if (interactive) {
+  if (fh_opt_interactive) {
     char *line;
     line = readline("> ");
     if (!line)
       return 0;
     if (strlen(line) > size - 3) {
-      fh_error(state, E_ERROR, "input line too long");
+      fh_error(NULL, E_ERROR, "input line too long");
       return 0;
     }
     strcpy(buf, line);
@@ -936,18 +939,40 @@ fh_get_input(char *buf, int size)
   return strlen(buf);
 }
 
+JSValue *
+fh_eval_file(FILE *file, JSValue *ctx, int is_repl)
+{
+  // This may be called during evaluation, so we need
+  // to keep track of the globals.
+  Node *root_ = root;
+  int interactive_ = fh_opt_interactive;
+  fh_opt_interactive = is_repl;
+
+  yyrestart(file);
+  yyparse();
+
+  if (fh_opt_print_ast) 
+    print_node(root, true, 0);
+
+  JSValue *res = fh_eval(ctx, root);
+
+  // Reset the originals
+  root = root_;
+  fh_opt_interactive = interactive_;
+
+  return res;
+}
+
 int
 main(int argc, char **argv)
 {
-  static int print_ast = 0;
-
   int c = 0, fakeind = 0, optind = 1;
   static struct option long_options[] = {
     {"version", no_argument, NULL, 'v'},
     {"help", no_argument, NULL, 'h'},
     {"interactive", no_argument, NULL, 'i'},
-    {"nodes", no_argument, &print_ast, 'n'},
-    {"tokens", no_argument, &print_tokens, 't'},
+    {"nodes", no_argument, NULL, 'n'},
+    {"tokens", no_argument, NULL, 't'},
     {NULL, 0, NULL, 0}
   };
 
@@ -956,36 +981,32 @@ main(int argc, char **argv)
       case 0: break;
       case 'v': print_version(); return 0;
       case 'h': print_help(); return 0;
-      case 'i': interactive = true; break;
-      case 'n': print_ast = true; break;
-      case 't': print_tokens = true; break;
+      case 'i': fh_opt_interactive = true; break;
+      case 'n': fh_opt_print_ast = true; break;
+      case 't': fh_opt_print_tokens = true; break;
       default: break;
     }
     optind++;
   }
 
+  FILE *source;
   if (optind < argc)
-    yyin = fopen(argv[optind], "r");
-  else if (!isatty(fileno(stdin)) && !interactive)
-    yyin = stdin;
+    source = fopen(argv[optind], "r");
+  else if (!isatty(fileno(stdin)) && !fh_opt_interactive)
+    source = stdin;
   else 
-    interactive = true;
+    fh_opt_interactive = true;
 
   // Bootstrap our runtime
   JSValue *global = fh_bootstrap();
 
   // We can operate as a REPL or in file/stdin mode.
-  if (interactive) {
+  if (fh_opt_interactive) {
     print_startup();
-    while(true) {
-      yyparse();
-      if (print_ast) print_node(root, true, 0);
-      DEBUG(fh_eval(global, root));
-    }
+    while(true)
+      DEBUG(fh_eval_file(source, global, true));
   } else {
-    yyparse();
-    if (print_ast) print_node(root, true, 0);
-    fh_eval(global, root);
+    fh_eval_file(source, global, false);
   }
 
   return 0;

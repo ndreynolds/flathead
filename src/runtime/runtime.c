@@ -90,6 +90,21 @@ global_gc(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
+// load(filename)
+//
+// Custom Flathead function. Execute the given file in the 
+// global scope. Parsing and evaluation occur at runtime.
+JSValue *
+global_load(JSValue *instance, JSArgs *args, State *state)
+{
+  JSValue *name = TO_STR(ARG(args, 0));
+
+  FILE *file = fopen(name->string.ptr, "r");
+  fh_eval_file(file, fh_global(), false);
+
+  return JSUNDEF();
+}
+
 JSValue *
 fh_bootstrap()
 {
@@ -115,6 +130,7 @@ fh_bootstrap()
   fh_set(global, "parseInt", JSNFUNC(&global_parse_int));
   fh_set(global, "parseFloat", JSNFUNC(&global_parse_float));
   fh_set(global, "eval", JSNFUNC(&global_eval));
+  fh_set(global, "load", JSNFUNC(&global_load));
   fh_set(global, "undefined", JSUNDEF());
   fh_set(global, "this", global);
 

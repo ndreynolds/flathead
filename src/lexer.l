@@ -17,13 +17,12 @@
  */
 
 %{
+  #include "src/flathead.h"
   #include "y.tab.h"
   #include <stdlib.h>
   void parse_error(char *);
   int yycolumn = 1;
   void yyuseraction(void);
-  int interactive;
-  int print_tokens;
   char * fh_extract_string(char *);
   int fh_get_input(char *, int);
   int fh_token(char *, int);
@@ -129,11 +128,11 @@ L?\/[^\ \/]+\/([imgy]{0,4})  { yylval.val = yytext;
 \n          { yycolumn = 0; 
               yytext = NULL;
               TOKEN("NEWLINE", 0);
-              if (interactive) return EOF; }
+              if (fh_opt_interactive) return EOF; }
 
     /* END OF FILE */
 <<EOF>>     { yycolumn = 0; 
-              if (interactive) exit(0);
+              if (fh_opt_interactive) exit(0);
               return EOF; }
 
     /* UNKNOWN CHARACTER */
@@ -169,7 +168,7 @@ yyuseraction(void)
 int
 fh_token(char *name, int token)
 {
-  if (print_tokens) {
+  if (fh_opt_print_tokens) {
     if (yytext)
       printf("(%s %s)\n", name, yytext);
     else
