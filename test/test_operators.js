@@ -89,6 +89,8 @@ assert(null !== undefined);
 assert(NaN != NaN && NaN !== NaN);
 assert(Infinity == Infinity && Infinity === Infinity);
 assert(2 == '2' && 2 !== '2');
+assert([] != null);
+assert({} != null);
 
 assert('' != '0');
 assert(0 == '');

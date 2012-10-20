@@ -41,3 +41,34 @@ var getIndex = function() {
 var a4 = ['a', 'b', 'c', 'd'];
 assertEquals('c', a4[4 - 2]);
 assertEquals('b', a4[getIndex()]);
+
+
+// ----------------------------------------------------------------------------
+// Bracket Assignment
+// ----------------------------------------------------------------------------
+
+// Easy stuff
+
+var a5 = [];
+
+a5[0] = 10;
+a5[1] = 20;
+a5[2] = 30;
+a5[3] = 40;
+
+assert(a5.length === 4);
+assert(a5[0] === 10);
+assert(a5[1] === 20);
+assert(a5[2] === 30);
+assert(a5[3] === 40);
+
+// Indices do not need to be assigned in order (or at all)
+
+var a6 = [];
+
+a6[12] = 42;
+a6[10002] = 'hello';
+
+assert(a6.length === 10003);
+assert(a6[12] === 42);
+assert(a6[10002] === 'hello');

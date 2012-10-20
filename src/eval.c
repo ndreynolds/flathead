@@ -35,7 +35,7 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_REGEXP: return JSREGEXP(node->sval);
     case NODE_NUM: return JSNUM(node->val);
     case NODE_NULL: return JSNULL();
-    case NODE_FUNC: return JSFUNC(node);
+    case NODE_FUNC: return fh_func(ctx, node);
     case NODE_OBJ: return fh_obj(ctx, node);
     case NODE_ARR: return fh_arr(ctx, node);
     case NODE_CALL: return fh_call(ctx, node);
@@ -117,8 +117,17 @@ fh_stmt_lst(JSValue *ctx, Node *node)
 
 
 // ----------------------------------------------------------------------------
-// Object & Array Literals
+// Functions and Object & Array Literals
 // ----------------------------------------------------------------------------
+
+JSValue *
+fh_func(JSValue *ctx, Node *node)
+{
+  JSValue *func = JSFUNC(node);
+  // TODO: figure this out
+  // func->function.closure = ctx;
+  return func;
+}
 
 JSValue *
 fh_obj(JSValue *ctx, Node *node)
@@ -202,7 +211,12 @@ fh_assign(JSValue *ctx, Node *node)
     ctx = member->e2->type == NODE_MEMBER ?
       fh_member(ctx, member->e2) :
       fh_get(ctx, fh_str_from_node(ctx, member->e2)->string.ptr);
-    key = member->e1->sval;
+    if (IS_ARR(ctx) && member->e1->type == NODE_NUM) {
+      int val = member->e1->val;
+      if (val >= ctx->object.length)
+        fh_arr_set_len(ctx, val + 1);
+    }
+    key = fh_str_from_node(ctx, member->e1)->string.ptr;
   }
     
   fh_do_assign(ctx, key, val, node->sval);
@@ -303,6 +317,7 @@ fh_return(JSValue *ctx, Node *node)
   JSValue *result = node->e1 ? fh_eval(ctx, node->e1) : JSUNDEF();
   if (result->type == T_FUNCTION) 
     result->function.closure = ctx;
+  result->signal = S_BREAK;
   return result;
 }
 
@@ -710,6 +725,7 @@ fh_eq(JSValue *a, JSValue *b, bool strict)
 
   // false != null
   if (T_XOR(a, b, T_NULL, T_BOOLEAN)) return JSBOOL(0);
+  if (T_XOR(a, b, T_NULL, T_OBJECT)) return JSBOOL(0);
   if (T_XOR(a, b, T_UNDEF, T_NULL)) return JSBOOL(1);
   if (T_BOTH(a, b, T_NULL) || T_BOTH(a, b, T_UNDEF)) return JSBOOL(1);
   if (T_BOTH(a, b, T_STRING))

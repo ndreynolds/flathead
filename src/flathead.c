@@ -366,7 +366,7 @@ JSValue *
 fh_has_property(JSValue *obj, char *prop)
 {
   JSValue *val = fh_get_proto(obj, prop);
-  return JSBOOL(val->type != T_UNDEF);
+  return JSBOOL(!IS_UNDEF(val));
 }
 
 JSValue *

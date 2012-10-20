@@ -3,7 +3,9 @@
 
 var assert = console.assert;
 
+
 // Return a function, no accessing outer scope vars. (easy mode)
+
 var f1 = function() {
   return function() {
     return 42;
@@ -13,7 +15,9 @@ var f1 = function() {
 var f2 = f1();
 assert(f2() === 42);
 
+
 // Return a function, access outer scope vars.
+
 var f3 = function() {
   var x = "vuvuzela";
   return function() {
@@ -24,7 +28,9 @@ var f3 = function() {
 var f4 = f3();
 assert(f4() === "vuvuzela");
 
+
 // Return a function, modify outer scope vars.
+
 var f5 = function() {
   var y = 1;
   return function() {
@@ -37,7 +43,9 @@ assert(f6() === 2);
 assert(f6() === 3);
 assert(f6() === 4);
 
+
 // Return an object of functions, assert they ref the same values. (hard mode)
+
 var f7 = function() {
   var z = 10;
   return {
@@ -54,3 +62,19 @@ var funcs = f7();
 // TODO: Gonna let this pass for now.
 //assert(funcs.a() == 9);
 //assert(funcs.b() == 9);
+
+
+// Call with a function, access its outer scope.
+
+var f8 = function(f) {
+  return f();
+};
+
+(function(outerParam) {
+  var outer = 99;
+  var result = f8(function() {
+    return outer + outerParam;
+  });
+  assert(result === 100);
+})(1);
+

@@ -373,7 +373,6 @@ arr_proto_filter(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
   JSValue *ctx = ARG(args, 1);
-  if (IS_UNDEF(ctx)) ctx = state->ctx;
   JSValue *filtered = JSARR();
   int len = instance->object.length;
 
@@ -401,7 +400,6 @@ arr_proto_for_each(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
   JSValue *ctx = ARG(args, 1);
-  if (IS_UNDEF(ctx)) ctx = state->ctx;
   int len = instance->object.length;
 
   JSValue *key, *val;
@@ -423,7 +421,6 @@ arr_proto_every(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
   JSValue *ctx = ARG(args, 1);
-  if (IS_UNDEF(ctx)) ctx = state->ctx;
   int len = instance->object.length;
 
   JSValue *key, *val, *result;
@@ -447,7 +444,6 @@ arr_proto_map(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
   JSValue *ctx = ARG(args, 1);
-  if (IS_UNDEF(ctx)) ctx = state->ctx;
   int len = instance->object.length;
   JSValue *map = JSARR();
 
@@ -472,7 +468,6 @@ arr_proto_some(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
   JSValue *ctx = ARG(args, 1);
-  if (IS_UNDEF(ctx)) ctx = state->ctx;
   int len = instance->object.length;
 
   JSValue *key, *val, *result;
