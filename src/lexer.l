@@ -40,6 +40,11 @@
 %option nounput
 %option noinput
 
+D            [0-9]
+H            [a-fA-F0-9]
+E            [Ee][+-]?{D}+
+
+
 %%
 
     /* KEYWORDS (reserved words) */
@@ -79,10 +84,13 @@ L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext);
                                return TOKEN("STR", STRING); } 
 [_\$A-Za-z][_\$0-9A-Za-z]*   { yylval.val = yytext; 
                                return TOKEN("IDENT", IDENT); }
-[0-9]+                       { yylval.intval = atoi(yytext); 
-                               return TOKEN("INT", INTEGER); }
-[0-9]+\.[0-9]+               { yylval.floatval = atof(yytext); 
-                               return TOKEN("FLOAT", FLOAT); }
+{D}+({E})?                   { yylval.floatval = atof(yytext); 
+                               return TOKEN("INT", NUMBER); }
+0[xX]{H}+                    { yylval.floatval = atof(yytext);
+                               return TOKEN("HEX", NUMBER); }
+{D}+\.{D}+({E})?             { yylval.floatval = atof(yytext); 
+                               return TOKEN("FLOAT", NUMBER); }
+
     /* FIXME: This is very incomplete */
 L?\/[^\ \/]+\/([imgy]{0,4})  { yylval.val = yytext;
                                return TOKEN("REGEXP", REGEXP); }

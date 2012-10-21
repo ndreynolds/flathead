@@ -112,8 +112,7 @@
 
 /* LITERALS */
 
-%token<floatval> FLOAT
-%token<intval> INTEGER
+%token<floatval> NUMBER
 %token<val> IDENT STRING REGEXP TRUE FALSE
 
 
@@ -181,8 +180,6 @@
 %type<node> EmptyStatement
 %type<node> EqualityExpression
 %type<node> EqualityExpressionNoIn
-%type<node> ExponentIndicator
-%type<node> ExponentPart
 %type<node> Expression
 %type<node> ExpressionNoIn
 %type<node> ExpressionStatement
@@ -518,27 +515,8 @@ NullLiteral              : NULLT
                              { $$ = NEW_NULL(); }
                          ;
 
-NumericLiteral           : FLOAT ExponentPart
-                             { $$ = NEW_NUM(pow($1, $2->val)); }
-                         | INTEGER ExponentPart
-                             { $$ = NEW_NUM(pow($1, $2->val)); }
-                         | INTEGER               
-                             { $$ = NEW_NUM((double)$1); }
-                         | FLOAT               
+NumericLiteral           : NUMBER
                              { $$ = NEW_NUM($1); }
-
-ExponentPart             : ExponentIndicator INTEGER
-                             { $$ = NEW_NUM($2); }
-                         | ExponentIndicator '+' INTEGER
-                             { $$ = NEW_NUM($3); }
-                         | ExponentIndicator '-' INTEGER
-                             { $$ = NEW_NUM(-1 * $3); }
-                         ;
-
-ExponentIndicator        : 'e'
-                            { $$ = NULL; }
-                         | 'E'
-                            { $$ = NULL; }
                          ;
 
 ObjectLiteral            : '{' '}'                                
