@@ -42,7 +42,9 @@ ifeq ($(gcexpose), on)
   CFLAGS += -Dfh_gc_expose
 endif
 
-ifneq ($(readline), off)
+ifeq ($(readline), off)
+  CFLAGS += -Dfh_no_repl
+else
   CFLAGS += -lreadline
 endif
 
