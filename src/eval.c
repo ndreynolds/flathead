@@ -39,6 +39,7 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_OBJ: return fh_obj(ctx, node);
     case NODE_ARR: return fh_arr(ctx, node);
     case NODE_CALL: return fh_call(ctx, node);
+    case NODE_NEW: return fh_new_exp(ctx, node->e1);
     case NODE_MEMBER: return fh_member(ctx, node);
     case NODE_IDENT: return fh_get_rec(ctx, node->sval);
     case NODE_BLOCK: return fh_eval(ctx, node->e1);
@@ -113,6 +114,43 @@ fh_stmt_lst(JSValue *ctx, Node *node)
       return result;
   }
   return result ? result : JSUNDEF();
+}
+
+
+// ----------------------------------------------------------------------------
+// Constructors
+// ----------------------------------------------------------------------------
+
+JSValue *
+fh_new_exp(JSValue *ctx, Node *exp)
+{
+  JSValue *ctr;
+  JSArgs *args;
+  if (exp->e1->type == NODE_MEMBER) {
+    ctr = fh_eval(ctx, exp->e1->e1);
+    args = fh_build_args(ctx, exp->e1->e2);
+  }
+  else {
+    ctr = fh_eval(ctx, exp);
+    args = fh_new_args(0, 0, 0);
+  }
+
+  State *state = fh_new_state(exp->line, exp->column);
+  state->construct = true;
+
+  if (!IS_FUNC(ctr)) {
+    fh_error(state, E_TYPE, "%s is not a function", fh_typeof(ctr));
+  }
+
+  JSValue *res,
+          *obj = JSOBJ(),
+          *proto = fh_get(ctr, "prototype");
+
+  if (IS_OBJ(proto))
+    obj->proto = proto;
+
+  res = fh_function_call(ctx, obj, state, ctr, args); 
+  return IS_OBJ(res) ? res : obj;
 }
 
 
@@ -417,10 +455,10 @@ fh_call(JSValue *ctx, Node *call)
   JSArgs *args = fh_build_args(ctx, call->e2);
 
   // Check for a bound this (see Function#bind)
-  if (maybe_func->function.bound_this)
-    ctx = maybe_func->function.bound_this;
+  JSValue *this = maybe_func->function.bound_this ? 
+    maybe_func->function.bound_this : ctx;
 
-  return fh_function_call(ctx, state, maybe_func, args);
+  return fh_function_call(ctx, this, state, maybe_func, args);
 }
 
 JSArgs *
@@ -439,24 +477,28 @@ fh_build_args(JSValue *ctx, Node *args_node)
 }
 
 JSValue *
-fh_function_call(JSValue *ctx, State *state, JSValue *func, JSArgs *args)
+fh_function_call(JSValue *ctx, JSValue *this, State *state, 
+                 JSValue *func, JSArgs *args)
 {
+  if (IS_UNDEF(this) || IS_NULL(this)) 
+    this = fh_global();
+
+  state->ctx = ctx;
+  state->this = this;
+
   if (func->function.is_native) {
     // Native functions are C functions referenced by pointer.
     JSNativeFunction native = func->function.native;
     return (*native)(func->function.instance, args, state);
   }
 
-  if (IS_UNDEF(ctx) || IS_NULL(ctx)) 
-    ctx = fh_global();
-
   rewind_node(func->function.node);
-  JSValue *func_scope = fh_setup_func_env(ctx, func, args);
+  JSValue *func_scope = fh_setup_func_env(ctx, this, func, args);
   return fh_eval(func_scope, func->function.node->e2);
 }
 
 JSValue *
-fh_setup_func_env(JSValue *ctx, JSValue *func, JSArgs *args)
+fh_setup_func_env(JSValue *ctx, JSValue *this, JSValue *func, JSArgs *args)
 {
   JSValue *arguments = JSOBJ();
   Node *func_node = func->function.node;
@@ -464,7 +506,7 @@ fh_setup_func_env(JSValue *ctx, JSValue *func, JSArgs *args)
 
   scope->object.parent = ctx;
 
-  fh_set(scope, "this", ctx);
+  fh_set(scope, "this", this);
   fh_set(scope, "arguments", arguments);
 
   // Add the function name as ref to itself (if it has a name)

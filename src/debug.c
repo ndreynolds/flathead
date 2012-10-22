@@ -27,7 +27,7 @@
 void
 fh_debug_obj(FILE *stream, JSValue *obj, int indent)
 {
-  if (HASH_COUNT(obj->object.map) == 0) {
+  if (HASH_COUNT(obj->map) == 0) {
     fprintf(stream, "{}");
     return;
   }
@@ -58,14 +58,14 @@ fh_debug_obj(FILE *stream, JSValue *obj, int indent)
 void
 fh_debug_arr(FILE *stream, JSValue *arr, int indent)
 {
-  if (HASH_COUNT(arr->object.map) == 0) {
+  if (HASH_COUNT(arr->map) == 0) {
     fprintf(stream, "[]");
     return;
   }
   bool first = true;
   JSProp *x, *tmp;
   fprintf(stream, "[ ");
-  HASH_ITER(hh, arr->object.map, x, tmp) {
+  HASH_ITER(hh, arr->map, x, tmp) {
     if (!first) 
       fprintf(stream, ", ");
     else if (x->enumerable)

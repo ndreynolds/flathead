@@ -10,6 +10,7 @@ var assert = console.assert;
 // ----------------------------------------------------------------------------
 
 assert(String);
+assert(typeof String === 'function');
 
 assert(String.fromCharCode);
 

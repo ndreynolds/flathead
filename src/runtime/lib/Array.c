@@ -115,9 +115,9 @@ arr_proto_sort(JSValue *instance, JSArgs *args, State *state)
   /*
   arr_compare_func = ARG(args, 0);
   if (arr_compare_func)
-    HASH_SORT(instance->object.map, arr_custom_sort);
+    HASH_SORT(instance->map, arr_custom_sort);
   else
-    HASH_SORT(instance->object.map, arr_lex_sort);
+    HASH_SORT(instance->map, arr_lex_sort);
 
   JSProp *p;
   int i = 0;
@@ -180,10 +180,10 @@ arr_proto_splice(JSValue *instance, JSArgs *args, State *state)
 
   // We're doing a hotswap of the keepers hash into the instance array.  
   // Still technically mutates the instance array (its pointer hasn't changed)
-  instance->object.map = keepers->object.map;
+  instance->map = keepers->map;
 
   // GC will take the hash if we don't remove the reference.
-  keepers->object.map = NULL;
+  keepers->map = NULL;
 
   fh_arr_set_len(instance, k);
   fh_arr_set_len(rejects, j);
@@ -214,8 +214,8 @@ arr_proto_unshift(JSValue *instance, JSArgs *args, State *state)
   }
 
   // Replace the map into our instance.
-  instance->object.map = newarr->object.map;
-  newarr->object.map = NULL;
+  instance->map = newarr->map;
+  newarr->map = NULL;
 
   fh_arr_set_len(instance, i);
   return JSNUM(i);
@@ -367,12 +367,12 @@ arr_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
   return JSNUM(-1);
 }
 
-// Array.prototype.filter(callback[, ctx])
+// Array.prototype.filter(callback[, thisArg])
 JSValue *
 arr_proto_filter(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
-  JSValue *ctx = ARG(args, 1);
+  JSValue *this = ARG(args, 1);
   JSValue *filtered = JSARR();
   int len = instance->object.length;
 
@@ -383,7 +383,7 @@ arr_proto_filter(JSValue *instance, JSArgs *args, State *state)
     ikey = JSNUMKEY(i);
     val = fh_get(instance, ikey->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
-    result = fh_function_call(ctx, state, callback, cbargs);
+    result = fh_function_call(state->ctx, this, state, callback, cbargs);
     if (TO_BOOL(result)->boolean.val) {
       jkey = JSNUMKEY(j++);
       fh_set(filtered, jkey->string.ptr, fh_get(instance, ikey->string.ptr));
@@ -394,12 +394,12 @@ arr_proto_filter(JSValue *instance, JSArgs *args, State *state)
   return filtered;
 }
 
-// Array.prototype.forEach(callback[, ctx])
+// Array.prototype.forEach(callback[, thisArg])
 JSValue *
 arr_proto_for_each(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
-  JSValue *ctx = ARG(args, 1);
+  JSValue *this = ARG(args, 1);
   int len = instance->object.length;
 
   JSValue *key, *val;
@@ -409,18 +409,18 @@ arr_proto_for_each(JSValue *instance, JSArgs *args, State *state)
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
-    fh_function_call(ctx, state, callback, cbargs);
+    fh_function_call(state->ctx, this, state, callback, cbargs);
   }
 
   return JSUNDEF();
 }
 
-// Array.prototype.every(callback[, ctx])
+// Array.prototype.every(callback[, thisArg])
 JSValue *
 arr_proto_every(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
-  JSValue *ctx = ARG(args, 1);
+  JSValue *this = ARG(args, 1);
   int len = instance->object.length;
 
   JSValue *key, *val, *result;
@@ -430,7 +430,7 @@ arr_proto_every(JSValue *instance, JSArgs *args, State *state)
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
-    result = fh_function_call(ctx, state, callback, cbargs);
+    result = fh_function_call(state->ctx, this, state, callback, cbargs);
     if (!TO_BOOL(result)->boolean.val)
       return JSBOOL(0);
   }
@@ -438,12 +438,12 @@ arr_proto_every(JSValue *instance, JSArgs *args, State *state)
   return JSBOOL(1);
 }
 
-// Array.prototype.map(callback[, ctx])
+// Array.prototype.map(callback[, thisArg])
 JSValue *
 arr_proto_map(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
-  JSValue *ctx = ARG(args, 1);
+  JSValue *this = ARG(args, 1);
   int len = instance->object.length;
   JSValue *map = JSARR();
 
@@ -454,7 +454,7 @@ arr_proto_map(JSValue *instance, JSArgs *args, State *state)
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
-    result = fh_function_call(ctx, state, callback, cbargs);
+    result = fh_function_call(state->ctx, this, state, callback, cbargs);
     fh_set(map, key->string.ptr, result);
   }
 
@@ -462,12 +462,12 @@ arr_proto_map(JSValue *instance, JSArgs *args, State *state)
   return map;
 }
 
-// Array.prototype.some(callback[, ctx])
+// Array.prototype.some(callback[, thisArg])
 JSValue *
 arr_proto_some(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
-  JSValue *ctx = ARG(args, 1);
+  JSValue *this = ARG(args, 1);
   int len = instance->object.length;
 
   JSValue *key, *val, *result;
@@ -477,7 +477,7 @@ arr_proto_some(JSValue *instance, JSArgs *args, State *state)
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
-    result = fh_function_call(ctx, state, callback, cbargs);
+    result = fh_function_call(state->ctx, this, state, callback, cbargs);
     if (TO_BOOL(result)->boolean.val)
       return JSBOOL(1);
   }
@@ -491,7 +491,6 @@ arr_proto_reduce(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
   JSValue *reduction = ARG(args, 1);
-  JSValue *ctx = state->ctx;
   int len = instance->object.length;
   int i = 0;
 
@@ -506,7 +505,7 @@ arr_proto_reduce(JSValue *instance, JSArgs *args, State *state)
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(reduction, val, JSNUM(i));
-    reduction = fh_function_call(ctx, state, callback, cbargs);
+    reduction = fh_function_call(state->ctx, JSUNDEF(), state, callback, cbargs);
   }
 
   return reduction;
@@ -518,7 +517,6 @@ arr_proto_reduce_right(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *callback = ARG(args, 0);
   JSValue *reduction = ARG(args, 1);
-  JSValue *ctx = state->ctx;
   int len = instance->object.length;
   int i = len - 1;
 
@@ -533,7 +531,7 @@ arr_proto_reduce_right(JSValue *instance, JSArgs *args, State *state)
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(reduction, val, JSNUM(i));
-    reduction = fh_function_call(ctx, state, callback, cbargs);
+    reduction = fh_function_call(state->ctx, JSUNDEF(), state, callback, cbargs);
   }
 
   return reduction;
@@ -592,7 +590,7 @@ arr_do_join(JSValue *arr, JSValue *sep)
 JSValue *
 bootstrap_array()
 {
-  JSValue *array = JSOBJ();
+  JSValue *array = JSNFUNC(&arr_new);
   JSValue *proto = JSARR();
 
   // Array

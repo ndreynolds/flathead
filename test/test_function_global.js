@@ -11,6 +11,7 @@ var assertEquals = function(a, b) { assert(a === b); };
 // ----------------------------------------------------------------------------
 
 assert(Function);
+assert(typeof Function === 'function');
 
 
 // ----------------------------------------------------------------------------
@@ -18,6 +19,10 @@ assert(Function);
 // ----------------------------------------------------------------------------
 
 assert(Function.prototype);
+
+x = 42;
+var y = 99;
+var thisValue = { x: 24, y: 33 };
 
 function add(a, b, c) {
   return a + b + c;
@@ -31,12 +36,14 @@ function getX() {
   return this.x;
 }
 
+function getY() {
+  return y;
+}
+
+// Test the this value
 function assertThis(test) {
   assert(this === test);
 }
-
-x = 42;
-var thisValue = { x: 24 };
 
 
 // Function.prototype.call(thisValue[, arg1[, arg2[, ...]]])
@@ -46,7 +53,10 @@ assertEquals(21, fib.call(this, 8));
 assertEquals(21, fib.call(null, 8));
 assertEquals(21, fib.call(undefined, 8));
 assertEquals(42, getX());
+// Test dynamic this
 assertEquals(24, getX.call(thisValue));
+// Verify that lexical scoping still works when changing dynamic this.
+assertEquals(99, getY.call(thisValue));
 assertThis.call(this, this);
 assertThis.call(thisValue, thisValue);
 
@@ -58,6 +68,7 @@ assertEquals(21, fib.apply(this, [8]));
 assertEquals(21, fib.apply(null, [8]));
 assertEquals(21, fib.apply(undefined, [8]));
 assertEquals(24, getX.apply(thisValue, []));
+assertEquals(99, getY.call(thisValue));
 assertThis.apply(this, [this]);
 assertThis.apply(thisValue, [thisValue]);
 
@@ -66,4 +77,6 @@ assertThis.apply(thisValue, [thisValue]);
 
 var boundGetX = getX.bind(thisValue);
 assertEquals(24, boundGetX());
+var boundGetY = getY.bind(thisValue);
+assertEquals(99, boundGetY());
 assertThis.bind(thisValue);

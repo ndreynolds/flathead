@@ -265,7 +265,7 @@ flags_from_descriptor(JSValue *desc)
 JSValue *
 bootstrap_object()
 {
-  JSValue *object = JSOBJ();
+  JSValue *object = JSNFUNC(&obj_new);
   JSValue *prototype = JSOBJ();
 
   // Object

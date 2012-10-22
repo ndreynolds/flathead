@@ -12,6 +12,7 @@ var assertEquals = function(a, b) {
 // ----------------------------------------------------------------------------
 
 assert(Array);
+assert(typeof Array === 'function');
 
 assert(Array.isArray([]));
 assert(Array.isArray([1]));

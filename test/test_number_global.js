@@ -10,6 +10,7 @@ var assert = console.assert;
 // ----------------------------------------------------------------------------
 
 assert(Number);
+assert(typeof Number === 'function');
 
 assert(Number.MAX_VALUE);
 assert(Number.MIN_VALUE);

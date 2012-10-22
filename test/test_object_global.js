@@ -9,6 +9,7 @@ var assert = console.assert;
 // -----------------------------------------------------------------------------
 
 assert(Object);
+assert(typeof Object === 'function');
 
 var obj = { a: 1, b: 2, c:3 };
 

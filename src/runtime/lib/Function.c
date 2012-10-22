@@ -34,7 +34,7 @@ func_proto_apply(JSValue *instance, JSArgs *args, State *state)
     }
   }
 
-  return fh_function_call(this, state, instance, func_args_head);
+  return fh_function_call(state->ctx, this, state, instance, func_args_head);
 }
 
 // Function.prototype.apply(thisValue[, arg1[, arg2[, ...]]])
@@ -62,7 +62,7 @@ func_proto_call(JSValue *instance, JSArgs *args, State *state)
   args->arg = NULL;
   if (args->next)
     args = args->next;
-  return fh_function_call(this, state, instance, args);
+  return fh_function_call(state->ctx, this, state, instance, args);
 }
 
 // Function.prototype.isGenerator()
@@ -82,7 +82,7 @@ func_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 bootstrap_function()
 {
-  JSValue *function = JSOBJ();
+  JSValue *function = JSNFUNC(&func_new);
   JSValue *prototype = JSOBJ();
 
   // Function

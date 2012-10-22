@@ -56,4 +56,20 @@ JSValue * date_proto_to_time_string(JSValue *, JSArgs *, State *);
 JSValue * date_proto_to_utc_string(JSValue *, JSArgs *, State *);
 JSValue * date_proto_value_of(JSValue *, JSArgs *, State *);
 
+int day(int);
+int week_day(int);
+int days_in_year(int);
+int day_from_year(int);
+int time_from_year(int);
+int day_within_year(int);
+int date_from_time(int);
+int month_from_time(int);
+int year_from_time(int);
+int in_leap_year(int);
+
+JSValue * make_time(JSValue *, JSValue *, JSValue *, JSValue *);
+JSValue * make_day(JSValue *, JSValue *, JSValue *);
+JSValue * make_date(JSValue *, JSValue *);
+JSValue * time_clip(JSValue *);
+
 JSValue * bootstrap_date(void);

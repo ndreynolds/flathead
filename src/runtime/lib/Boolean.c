@@ -4,12 +4,14 @@
 
 #include "Boolean.h"
 
-// new Boolean(value)
+// (new) Boolean(value)
 JSValue *
 bool_new(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSBOOL(0);
+  JSValue *val = ARG(args, 0);
+  if (state->construct)
+    fh_set(state->this, "__value__", val);
+  return TO_BOOL(val);
 }
 
 // Boolean.prototype.toString()
@@ -29,7 +31,7 @@ bool_proto_value_of(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 bootstrap_boolean()
 {
-  JSValue *boolean = JSOBJ();
+  JSValue *boolean = JSNFUNC(&bool_new);
   JSValue *prototype = JSOBJ();
 
   // Boolean

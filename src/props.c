@@ -69,8 +69,8 @@ JSProp *
 fh_get_prop(JSValue *obj, char *name)
 {
   JSProp *prop = NULL;
-  if (obj->object.map)
-    HASH_FIND_STR(obj->object.map, name, prop);
+  if (obj->map)
+    HASH_FIND_STR(obj->map, name, prop);
   return prop;
 }
 
@@ -132,7 +132,7 @@ fh_set_prop(JSValue *obj, char *name, JSValue *val, JSPropFlags flags)
 
   // Don't add if it already exists (bad things happen).
   if (add)
-    HASH_ADD_KEYPTR(hh, obj->object.map, prop->name, strlen(prop->name), prop);
+    HASH_ADD_KEYPTR(hh, obj->map, prop->name, strlen(prop->name), prop);
 }
 
 /*
@@ -171,5 +171,5 @@ fh_del_prop(JSValue *obj, char *name)
 {
   JSProp *deletee = fh_get_prop(obj, name);
   if (deletee != NULL)
-    HASH_DEL(obj->object.map, deletee);
+    HASH_DEL(obj->map, deletee);
 }

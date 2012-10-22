@@ -109,7 +109,7 @@ number_proto_value_of(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 bootstrap_number()
 {
-  JSValue *number = JSOBJ();
+  JSValue *number = JSNFUNC(&number_new);
   JSValue *prototype = JSOBJ();
 
   // Number

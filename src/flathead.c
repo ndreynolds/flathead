@@ -32,6 +32,7 @@ fh_new_val(JSType type)
 {
   JSValue *val = fh_malloc(true);
 
+  val->map = NULL;
   val->type = type;
   val->signal = S_NONE;
   val->proto = NULL;
@@ -82,7 +83,6 @@ fh_new_object()
 {
   JSValue *val = fh_new_val(T_OBJECT);
 
-  val->object.map = NULL;
   val->object.length = 0;
   val->object.is_array = false;
   val->object.frozen = false;
@@ -168,7 +168,6 @@ fh_new_prop(JSPropFlags flags)
   prop->writable = flags & P_WRITE;
   prop->configurable = flags & P_CONF;
   prop->enumerable = flags & P_ENUM;
-
   prop->circular = false;
   prop->ptr = NULL;
 
@@ -179,8 +178,13 @@ State *
 fh_new_state(int line, int column)
 {
   State *state = malloc(sizeof(State));
+
   state->line = line;
   state->column = column;
+  state->ctx = NULL;
+  state->this = NULL;
+  state->construct = false;
+
   return state;
 }
 

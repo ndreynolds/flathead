@@ -66,7 +66,7 @@
 #define ARGLEN(args)   fh_arg_len(args)
 
 #define STREQ(a,b)     (strcmp((a),(b)) == 0)
-#define OBJ_ITER(o,p)  JSProp *_tmp; HASH_ITER(hh,(o)->object.map,p,_tmp)
+#define OBJ_ITER(o,p)  JSProp *_tmp; HASH_ITER(hh,(o)->map,p,_tmp)
 #define BUILTIN(o,k,v) fh_set_prop((o),(k),(v),P_BUILTIN)
 
 #define DEBUG(x)       fh_debug(stdout,(x),0,1)
@@ -82,7 +82,9 @@ struct Node;
 typedef struct State {
   int line;
   int column;
+  bool construct;
   struct JSValue *ctx;
+  struct JSValue *this;
 } State;
 
 typedef enum Signal {
@@ -160,7 +162,6 @@ struct JSObject {
   bool sealed;
   bool extensible;
   struct JSValue *parent;
-  JSProp *map;
 };
 
 /**
@@ -174,6 +175,7 @@ struct JSFunction {
   bool is_native;
   bool is_generator;
   struct Node *node; 
+  struct JSValue *construct;
   struct JSValue *closure;
   struct JSValue *bound_this;
   struct JSArgs *bound_args;
@@ -194,6 +196,7 @@ typedef struct JSValue {
   Signal signal;
   struct JSValue *proto;
   bool marked;
+  JSProp *map;
 } JSValue;
 
 JSValue * fh_new_val(JSType);

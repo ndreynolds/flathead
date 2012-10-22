@@ -131,11 +131,12 @@ fh_gc_sweep(PoolMetadata *pool)
 void
 fh_gc_free_val(JSValue *val)
 {
-  // Free the object hashtable
+  // Free the object hashtable 
+  // TODO: just objects?
   if (val->type == T_OBJECT) {
     JSProp *prop, *tmp;
-    HASH_ITER(hh, val->object.map, prop, tmp) {
-      HASH_DEL(val->object.map, prop);
+    HASH_ITER(hh, val->map, prop, tmp) {
+      HASH_DEL(val->map, prop);
       if (prop != NULL) free(prop);
     }
   }

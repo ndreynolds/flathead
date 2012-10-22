@@ -392,7 +392,7 @@ str_proto_value_of(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 bootstrap_string()
 {
-  JSValue *string = JSOBJ();
+  JSValue *string = JSNFUNC(&str_new);
   JSValue *prototype = JSOBJ();
 
   // String
