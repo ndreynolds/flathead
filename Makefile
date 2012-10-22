@@ -15,10 +15,11 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 CC = gcc
-CFLAGS = -Wall 
+CFLAGS = -Wall
 YACC = bison -y -d -t -v
 LEX = flex
 
+LIBS = -I/usr/local/include -I/usr/include -L/usr/local/lib -L/usr/lib -lm
 SRC_FILES = $(wildcard src/*.c)
 LIB_FILES = $(wildcard src/runtime/*.c) $(wildcard src/runtime/lib/*.c)
 
@@ -42,14 +43,16 @@ ifeq ($(gcexpose), on)
   CFLAGS += -Dfh_gc_expose
 endif
 
-ifneq ($(readline), off)
-  CFLAGS += -lreadline
+ifeq ($(readline), off)
+  CFLAGS += -Dfh_no_repl
+else
+  LIBS += -lreadline
 endif
 
 ifeq ($(regexp), off)
   CFLAGS += -Dfh_no_regexp
 else
-  CFLAGS += -lpcre
+  LIBS += -lpcre
 endif
 
 .PHONY: test
@@ -77,4 +80,4 @@ install: default
 	cp bin/fh /usr/local/bin/
 
 default: parser lexer 
-	$(CC) $(CFLAGS) -o $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(SRC_FILES) $(LIB_FILES) -lm
+	$(CC) $(CFLAGS) -o $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(SRC_FILES) $(LIB_FILES) $(LIBS)

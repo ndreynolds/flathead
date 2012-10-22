@@ -22,8 +22,11 @@
   #include <math.h>
   #include <stdlib.h>
   #include <getopt.h>
+#ifndef fh_no_repl
   #include <readline/readline.h>
   #include <readline/history.h>
+#endif
+
   #include "src/flathead.h"
   #include "src/nodes.h"
   #include "src/eval.h"
@@ -131,7 +134,7 @@
 
 %token<val> WHILE DO FOR
 %token<val> IF ELSE
-%token<val> BREAK CONTINUE RETURN THROW
+%token<val> BREAK CONTINUE RETURNT THROW
 %token<val> VAR IN THIS NULLT FUNCTION NEW WITH DEBUGGER
 %token<val> SWITCH CASE DEFAULT
 %token<val> TRY CATCH FINALLY
@@ -394,9 +397,9 @@ BreakStatement           : BREAK ';'
                              { $$ = NEW_BREAK(); }
                          ;
 
-ReturnStatement          : RETURN ';'                         
+ReturnStatement          : RETURNT ';'                         
                              { $$ = NEW_RETURN(NULL); }
-                         | RETURN Expression ';'            
+                         | RETURNT Expression ';'            
                              { $$ = NEW_RETURN($2); }
                          ;
 
@@ -891,6 +894,9 @@ fh_get_input(char *buf, int size)
 {
   // For the REPL:
   if (fh_opt_interactive) {
+#ifdef fh_no_repl
+    fh_error(NULL, E_ERROR, "REPL not available. Build with readline.");
+#else
     char *line;
     line = readline("> ");
     if (!line)
@@ -905,6 +911,7 @@ fh_get_input(char *buf, int size)
     strcat(buf, "\n");
     free(line);
     add_history(buf);
+#endif
   }
   // For file or stdin:
   else {
