@@ -134,7 +134,7 @@
 
 %token<val> WHILE DO FOR
 %token<val> IF ELSE
-%token<val> BREAK CONTINUE RETURN THROW
+%token<val> BREAK CONTINUE RETURNT THROW
 %token<val> VAR IN THIS NULLT FUNCTION NEW WITH DEBUGGER
 %token<val> SWITCH CASE DEFAULT
 %token<val> TRY CATCH FINALLY
@@ -397,9 +397,9 @@ BreakStatement           : BREAK ';'
                              { $$ = NEW_BREAK(); }
                          ;
 
-ReturnStatement          : RETURN ';'                         
+ReturnStatement          : RETURNT ';'                         
                              { $$ = NEW_RETURN(NULL); }
-                         | RETURN Expression ';'            
+                         | RETURNT Expression ';'            
                              { $$ = NEW_RETURN($2); }
                          ;
 

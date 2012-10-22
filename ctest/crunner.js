@@ -41,7 +41,7 @@ var onTestFail = function(fileName, stdout, stderr) {
 var runScript = function(fileName, onSuccess, onFailure) {
   var baseName = fileName.split('/')[fileName.split('/').length - 1],
       outFile = fileName + '.out',
-      compile = ['gcc', fileName, '-o', outFile].join(' '),
+      compile = ['gcc', fileName, '-o', outFile, '-lm'].join(' '),
       execCmd = baseName === fileName ? './' + outFile : outFile;
   exec(compile, function(err, stdout, stderr) {
     if (err || stderr) {

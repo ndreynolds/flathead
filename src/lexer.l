@@ -56,7 +56,7 @@ E            [Ee][+-]?{D}+
 "else"       return KEYWORD(ELSE);
 "break"      return KEYWORD(BREAK);
 "continue"   return KEYWORD(CONTINUE);
-"return"     return KEYWORD(RETURN);
+"return"     return KEYWORD(RETURNT);
 "throw"      return KEYWORD(THROW);
 "try"        return KEYWORD(TRY);
 "catch"      return KEYWORD(CATCH);
