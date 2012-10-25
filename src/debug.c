@@ -39,13 +39,13 @@ fh_debug_obj(FILE *stream, JSValue *obj, int indent)
   OBJ_ITER(obj, x) {
     if (first) {
       fprintf(stream, "\n");
-      for(i=0;i<(indent);i++) fprintf(stream, " ");
+      for (i = 0; i < indent; i++) fprintf(stream, " ");
       fprintf(stream, "{");
       first = false;
     }
     else {
       fprintf(stream, ",\n");
-      for(i=0;i<(indent+1);i++) fprintf(stream, " ");
+      for (i = 0; i < (indent + 1); i++) fprintf(stream, " ");
     }
     fprintf(stream, " %s: ", x->name);
     x->circular ? 
@@ -80,7 +80,7 @@ void
 fh_debug_args(FILE *stream, JSArgs *args)
 {
   bool first = true;
-  while(first || args->next != NULL)
+  while (first || args->next != NULL)
   {
     if (!first)
       args = args->next;

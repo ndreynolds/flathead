@@ -147,7 +147,7 @@ fh_set_rec(JSValue *obj, char *name, JSValue *val)
 
   // Try and find the property in a parent scope.
   JSProp *prop = fh_get_prop(obj, name);
-  while(prop == NULL) {
+  while (prop == NULL) {
     if (obj->object.parent == NULL) break;
     parent = obj->object.parent;
     prop = fh_get_prop(parent, name);

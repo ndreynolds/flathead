@@ -389,7 +389,7 @@ JSValue *
 fh_get_arg(JSArgs *args, int n)
 {
   int i;
-  for (i=0; i<=n; i++) {
+  for (i = 0; i <= n; i++) {
     if (i == n) 
       return args->arg != NULL ? args->arg : JSUNDEF();
     if (args->next == NULL) 
@@ -403,7 +403,7 @@ int
 fh_arg_len(JSArgs *args)
 {
   int i = 0;
-  while(1)
+  while (1)
   {
     if (args->arg != NULL) i++;
     if (args->next == NULL) break;

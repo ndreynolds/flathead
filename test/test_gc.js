@@ -26,7 +26,7 @@ if (typeof gc !== 'undefined') {
 // ...or trigger it the old-fashioned way with a big loop.
 else {
   var i = 0;
-  while(i < 10000) {
+  while (i < 10000) {
     42;
     i++;
   }

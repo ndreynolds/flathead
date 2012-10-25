@@ -81,7 +81,7 @@ fh_src_lst(JSValue *ctx, Node *node)
 {
   // First sweep for function declarations
   Node *child;
-  while(!node->visited) {
+  while (!node->visited) {
     child = pop_node(node);
     if (child->type == NODE_FUNC) {
       fh_set(ctx, fh_str_from_node(ctx, child->e3)->string.ptr, JSFUNC(child));
@@ -98,7 +98,7 @@ fh_stmt_lst(JSValue *ctx, Node *node)
   JSValue *result = NULL;
   Node *child;
   rewind_node(node);
-  while(!node->visited) {
+  while (!node->visited) {
     child = pop_node(node);
 
     if (child->type == NODE_RETURN)
@@ -182,7 +182,7 @@ fh_arr(JSValue *ctx, Node *node)
   JSValue *arr = JSARR();
   if (node->e1 != NULL) {
     int i = 0;
-    while(!node->e1->visited) {
+    while (!node->e1->visited) {
       fh_set(arr, JSNUMKEY(i++)->string.ptr, fh_eval(ctx, pop_node(node->e1)));
     }
     fh_arr_set_len(arr, i);
@@ -294,7 +294,7 @@ fh_while(JSValue *ctx, Node *cnd, Node *stmt)
 {
   JSValue *result;
 
-  while(TO_BOOL(fh_eval(ctx, cnd))->boolean.val) {
+  while (TO_BOOL(fh_eval(ctx, cnd))->boolean.val) {
     result = fh_eval(ctx, stmt);
     if (result->signal == S_BREAK) break;
   }
@@ -308,7 +308,7 @@ fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
   if (exp_grp->e1)
     fh_eval(ctx, exp_grp->e1);
 
-  while(TO_BOOL(exp_grp->e2 ? fh_eval(ctx, exp_grp->e2) : JSBOOL(1))->boolean.val) {
+  while (TO_BOOL(exp_grp->e2 ? fh_eval(ctx, exp_grp->e2) : JSBOOL(1))->boolean.val) {
     result = fh_eval(ctx, stmt);
     if (result->signal == S_BREAK) break;
     if (exp_grp->e3)
@@ -331,7 +331,7 @@ fh_forin(JSValue *ctx, Node *node)
   }
 
   // Note that during the first iteration, the prototype is the object.
-  while(proto != NULL) {
+  while (proto != NULL) {
     OBJ_ITER(proto, p) {
       if (p->enumerable) {
         // Assign to name, possibly undeclared assignment.
@@ -394,7 +394,7 @@ fh_switch(JSValue *ctx, Node *node)
   
   // Check case clauses before the default case
   if (clauses_a) {
-    while(!clauses_a->visited) {
+    while (!clauses_a->visited) {
       current = pop_node(clauses_a);
       val = fh_eval(ctx, current->e1);
       // Cases fall-through to the next when breaks are omitted.
@@ -412,7 +412,7 @@ fh_switch(JSValue *ctx, Node *node)
 
   // Check case clauses after the default case
   if (clauses_b) {
-    while(!clauses_b->visited) {
+    while (!clauses_b->visited) {
       current = pop_node(clauses_b);
       val = fh_eval(ctx, current->e1);
       if (matched || fh_eq(test, val, true)->boolean.val) {
@@ -517,7 +517,7 @@ fh_setup_func_env(JSValue *ctx, JSValue *this, JSValue *func, JSArgs *args)
   fh_set(arguments, "callee", func);
   fh_set(arguments, "length", JSNUM(ARGLEN(args)));
   int i;
-  for(i=0; i<ARGLEN(args); i++)
+  for (i = 0; i < ARGLEN(args); i++)
     fh_set(arguments, JSNUMKEY(i)->string.ptr, ARG(args, i));
 
   // Set up params as locals (if any)
@@ -525,7 +525,7 @@ fh_setup_func_env(JSValue *ctx, JSValue *this, JSValue *func, JSArgs *args)
     Node *params = func_node->e1;
     rewind_node(params);
     // Go through each param and match it by position with an arg.
-    while(!params->visited) {
+    while (!params->visited) {
       if (args->arg) {
         fh_set(scope, pop_node(params)->sval, args->arg);
         if (args->next)
@@ -861,6 +861,6 @@ fh_eval_each(JSValue *ctx, Node *node)
 {
   JSValue *result = JSUNDEF();
   rewind_node(node);
-  while(!node->visited) result = fh_eval(ctx, pop_node(node));
+  while (!node->visited) result = fh_eval(ctx, pop_node(node));
   return result;
 }

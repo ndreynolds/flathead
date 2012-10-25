@@ -49,7 +49,7 @@ arr_proto_push(JSValue *instance, JSArgs *args, State *state)
   int len = instance->object.length;
   int nargs = ARGLEN(args);
   int i;
-  for (i = 0; i<nargs; i++) {
+  for (i = 0; i < nargs; i++) {
     JSValue *key = JSNUMKEY(len);
     fh_set(instance, key->string.ptr, ARG(args, i));
     len++;
@@ -68,7 +68,7 @@ arr_proto_reverse(JSValue *instance, JSArgs *args, State *state)
   JSValue *ikey, *jkey, *tmp;
   JSProp *iprop, *jprop;
 
-  while(i < j) {
+  while (i < j) {
     // While i & j converge, swap the values they point to.
     ikey = JSNUMKEY(i++);
     jkey = JSNUMKEY(j--);
@@ -96,7 +96,7 @@ arr_proto_shift(JSValue *instance, JSArgs *args, State *state)
   fh_del_prop(instance, key);
 
   int i;
-  for (i=1; i<len; i++) {
+  for (i = 1; i < len; i++) {
     JSValue *old_key = JSNUMKEY(i);
     JSValue *new_key = JSNUMKEY(i-1);
     JSProp *prop = fh_get_prop(instance, old_key->string.ptr);
@@ -150,19 +150,19 @@ arr_proto_splice(JSValue *instance, JSArgs *args, State *state)
 
   // For each element in the array.
   JSValue *val;
-  while(i < len) {
+  while (i < len) {
 
     // If we're at the splice point:
     if (i == splice_ind) {
 
       // Add any new elements
-      while(args_ind < args_len) {
+      while (args_ind < args_len) {
         fh_set(keepers, JSNUMKEY(k)->string.ptr, ARG(args, args_ind));
         args_ind++;
         k++;
       }
       // Add the spliced region to the rejects, skip over those indices.
-      while(splice_len > 0) {
+      while (splice_len > 0) {
         val = fh_get(instance, JSNUMKEY(i)->string.ptr);
         fh_set(rejects, JSNUMKEY(j)->string.ptr, val);
         splice_len--, i++, j++;
@@ -202,13 +202,13 @@ arr_proto_unshift(JSValue *instance, JSArgs *args, State *state)
   int j = 0;
 
   // Add the args
-  for (; i<nargs; i++) {
+  for (; i < nargs; i++) {
     fh_set(newarr, JSNUMKEY(i)->string.ptr, ARG(args, i));
   }
 
   // Add the instance's elements
   JSValue *val;
-  for (; j<len; j++, i++) {
+  for (; j < len; j++, i++) {
     val = fh_get(instance, JSNUMKEY(j)->string.ptr);
     fh_set(newarr, JSNUMKEY(i)->string.ptr, val);
   }
@@ -234,21 +234,21 @@ arr_proto_concat(JSValue *instance, JSArgs *args, State *state)
   int j = 0; // args index
 
   // Add the current array to the new array.
-  for (; i<len; i++) {
+  for (; i < len; i++) {
     key = JSNUMKEY(i);
     fh_set(concat, key->string.ptr, fh_get(instance, key->string.ptr));
   }
 
   // Add the arguments to the new array.
   JSValue *arg;
-  for (; j<nargs; j++, i++) {
+  for (; j < nargs; j++, i++) {
     key = JSNUMKEY(i);
     arg = ARG(args, j);
     // Extract array elements one level deep.
     if (IS_ARR(arg)) {
       int k;
       JSValue *inner_key;
-      for (k=0; k<arg->object.length; k++) {
+      for (k = 0; k < arg->object.length; k++) {
         key = JSNUMKEY(i);
         inner_key = JSNUMKEY(k);
         fh_set(concat, key->string.ptr, fh_get(arg, inner_key->string.ptr));
@@ -295,7 +295,7 @@ arr_proto_slice(JSValue *instance, JSArgs *args, State *state)
 
   // slice from j inclusive to k exclusive. 
   JSValue *val;
-  for(; j<k && j<len; j++, i++) {
+  for (; j < k && j < len; j++, i++) {
     val = fh_get(instance, JSNUMKEY(j)->string.ptr);
     fh_set(slice, JSNUMKEY(i)->string.ptr, val);
   }
@@ -328,7 +328,7 @@ arr_proto_index_of(JSValue *instance, JSArgs *args, State *state)
   }
 
   JSValue *key, *equals;
-  for(; i < len && i >= 0; i++) {
+  for (; i < len && i >= 0; i++) {
     key = JSNUMKEY(i);
     // indexOf uses strict equality
     equals = fh_eq(fh_get(instance, key->string.ptr), search, true);
@@ -356,7 +356,7 @@ arr_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
   }
 
   JSValue *key, *equals;
-  for(; i >= 0; i--) {
+  for (; i >= 0; i--) {
     key = JSNUMKEY(i);
     // lastIndexOf uses strict equality
     equals = fh_eq(fh_get(instance, key->string.ptr), search, true);
@@ -379,7 +379,7 @@ arr_proto_filter(JSValue *instance, JSArgs *args, State *state)
   JSValue *ikey, *jkey, *val, *result;
   JSArgs *cbargs;
   int i = 0, j = 0;
-  for (; i<len; i++) {
+  for (; i < len; i++) {
     ikey = JSNUMKEY(i);
     val = fh_get(instance, ikey->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
@@ -405,7 +405,7 @@ arr_proto_for_each(JSValue *instance, JSArgs *args, State *state)
   JSValue *key, *val;
   JSArgs *cbargs;
   int i;
-  for (i=0; i<len; i++) {
+  for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
@@ -426,7 +426,7 @@ arr_proto_every(JSValue *instance, JSArgs *args, State *state)
   JSValue *key, *val, *result;
   JSArgs *cbargs;
   int i;
-  for (i = 0; i<len; i++) {
+  for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
@@ -450,7 +450,7 @@ arr_proto_map(JSValue *instance, JSArgs *args, State *state)
   JSValue *key, *val, *result;
   JSArgs *cbargs;
   int i;
-  for (i = 0; i<len; i++) {
+  for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
@@ -473,7 +473,7 @@ arr_proto_some(JSValue *instance, JSArgs *args, State *state)
   JSValue *key, *val, *result;
   JSArgs *cbargs;
   int i;
-  for (i = 0; i<len; i++) {
+  for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
@@ -501,7 +501,7 @@ arr_proto_reduce(JSValue *instance, JSArgs *args, State *state)
 
   JSValue *key, *val;
   JSArgs *cbargs;
-  for (; i<len; i++) {
+  for (; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(reduction, val, JSNUM(i));
@@ -527,7 +527,7 @@ arr_proto_reduce_right(JSValue *instance, JSArgs *args, State *state)
 
   JSValue *key, *val;
   JSArgs *cbargs;
-  for (; i>=0; i--) {
+  for (; i >= 0; i--) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(reduction, val, JSNUM(i));

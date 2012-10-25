@@ -95,7 +95,7 @@ void
 print_indent(int indent) 
 {
   int i;
-  for (i=0; i<indent; i++) printf(" ");
+  for (i = 0; i < indent; i++) printf(" ");
 }
 
 void 
@@ -170,7 +170,7 @@ print_node(Node *node, bool rec, int depth)
     print_indent(depth+2);
     printf("%s\n", node->sval);
   }
-  if (node->e1 != NULL) print_node(node->e1, rec, depth+2);
-  if (node->e2 != NULL) print_node(node->e2, rec, depth+2);
-  if (node->e3 != NULL) print_node(node->e3, rec, depth+2);
+  if (node->e1 != NULL) print_node(node->e1, rec, depth + 2);
+  if (node->e2 != NULL) print_node(node->e2, rec, depth + 2);
+  if (node->e3 != NULL) print_node(node->e3, rec, depth + 2);
 }

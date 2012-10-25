@@ -52,7 +52,7 @@ str_proto_concat(JSValue *instance, JSArgs *args, State *state)
   JSValue *arg;
   char *tmp;
   int i;
-  for (i=0; i<ARGLEN(args); i++) {
+  for (i = 0; i < ARGLEN(args); i++) {
     arg = TO_STR(ARG(args, i));
     tmp = new->string.ptr;
     new->string.ptr = fh_str_concat(new->string.ptr, arg->string.ptr);
@@ -85,7 +85,7 @@ str_proto_index_of(JSValue *instance, JSArgs *args, State *state)
   if (strlen(needle) > strlen(haystack) || i > strlen(haystack))
     return JSNUM(-1);
 
-  for (; i<strlen(haystack); i++) {
+  for (; i < strlen(haystack); i++) {
     if (haystack[i] == needle[match])
       match++;
     else
@@ -119,7 +119,7 @@ str_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
   if (strlen(needle) > strlen(haystack))
     return JSNUM(-1);
 
-  for (; i>=0; i--) {
+  for (; i >= 0; i--) {
     if (haystack[i] == needle[match])
       match--;
     else
@@ -155,7 +155,7 @@ str_proto_match(JSValue *instance, JSArgs *args, State *state)
 
   int i;
   for (i = 0; i < count; i++) {
-    JSValue *match = JSSTR(fh_str_slice(str, matches[2*i], matches[2*i+1]));
+    JSValue *match = JSSTR(fh_str_slice(str, matches[2 * i], matches[2 * i + 1]));
     fh_set(arr, JSNUMKEY(i)->string.ptr, match);
   }
   free(matches);
@@ -238,7 +238,7 @@ str_proto_split(JSValue *instance, JSArgs *args, State *state)
   int index = 0;                       // result array index
   int i;                               // instance string index
 
-  for (i=0; i<strlen(str); i++) {
+  for (i = 0; i < strlen(str); i++) {
     if (str[i] == sep[match])
       match++;
     else
@@ -318,7 +318,7 @@ str_proto_to_lower_case(JSValue *instance, JSArgs *args, State *state)
   JSValue *new = JSSTR(instance->string.ptr);
   char *str = new->string.ptr;
   int i = 0;
-  while(str[i]) {
+  while (str[i]) {
     str[i] = tolower(str[i]);
     i++;
   }
@@ -339,7 +339,7 @@ str_proto_to_upper_case(JSValue *instance, JSArgs *args, State *state)
   JSValue *new = JSSTR(instance->string.ptr);
   char *str = new->string.ptr;
   int i = 0;
-  while(str[i]) {
+  while (str[i]) {
     str[i] = toupper(str[i]);
     i++;
   }
@@ -361,7 +361,7 @@ str_proto_trim_left(JSValue *instance, JSArgs *args, State *state)
   JSValue *new = JSSTR(instance->string.ptr);
   char *str = new->string.ptr;
   int n = 0;
-  while(str[n] != '\0' && isspace((unsigned char)str[n]))
+  while (str[n] != '\0' && isspace((unsigned char)str[n]))
     n++;
   memmove(str, str + n, strlen(str) - n + 1);
   new->string.length = strlen(str);
@@ -375,7 +375,7 @@ str_proto_trim_right(JSValue *instance, JSArgs *args, State *state)
   JSValue *new = JSSTR(instance->string.ptr);
   char *str = new->string.ptr;
   int n = strlen(str);
-  while(n > 0 && isspace((unsigned char)str[n - 1]))
+  while (n > 0 && isspace((unsigned char)str[n - 1]))
     n--;
   str[n] = '\0';
   new->string.length = n;

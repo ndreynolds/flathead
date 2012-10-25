@@ -8,7 +8,7 @@ JSValue *
 console_log(JSValue *instance, JSArgs *args, State *state)
 {
   int i;
-  for (i=0; i<ARGLEN(args); i++)
+  for (i = 0; i < ARGLEN(args); i++)
     fh_debug(stdout, ARG(args, i), 0, 1);
   return JSUNDEF();
 }
@@ -17,7 +17,7 @@ JSValue *
 console_error(JSValue *instance, JSArgs *args, State *state)
 {
   int i;
-  for (i=0; i<ARGLEN(args); i++)
+  for (i = 0; i < ARGLEN(args); i++)
     fh_debug(stderr, ARG(args, i), 0, 1);
   return JSUNDEF();
 }

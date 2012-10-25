@@ -27,7 +27,7 @@ fh_malloc(bool first_attempt)
 {
   PoolMetadata *pool = fh_get_pool();
   int i;
-  for (i=0; i<SLOTS_PER_POOL; i++) {
+  for (i = 0; i < SLOTS_PER_POOL; i++) {
     if (!pool->freelist[i]) {
       pool->freelist[i] = true;
       return &(pool->slots[i]);
@@ -51,7 +51,7 @@ fh_new_pool()
   pool->slots = slots;
   pool->global = NULL;
   int i;
-  for (i=0; i<SLOTS_PER_POOL; i++)
+  for (i = 0; i < SLOTS_PER_POOL; i++)
     pool->freelist[i] = false;
   return pool;
 }
@@ -118,7 +118,7 @@ fh_gc_sweep(PoolMetadata *pool)
 {
   int i;
   JSValue val;
-  for (i=0; i<SLOTS_PER_POOL; i++) {
+  for (i = 0; i < SLOTS_PER_POOL; i++) {
     val = pool->slots[i];
     if (!val.marked) {
       pool->freelist[i] = false;

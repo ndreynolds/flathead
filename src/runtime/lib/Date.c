@@ -482,7 +482,7 @@ int
 year_from_time(int t)
 {
   int time, last = 1, y = 0;
-  for(;y < INT_MAX && y < t; y++) {
+  for (;y < INT_MAX && y < t; y++) {
     time = time_from_year(y);
     if (time > t)
       return last;

@@ -113,7 +113,7 @@ math_max(JSValue *instance, JSArgs *args, State *state)
   JSValue *max = TO_NUM(ARG(args, 0));
   JSValue *x;
   if (max->number.is_nan) return JSNAN();
-  for (i=0; i<(length-1); i++) {
+  for (i = 0; i < (length - 1); i++) {
     x = TO_NUM(ARG(args, i+1));
     if (x->number.is_nan) return JSNAN();
     if (x->number.is_inf || x->number.val > max->number.val) 
@@ -139,7 +139,7 @@ math_min(JSValue *instance, JSArgs *args, State *state)
   JSValue *min = TO_NUM(ARG(args, 0));
   JSValue *x;
   if (min->number.is_nan) return JSNAN();
-  for (i=0; i<(length-1); i++) {
+  for (i = 0; i < (length - 1); i++) {
     x = TO_NUM(ARG(args, i+1));
     if (x->number.is_nan) return JSNAN();
     if (x->number.val < min->number.val) 

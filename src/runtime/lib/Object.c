@@ -200,7 +200,7 @@ obj_proto_is_prototype_of(JSValue *instance, JSArgs *args, State *state)
   JSValue *obj = ARG(args, 0);
   JSValue *proto = obj->proto;
 
-  while(proto != NULL) {
+  while (proto != NULL) {
     if (proto == instance) return JSBOOL(1);
     proto = proto->proto;
   }

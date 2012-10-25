@@ -961,7 +961,7 @@ main(int argc, char **argv)
     {NULL, 0, NULL, 0}
   };
 
-  while((c = getopt_long(argc, argv, "vhint", long_options, &fakeind)) != -1) {
+  while ((c = getopt_long(argc, argv, "vhint", long_options, &fakeind)) != -1) {
     switch (c) {
       case 0: break;
       case 'v': print_version(); return 0;
@@ -988,7 +988,7 @@ main(int argc, char **argv)
   // We can operate as a REPL or in file/stdin mode.
   if (fh_opt_interactive) {
     print_startup();
-    while(true)
+    while (true)
       DEBUG(fh_eval_file(source, global, true));
   } else {
     fh_eval_file(source, global, false);
