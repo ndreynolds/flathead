@@ -39,7 +39,7 @@ ifeq ($(gcprofile), on)
   CFLAGS += -Dfh_gc_profile
 endif
 
-ifeq ($(gcexpose), on)
+ifneq ($(gcexpose), off)
   CFLAGS += -Dfh_gc_expose
 endif
 
@@ -59,11 +59,6 @@ endif
 
 all: clean default
 
-test: 
-	$(MAKE) gcexpose=on
-	node test/runner.js
-	node ctest/crunner.js
-
 debug: CFLAGS += -g -O0
 debug: default
 
@@ -81,3 +76,18 @@ install: default
 
 default: parser lexer 
 	$(CC) $(CFLAGS) -o $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(SRC_FILES) $(LIB_FILES) $(LIBS)
+
+ctest:
+	node ctest/crunner.js
+
+test: 
+	node test/runner.js
+
+test-node:
+	node test/runner.js --exec node
+
+test-sm:
+	node test/runner.js --exec js --args "-f test/rhino-harness.js -f [test]"
+
+test-rhino:
+	node test/runner.js --exec rhino --timeout 10000 --args "-f test/rhino-harness.js -f [test]"
