@@ -201,18 +201,17 @@ fh_arr(JSValue *ctx, Node *node)
 JSValue *
 fh_member(JSValue *ctx, Node *member)
 {
-  JSValue *id1, *id2, *parent;
+  JSValue *child_name, *parent;
 
   // In `x.foo` we'll take 'foo' literally, in `x[foo]` we need to eval 'foo'.
   // This distinction is stored as 0/1 in the val slot.
-  id1 = member->val ? 
+  child_name = member->val ? 
     TO_STR(fh_eval(ctx, member->e1)) :
     fh_str_from_node(ctx, member->e1);
-  id2 = fh_str_from_node(ctx, member->e2);
 
   parent = member->e2->type == NODE_MEMBER ? 
     fh_member(ctx, member->e2) :
-    fh_get_rec(ctx, id2->string.ptr);
+    fh_eval(ctx, member->e2);
 
   // Handle array-like string character access.
   if (IS_STR(parent) && member->e1->type == NODE_NUM) {
@@ -225,7 +224,7 @@ fh_member(JSValue *ctx, Node *member)
     return JSUNDEF();
   }
 
-  return fh_get_proto(parent, id1->string.ptr);
+  return fh_get_proto(parent, child_name->string.ptr);
 }
 
 
