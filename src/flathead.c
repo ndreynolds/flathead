@@ -61,7 +61,7 @@ fh_new_string(char *x)
 
   val->string.ptr = malloc((strlen(x) + 1) * sizeof(char));
   strcpy(val->string.ptr, x);
-  val->string.length = strlen(x);
+  fh_set_len(val, strlen(x));
   val->proto = fh_try_get_proto("String");
 
   return val;
@@ -100,7 +100,7 @@ fh_new_array()
 
   val->object.is_array = true;
   val->proto = fh_try_get_proto("Array");
-  fh_arr_set_len(val, 0);
+  fh_set_len(val, 0);
 
   return val;
 }
@@ -115,6 +115,8 @@ fh_new_function(struct Node *node)
   val->function.node = node;
   val->function.closure = NULL;
   val->function.instance = NULL;
+  val->function.bound_this = NULL;
+  val->function.bound_args = NULL;
   val->proto = fh_try_get_proto("Function");
 
   return val;
@@ -123,13 +125,10 @@ fh_new_function(struct Node *node)
 JSValue *
 fh_new_native_function(JSNativeFunction func)
 {
-  JSValue *val = fh_new_val(T_FUNCTION);
+  JSValue *val = fh_new_function(NULL);
 
   val->function.is_native = true;
-  val->function.is_generator = false;
   val->function.native = func;
-  val->function.instance = NULL;
-  val->proto = fh_try_get_proto("Function");
 
   return val;
 }
@@ -413,8 +412,11 @@ fh_arg_len(JSArgs *args)
 }
 
 void
-fh_arr_set_len(JSValue *arr, int len)
+fh_set_len(JSValue *val, int len)
 {
-  arr->object.length = len;
-  fh_set_prop(arr, "length", JSNUM(len), P_BUILTIN);
+  if (IS_STR(val))
+    val->string.length = len;
+  if (IS_ARR(val))
+    val->object.length = len;
+  fh_set_prop(val, "length", JSNUM(len), P_BUILTIN);
 }

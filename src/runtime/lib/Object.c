@@ -105,7 +105,7 @@ obj_keys(JSValue *instance, JSArgs *args, State *state)
       fh_set(keys, JSNUMKEY(i++)->string.ptr, JSSTR(p->name));
   }
 
-  fh_arr_set_len(keys, i);
+  fh_set_len(keys, i);
   return keys;
 }
 
@@ -122,7 +122,7 @@ obj_get_own_property_names(JSValue *instance, JSArgs *args, State *state)
     fh_set(names, JSNUMKEY(i++)->string.ptr, JSSTR(p->name));
   }
 
-  fh_arr_set_len(names, i);
+  fh_set_len(names, i);
   return names;
 }
 

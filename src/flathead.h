@@ -179,7 +179,6 @@ struct JSFunction {
   struct JSValue *closure;
   struct JSValue *bound_this;
   struct JSArgs *bound_args;
-  struct JSValue *prototype;
   struct JSValue *instance;
   JSNativeFunction native;
 };
@@ -219,7 +218,7 @@ JSValue * fh_cast(JSValue *, JSType);
 JSValue * fh_has_instance(JSValue *, JSValue *);
 JSValue * fh_has_property(JSValue *, char *);
 char * fh_typeof(JSValue *);
-void fh_arr_set_len(JSValue *, int);
+void fh_set_len(JSValue *, int);
 void fh_error(State *, JSErrorType, const char *, ...);
 int fh_arg_len(JSArgs*);
 

@@ -39,7 +39,7 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_OBJ: return fh_obj(ctx, node);
     case NODE_ARR: return fh_arr(ctx, node);
     case NODE_CALL: return fh_call(ctx, node);
-    case NODE_NEW: return fh_new_exp(ctx, node->e1);
+    case NODE_NEW: return fh_new_exp(ctx, node);
     case NODE_MEMBER: return fh_member(ctx, node);
     case NODE_IDENT: return fh_get_rec(ctx, node->sval);
     case NODE_BLOCK: return fh_eval(ctx, node->e1);
@@ -126,12 +126,15 @@ fh_new_exp(JSValue *ctx, Node *exp)
 {
   JSValue *ctr;
   JSArgs *args;
-  if (exp->e1->type == NODE_MEMBER) {
-    ctr = fh_eval(ctx, exp->e1->e1);
-    args = fh_build_args(ctx, exp->e1->e2);
+
+  // new F(x, y, z)
+  if (exp->e1 && exp->e1->type == NODE_MEMBER) {
+    ctr = fh_eval(ctx, exp->e1->e2);
+    args = fh_build_args(ctx, exp->e1->e1);
   }
+  // new F
   else {
-    ctr = fh_eval(ctx, exp);
+    ctr = fh_eval(ctx, exp->e1);
     args = fh_new_args(0, 0, 0);
   }
 
@@ -150,7 +153,7 @@ fh_new_exp(JSValue *ctx, Node *exp)
     obj->proto = proto;
 
   res = fh_function_call(ctx, obj, state, ctr, args); 
-  return IS_OBJ(res) ? res : obj;
+  return IS_OBJ(res) || IS_FUNC(res) ? res : obj;
 }
 
 
@@ -185,7 +188,7 @@ fh_arr(JSValue *ctx, Node *node)
     while (!node->e1->visited) {
       fh_set(arr, JSNUMKEY(i++)->string.ptr, fh_eval(ctx, pop_node(node->e1)));
     }
-    fh_arr_set_len(arr, i);
+    fh_set_len(arr, i);
   }
   return arr;
 }
@@ -211,23 +214,15 @@ fh_member(JSValue *ctx, Node *member)
     fh_member(ctx, member->e2) :
     fh_get_rec(ctx, id2->string.ptr);
 
-  // Special string type considerations
-  if (parent->type == T_STRING) {
-
-    // Handle array-like string character access.
-    if (member->e1->type == NODE_NUM) {
-      int i = member->e1->val, len = parent->string.length;
-      if (i < len && i >= 0) {
-        char *str = malloc(2);
-        sprintf(str, "%c", parent->string.ptr[i]);
-        return JSSTR(str);
-      }
-      return JSUNDEF();
+  // Handle array-like string character access.
+  if (IS_STR(parent) && member->e1->type == NODE_NUM) {
+    int i = member->e1->val, len = parent->string.length;
+    if (i < len && i >= 0) {
+      char *str = malloc(2);
+      sprintf(str, "%c", parent->string.ptr[i]);
+      return JSSTR(str);
     }
-
-    // Strings don't have a hashmap, so we cheat a bit with the 'length' prop.
-    if (STREQ(id1->string.ptr, "length"))
-      return JSNUM(parent->string.length);
+    return JSUNDEF();
   }
 
   return fh_get_proto(parent, id1->string.ptr);
@@ -252,7 +247,7 @@ fh_assign(JSValue *ctx, Node *node)
     if (IS_ARR(ctx) && member->e1->type == NODE_NUM) {
       int val = member->e1->val;
       if (val >= ctx->object.length)
-        fh_arr_set_len(ctx, val + 1);
+        fh_set_len(ctx, val + 1);
     }
     key = fh_str_from_node(ctx, member->e1)->string.ptr;
   }

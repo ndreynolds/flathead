@@ -100,7 +100,6 @@ fh_gc_mark(JSValue *val)
   if (val->type == T_FUNCTION) {
     fh_gc_mark(val->function.closure);
     fh_gc_mark(val->function.bound_this);
-    fh_gc_mark(val->function.prototype);
     fh_gc_mark(val->function.instance);
   }
 
@@ -131,6 +130,7 @@ fh_gc_sweep(PoolMetadata *pool)
 void
 fh_gc_free_val(JSValue *val)
 {
+  /*
   // Free the object hashtable 
   // TODO: just objects?
   if (val->type == T_OBJECT) {
@@ -140,8 +140,9 @@ fh_gc_free_val(JSValue *val)
       if (prop != NULL) free(prop);
     }
   }
+  */
   // Free any strings (dynamically alloc-ed outside slots)
-  if (val->type == T_STRING && val->string.ptr != NULL) {
+  if (IS_STR(val) && val->string.ptr != NULL) {
     free(val->string.ptr);
   }
 

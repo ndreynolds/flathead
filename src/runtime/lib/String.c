@@ -159,7 +159,7 @@ str_proto_match(JSValue *instance, JSArgs *args, State *state)
     fh_set(arr, JSNUMKEY(i)->string.ptr, match);
   }
   free(matches);
-  fh_arr_set_len(arr, i);
+  fh_set_len(arr, i);
   return arr;
 }
 
@@ -225,7 +225,7 @@ str_proto_split(JSValue *instance, JSArgs *args, State *state)
 
   if (IS_UNDEF(sep_arg)) { 
     fh_set(arr, "0", instance);
-    fh_arr_set_len(arr, 1);
+    fh_set_len(arr, 1);
     return arr;
   }
 
@@ -258,7 +258,7 @@ str_proto_split(JSValue *instance, JSArgs *args, State *state)
     fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(split));
   }
 
-  fh_arr_set_len(arr, index);
+  fh_set_len(arr, index);
   return arr;
 }
 

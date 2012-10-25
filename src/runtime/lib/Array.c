@@ -38,7 +38,7 @@ arr_proto_pop(JSValue *instance, JSArgs *args, State *state)
   JSValue *popped = fh_get(instance, key->string.ptr);
 
   fh_del_prop(instance, key->string.ptr);
-  fh_arr_set_len(instance, len - 1);
+  fh_set_len(instance, len - 1);
   return popped;
 }
 
@@ -55,7 +55,7 @@ arr_proto_push(JSValue *instance, JSArgs *args, State *state)
     len++;
   }
 
-  fh_arr_set_len(instance, len);
+  fh_set_len(instance, len);
   return JSNUM(len);
 }
 
@@ -104,7 +104,7 @@ arr_proto_shift(JSValue *instance, JSArgs *args, State *state)
     fh_set(instance, new_key->string.ptr, prop->ptr);
   }
 
-  fh_arr_set_len(instance, len - 1);
+  fh_set_len(instance, len - 1);
   return shifted;
 }
 
@@ -185,8 +185,8 @@ arr_proto_splice(JSValue *instance, JSArgs *args, State *state)
   // GC will take the hash if we don't remove the reference.
   keepers->map = NULL;
 
-  fh_arr_set_len(instance, k);
-  fh_arr_set_len(rejects, j);
+  fh_set_len(instance, k);
+  fh_set_len(rejects, j);
   return rejects;
 }
 
@@ -217,7 +217,7 @@ arr_proto_unshift(JSValue *instance, JSArgs *args, State *state)
   instance->map = newarr->map;
   newarr->map = NULL;
 
-  fh_arr_set_len(instance, i);
+  fh_set_len(instance, i);
   return JSNUM(i);
 }
 
@@ -261,7 +261,7 @@ arr_proto_concat(JSValue *instance, JSArgs *args, State *state)
     }
   }
 
-  fh_arr_set_len(concat, i);
+  fh_set_len(concat, i);
   return concat;
 }
 
@@ -300,7 +300,7 @@ arr_proto_slice(JSValue *instance, JSArgs *args, State *state)
     fh_set(slice, JSNUMKEY(i)->string.ptr, val);
   }
 
-  fh_arr_set_len(slice, i);
+  fh_set_len(slice, i);
   return slice;
 }
 
@@ -390,7 +390,7 @@ arr_proto_filter(JSValue *instance, JSArgs *args, State *state)
     }
   }
 
-  fh_arr_set_len(filtered, j);
+  fh_set_len(filtered, j);
   return filtered;
 }
 
@@ -458,7 +458,7 @@ arr_proto_map(JSValue *instance, JSArgs *args, State *state)
     fh_set(map, key->string.ptr, result);
   }
 
-  fh_arr_set_len(map, len);
+  fh_set_len(map, len);
   return map;
 }
 
