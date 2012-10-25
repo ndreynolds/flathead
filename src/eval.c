@@ -483,7 +483,14 @@ fh_function_call(JSValue *ctx, JSValue *this, State *state,
   if (func->function.is_native) {
     // Native functions are C functions referenced by pointer.
     JSNativeFunction native = func->function.native;
-    return (*native)(func->function.instance, args, state);
+    JSValue *instance = func->function.instance;
+
+    // new Number, new Boolean, etc. return wrapper objects. 
+    // Here we resolve the wrapper to the value it wraps.
+    if (instance && IS_OBJ(instance) && instance->object.wraps)
+      instance = instance->object.wraps;
+
+    return (*native)(instance, args, state);
   }
 
   rewind_node(func->function.node);

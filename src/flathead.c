@@ -88,6 +88,8 @@ fh_new_object()
   val->object.frozen = false;
   val->object.sealed = false;
   val->object.extensible = false;
+  val->object.parent = NULL;
+  val->object.wraps = NULL;
   val->proto = fh_try_get_proto("Object");
 
   return val;

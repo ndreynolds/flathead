@@ -2,8 +2,19 @@
 // --------------------
 
 var assert = console.assert;
+
 var assertEquals = function(a, b) {
+  if (a !== b)
+    console.log(a + ' !== ' + b);
   assert(a === b);
+};
+
+var assertArrayEquals = function(a, b) {
+  if (a.length !== b.length)
+    return false;
+  for (var i = 0; i < a.length; i++) {
+    assert(a[i] === b[i]);
+  }
 };
 
 
@@ -14,9 +25,32 @@ var assertEquals = function(a, b) {
 assert(Array);
 assert(typeof Array === 'function');
 
+
+// Constructor
+
+// new Array(arrayLength)
+assertArrayEquals([], new Array);
+assertArrayEquals([], new Array());
+assertArrayEquals([], new Array(0));
+assertArrayEquals([undefined, undefined], new Array(2));
+assertEquals(100, (new Array(100)).length);
+assertEquals(20000, (new Array(20000)).length);
+// assertEquals(4294967295, (new Array(4294967295)).length);
+// TODO: assert throws range error
+
+// new Array(element0, element1, ..., elementN)
+assertArrayEquals(['abc'], new Array('abc'));
+assertArrayEquals([1, 2, 3, 4], new Array(1, 2, 3, 4));
+assertArrayEquals([1, 'b', true], new Array(1, 'b', true));
+var a = new Array(0, 1, 2);
+assertArrayEquals([0, 1, 2], a);
+
+
+// Array.isArray(value)
+
 assert(Array.isArray([]));
 assert(Array.isArray([1]));
-// TODO: (waiting on new operator) assert(Array.isArray( new Array() );
+assert(Array.isArray(new Array()));
 assert(Array.isArray(Array.prototype));
 
 assert(!Array.isArray());
@@ -24,7 +58,7 @@ assert(!Array.isArray({}));
 assert(!Array.isArray(null));
 assert(!Array.isArray(undefined));
 assert(!Array.isArray(17));
-assert(!Array.isArray("Array"));
+assert(!Array.isArray('Array'));
 assert(!Array.isArray(true));
 assert(!Array.isArray(false));
 
@@ -32,6 +66,11 @@ assert(!Array.isArray(false));
 // ----------------------------------------------------------------------------
 // Array Prototype
 // ----------------------------------------------------------------------------
+
+assert(Array.prototype);
+assertEquals('object', typeof Array.prototype);
+assertEquals(0, Array.prototype.length);
+
 
 var a5 = [1, 2, 3, 4];
 
@@ -70,33 +109,24 @@ assert(a5.length === 8);
 // Array.prototype.reverse()
 
 // Just for fun.
-// TODO: assert(a5.reverse().join(' ') === 'lions and tigers and bears oh my !');
+// FIXME: assert(a5.reverse().join(' ') === 'lions and tigers and bears oh my !');
 
 // Even and odd length arrays.
 var a6 = ['a', 'b', 'c', 'd'];
 var a7 = ['c', 'a', 't'];
 
 var result = a6.reverse();
-assert(result[0] === a6[0]);
-
-assert(a6[0] === 'd');
-assert(a6[1] === 'c');
-assert(a6[2] === 'b');
-assert(a6[3] === 'a');
+assertArrayEquals(['d', 'c', 'b', 'a'], result);
+assertArrayEquals(['d', 'c', 'b', 'a'], a6);
 
 a7.reverse();
-assert(a7[0] === 't');
-assert(a7[1] === 'a');
-assert(a7[2] === 'c');
+assertArrayEquals(['t', 'a', 'c'], a7);
 
 
 // Array.prototype.concat(value1, value2, ..., valueN)
 
 var concat = a7.concat('t', ['f', 'u', 'l'], 'n', 'e', ['s', 's']);
-assert(concat[0] === 't');
-assert(concat[3] === 't');
-assert(concat[6] === 'l');
-assert(concat[9] === 's');
+assertArrayEquals(['t', 'a', 'c', 't', 'f', 'u', 'l', 'n', 'e', 's', 's'], concat);
 
 
 // Array.prototype.join(sep)
@@ -115,29 +145,19 @@ assert(a9.join(',') === '1,2,3,4,5,6,7,8,9');
 // Array.prototype.slice(begin[, end])
 
 var slice1 = a9.slice(6);
-assert(slice1.length === 3);
-assert(slice1[0] === 7);
-assert(slice1[1] === 8);
-assert(slice1[2] === 9);
+assertArrayEquals([7, 8, 9], slice1);
 
 var slice2 = a9.slice(0, 2);
-assert(slice2.length === 2);
-assert(slice2[0] === 1);
-assert(slice2[1] === 2);
+assertArrayEquals([1, 2], slice2);
 
 var slice3 = a9.slice(1, -5);
-assert(slice3.length === 3);
-assert(slice3[0] === 2);
-assert(slice3[1] === 3);
-assert(slice3[2] === 4);
+assertArrayEquals([2, 3, 4], slice3);
 
 var slice4 = a9.slice(99);
-assert(slice4.length === 0);
+assertArrayEquals([], slice4);
 
 var slice5 = a9.slice(-50, 100);
-assert(slice5.length === 9);
-assert(slice5[0] === 1);
-assert(slice5[8] === 9);
+assertArrayEquals([1, 2, 3, 4, 5, 6, 7, 8, 9], slice5);
 
 
 // Array.prototype.indexOf()
@@ -167,27 +187,24 @@ assert(a10.lastIndexOf(999) === -1);
 
 // Array.prototype.splice(index, howMany[, element1[, ...[, elementN]]])
 
-var a11 = ["angel", "clown", "mandarin", "surgeon"], removed;
+var a11 = ['angel', 'clown', 'mandarin', 'surgeon'], removed;
 
-removed = a11.splice(2, 0, "drum");
+removed = a11.splice(2, 0, 'drum');
 assert(a11.length === 5);
-assert(removed.length === 0);
+assertArrayEquals([], removed);
 
 removed = a11.splice(3, 1);
 assert(a11.length === 4);
 assert(removed.length === 1);
-assert(removed[0] === "mandarin");
+assertArrayEquals(['mandarin'], removed);
 
-removed = a11.splice(2, 1, "trumpet");
+removed = a11.splice(2, 1, 'trumpet');
 assert(a11.length === 4);
-assert(removed.length === 1);
-assert(removed[0] === "drum");
+assertArrayEquals(['drum'], removed);
 
-removed = a11.splice(0, 2, "parrot", "anemone", "blue");
+removed = a11.splice(0, 2, 'parrot', 'anemone', 'blue');
 assert(a11.length === 5);
-assert(removed.length === 2);
-assert(removed[0] === "angel");
-assert(removed[1] === "clown");
+assertArrayEquals(['angel', 'clown'], removed);
 
 
 // Array.prototype.sort()
@@ -231,9 +248,7 @@ assert(!a13.some(f3, this));
 // Array.prototype.filter(callback[, ctx])
 
 var result = a13.filter(f2, this);
-assert(result[0] === 2);
-assert(result[1] === 4);
-assert(result.length === 2);
+assertArrayEquals([2, 4], result);
 
 
 // Array.prototype.map(callback[, ctx])
@@ -241,10 +256,7 @@ assert(result.length === 2);
 var f4 = function(x) { return x * x; };
 
 var result = a13.map(f4, this);
-assert(result[0] === 1);
-assert(result[1] === 4);
-assert(result[2] === 9);
-assert(result[3] === 16);
+assertArrayEquals([1, 4, 9, 16], result);
 
 
 // Array.prototype.reduce(callback[, seed])

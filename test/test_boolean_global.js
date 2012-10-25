@@ -4,13 +4,43 @@
 
 var assert = console.assert;
 
+var assertEquals = function(a, b) {
+  if (a !== b)
+    console.log(a + ' !== ' + b);
+  assert(a === b);
+};
+
 
 // ----------------------------------------------------------------------------
 // Boolean Global
 // ----------------------------------------------------------------------------
 
 assert(Boolean);
-assert(typeof Boolean === 'function');
+assertEquals('function', typeof Boolean);
+
+// Constructor
+
+assertEquals('object', typeof new Boolean);
+assertEquals('object', typeof (new Boolean));
+assertEquals('object', typeof (new Boolean()));
+assertEquals('object', typeof (new Boolean(true)));
+assertEquals('boolean', typeof Boolean(true));
+assertEquals('boolean', typeof Boolean(false));
+assertEquals(true, (new Boolean(true)).valueOf());
+assertEquals(false, (new Boolean(false)).valueOf());
+assertEquals(false, (new Boolean(false)).valueOf());
+assertEquals(false, Boolean(void 0));
+assertEquals(false, Boolean(null));
+assertEquals(false, Boolean(false));
+assertEquals(true, Boolean(true));
+assertEquals(false, Boolean(0));
+assertEquals(true, Boolean(1));
+assertEquals(true, Boolean(assertEquals));
+assertEquals(true, Boolean(new Object()));
+assert(new Boolean(false) !== false);
+// FIXME: assert(new Boolean(false) == false);
+assert(new Boolean(true) !== true);
+// FIXME: assert(new Boolean(true) == true);
 
 
 // ----------------------------------------------------------------------------
@@ -25,11 +55,15 @@ var f = false;
 
 // Boolean.prototype.toString()
 
-assert(t.toString() === 'true');
-assert(f.toString() === 'false');
+assertEquals('true', t.toString());
+assertEquals('false', f.toString());
+assertEquals('true', true.toString());
+assertEquals('false', false.toString());
 
 
 // Boolean.prototype.valueOf()
 
-assert(t.valueOf() === true);
-assert(f.valueOf() === false);
+assertEquals(true, t.valueOf());
+assertEquals(false, f.valueOf());
+assertEquals(true, true.valueOf());
+assertEquals(false, false.valueOf());

@@ -161,6 +161,7 @@ struct JSObject {
   bool frozen;
   bool sealed;
   bool extensible;
+  struct JSValue *wraps;
   struct JSValue *parent;
 };
 

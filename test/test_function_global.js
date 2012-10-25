@@ -19,6 +19,8 @@ assert(typeof Function === 'function');
 // ----------------------------------------------------------------------------
 
 assert(Function.prototype);
+//assertEquals('function', typeof Function.prototype);
+
 
 x = 42;
 var y = 99;

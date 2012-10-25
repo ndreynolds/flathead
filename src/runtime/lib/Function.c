@@ -84,6 +84,7 @@ bootstrap_function()
 {
   JSValue *function = JSNFUNC(&func_new);
   JSValue *prototype = JSOBJ();
+  // TODO: JSValue *prototype = JSFUNC(NULL);
 
   // Function
   // --------

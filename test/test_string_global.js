@@ -4,13 +4,30 @@
 
 var assert = console.assert;
 
+var assertEquals = function(a, b) {
+  if (a !== b)
+    console.log(a + ' !== ' + b);
+  assert(a === b);
+};
 
 // ----------------------------------------------------------------------------
 // String Global
 // ----------------------------------------------------------------------------
 
 assert(String);
-assert(typeof String === 'function');
+assertEquals('function', typeof String);
+
+// Constructor
+
+assertEquals('object', typeof new String);
+assertEquals('object', typeof new String());
+assertEquals('object', typeof (new String()));
+assertEquals('object', typeof (new String('abc')));
+assertEquals('', (new String('')).valueOf());
+assertEquals('abc', (new String('abc')).valueOf());
+assertEquals('hello', (new String('hello    ')).trim());
+
+// String.fromCharCode(charCode)
 
 assert(String.fromCharCode);
 
@@ -20,6 +37,7 @@ assert(String.fromCharCode);
 // ----------------------------------------------------------------------------
 
 assert(String.prototype);
+assertEquals('object', typeof String.prototype);
 
 
 // String.prototype.charAt(index)

@@ -6,7 +6,10 @@
 //  - 'Holes' in arrays are not handled.
 //  - Copies vs. references (slice, concat)
 
+#include <math.h>
+
 #include "Array.h"
+
 
 JSValue *arr_compare_func;
 
@@ -15,8 +18,26 @@ JSValue *arr_compare_func;
 JSValue *
 arr_new(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSARR();
+  JSValue *arr = JSARR();
+
+  // Create array of given length:
+  if (ARGLEN(args) == 1 && IS_NUM(ARG(args, 0))) {
+    double len = ARG(args, 0)->number.val;
+    // Must be positive integer less than 2^32 - 1
+    if (len < 0 || len > LONG_MAX || fmod(len, 1) != 0) {
+      fh_error(state, E_RANGE, "Invalid array length");
+    }
+    fh_set_len(arr, len);
+    return arr;
+  }
+
+  // Create array of elements
+  int i;
+  for (i = 0; i < ARGLEN(args); i++) {
+    fh_set(arr, JSNUMKEY(i)->string.ptr, ARG(args, i));
+  }
+  fh_set_len(arr, i);
+  return arr;
 }
 
 // Array.isArray(obj)

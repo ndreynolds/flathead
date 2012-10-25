@@ -12,8 +12,10 @@
 JSValue *
 number_new(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSNUM(0);
+  JSValue *value = ARG(args, 0);
+  if (state->construct)
+    state->this->object.wraps = TO_NUM(value);
+  return TO_NUM(value);
 }
 
 // Number.prototype.toExponential([fractionalDigits])

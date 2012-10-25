@@ -8,10 +8,10 @@
 JSValue *
 bool_new(JSValue *instance, JSArgs *args, State *state)
 {
-  JSValue *val = ARG(args, 0);
+  JSValue *value = ARG(args, 0);
   if (state->construct)
-    fh_set(state->this, "__value__", val);
-  return TO_BOOL(val);
+    state->this->object.wraps = TO_BOOL(value);
+  return TO_BOOL(value);
 }
 
 // Boolean.prototype.toString()

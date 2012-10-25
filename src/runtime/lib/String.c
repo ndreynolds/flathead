@@ -10,8 +10,10 @@
 JSValue *
 str_new(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *value = ARGLEN(args) > 0 ? ARG(args, 0) : JSSTR("");
+  if (state->construct)
+    state->this->object.wraps = TO_STR(value);
+  return TO_STR(value);
 }
 
 // String.fromCharCode(num1, ..., numN)

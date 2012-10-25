@@ -4,6 +4,12 @@
 
 var assert = console.assert;
 
+var assertEquals = function(a, b) {
+  if (a !== b)
+    console.log(a + ' !== ' + b);
+  assert(a === b);
+};
+
 
 // ----------------------------------------------------------------------------
 // Number Global
@@ -12,11 +18,27 @@ var assert = console.assert;
 assert(Number);
 assert(typeof Number === 'function');
 
+// Constructor
+
+assertEquals('object', typeof new Number);
+assertEquals('object', typeof (new Number));
+assertEquals('object', typeof (new Number()));
+assertEquals('object', typeof (new Number(0)));
+assertEquals(99, (new Number(99)).valueOf());
+assertEquals('number', typeof Number(1));
+assertEquals('number', typeof Number(42));
+assertEquals(42, Number('42'));
+
+
+// Properties
+
 assert(Number.MAX_VALUE);
 assert(Number.MIN_VALUE);
 assert(isNaN(Number.NaN) && Number.NaN !== undefined);
 assert(Number.NEGATIVE_INFINITY === -Infinity);
 assert(Number.POSITIVE_INFINITY === Infinity);
+
+// TODO: Harmony Number.isNaN & Number.isFinite ?
 
 
 // ----------------------------------------------------------------------------

@@ -7,8 +7,30 @@
 JSValue *
 regexp_new(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  JSValue *pattern = ARG(args, 0);
+  JSValue *flags = ARG(args, 1);
+
+  JSValue *regexp = JSOBJ();
+  regexp->object.is_regexp = true;
+  regexp->proto = fh_try_get_proto("RegExp");
+
+  // TODO: Make a copy of pattern??
+  fh_set(regexp, "source", IS_UNDEF(pattern) ? JSSTR("(?:)") : TO_STR(pattern));
+
+  if (ARGLEN(args) <= 1)
+    return regexp;
+  if (!IS_STR(flags))
+    fh_error(state, E_TYPE, "Invalid flags supplied to RegExp constructor");
+  int i;
+  for (i = 0; i < strlen(flags->string.ptr); i++) {
+    switch(flags->string.ptr[i]) {
+      case 'g': fh_set(regexp, "global", JSBOOL(1)); break;
+      case 'i': fh_set(regexp, "ignoreCase", JSBOOL(1)); break;
+      case 'm': fh_set(regexp, "multiline", JSBOOL(1)); break;
+      case 'y': fh_set(regexp, "sticky", JSBOOL(1)); break;
+    }
+  }
+  return regexp;
 }
 
 // RegExp.prototype.exec(str)
@@ -58,7 +80,7 @@ regexp_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 bootstrap_regexp()
 {
-  JSValue *regexp = JSOBJ();
+  JSValue *regexp = JSNFUNC(&regexp_new);
   JSValue *prototype = JSOBJ();
 
   // RegExp

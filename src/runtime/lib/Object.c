@@ -9,8 +9,17 @@
 JSValue *
 obj_new(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSOBJ();
+  JSValue *value = ARG(args, 0);
+  JSValue *obj = state->construct ? state->this : JSOBJ();
+
+  if (IS_UNDEF(value) || IS_NULL(value)) {
+    return obj;
+  }
+  if (state->construct)
+    obj->object.wraps = value;
+
+  obj->proto = value->proto;
+  return obj;
 }
 
 // Object.create(proto [, propertiesObject ])
