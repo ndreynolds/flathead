@@ -29,9 +29,13 @@ JSValue * arr_proto_some(JSValue *, JSArgs *, State *);
 JSValue * arr_proto_reduce(JSValue *, JSArgs *, State *);
 JSValue * arr_proto_reduce_right(JSValue *, JSArgs *, State *);
 
+void arr_merge_sort(JSProp **, int);
+void arr_merge(JSProp **, JSProp **, int, int, JSProp **);
+void arr_recur(JSProp **, JSProp **, int);
+int arr_cmp(JSProp *, JSProp *);
+int arr_cmp_js(JSProp *, JSProp *);
 int arr_lex_sort(JSProp *, JSProp *);
 int arr_key_sort(JSProp *, JSProp *);
-int arr_custom_sort(JSProp *, JSProp *);
 JSValue * arr_do_join(JSValue *, JSValue *);
 
 JSValue * bootstrap_array(void);

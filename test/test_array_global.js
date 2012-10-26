@@ -208,12 +208,11 @@ assertArrayEquals(['angel', 'clown'], removed);
 
 
 // Array.prototype.sort()
-// TODO
-// a11.sort();
-// assert(a11[0] === 1);
-// assert(a11[1] === 2);
-// assert(a11[2] === 3);
-// assert(a11[3] === 4);
+
+// TODO: expand these tests
+a11.sort();
+assertArrayEquals([1, 2, 3, 4], a11);
+assertArrayEquals([200, 45, 7], [7, 45, 200].sort());
 
 
 // Array.prototype.forEach(callback[, ctx])

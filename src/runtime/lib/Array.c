@@ -7,11 +7,19 @@
 //  - Copies vs. references (slice, concat)
 
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "Array.h"
 
+// Pointer to the comparison function that the merge sort will call.
+int (*arr_cmp_func)(JSProp *, JSProp *);
 
-JSValue *arr_compare_func;
+// Little bit of evil to allow sorting to work with user defined function
+// without needing to pass the func & state through so many calls.
+JSValue *arr_js_cmp_func;
+State *arr_js_cmp_state;
 
 // new Array(element0, element1, ..., elementN)
 // new Array(arrayLength)
@@ -133,17 +141,42 @@ arr_proto_shift(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 arr_proto_sort(JSValue *instance, JSArgs *args, State *state)
 {
-  /*
-  arr_compare_func = ARG(args, 0);
-  if (arr_compare_func)
-    HASH_SORT(instance->map, arr_custom_sort);
-  else
-    HASH_SORT(instance->map, arr_lex_sort);
+  JSValue *cmp_func = ARG(args, 0);
+  if (IS_FUNC(cmp_func)) {
+    arr_cmp_func = arr_cmp_js;
+    arr_js_cmp_func = cmp_func;
+    arr_js_cmp_state = state;
+  }
+  else {
+    arr_cmp_func = arr_cmp;
+  }
 
-  JSProp *p;
-  int i = 0;
-  JSValue *key = JSNUMKEY(i);
-  */
+  JSValue *sorted = JSARR();
+
+  // Build an array of JSProp pointers from the hashmap.
+  int i, j, len = instance->object.length;
+  JSProp *prop, *prop_lst[len];
+  for (i = 0; i < len; i++) {
+    prop = fh_get_prop(instance, JSNUMKEY(i)->string.ptr);
+    if (!prop) {
+      i--;
+      continue;
+    }
+    prop_lst[i] = prop;
+  }
+
+  // Do a merge sort of the JSProp pointers array.
+  arr_merge_sort(prop_lst, i);
+
+  // Rebuild the hashmap (using a donor array).
+  for (j = 0; j < i; j++) {
+    prop = prop_lst[j];
+    HASH_ADD_KEYPTR(hh, sorted->map, prop->name, strlen(prop->name), prop);
+  }
+
+  // Steal the donor array's hashmap.
+  instance->map = sorted->map;
+  sorted->map = NULL;
 
   return instance;
 }
@@ -558,30 +591,54 @@ arr_proto_reduce_right(JSValue *instance, JSArgs *args, State *state)
   return reduction;
 }
 
-int
-arr_lex_sort(JSProp *a, JSProp *b)
+void 
+arr_merge(JSProp **left, JSProp **right, int l_len, int r_len, JSProp **out)
 {
-  JSValue *val_a = TO_STR(a->ptr);
-  JSValue *val_b = TO_STR(b->ptr);
+  int i, j, k;
+  for (i = j = k = 0; i < l_len && j < r_len; )
+    out[k++] = arr_cmp_func(left[i], right[j]) ? left[i++] : right[j++];
 
-  return strcmp(val_a->string.ptr, val_b->string.ptr);
+  while (i < l_len) out[k++] = left[i++];
+  while (j < r_len) out[k++] = right[j++];
+}
+ 
+void 
+arr_recur(JSProp **arr, JSProp **tmp, int len)
+{
+  int l = len / 2;
+  if (len <= 1) return;
+
+  arr_recur(tmp, arr, l);
+  arr_recur(tmp + l, arr + l, len - l);
+
+  arr_merge(tmp, tmp + l, l, len - l, arr);
+}
+ 
+void 
+arr_merge_sort(JSProp **arr, int len)
+{
+  JSProp **tmp = malloc(sizeof(JSProp *) * len);
+  memcpy(tmp, arr, sizeof(JSProp *) * len);
+
+  arr_recur(arr, tmp, len);
+
+  free(tmp);
 }
 
 int
-arr_key_sort(JSProp *a, JSProp *b)
+arr_cmp(JSProp *a, JSProp *b)
 {
-  return strcmp(a->name, b->name);
+  return strcmp(TO_STR(a->ptr)->string.ptr, TO_STR(b->ptr)->string.ptr) < 0;
 }
 
 int
-arr_custom_sort(JSProp *a, JSProp *b)
+arr_cmp_js(JSProp *a, JSProp *b)
 {
-  // TODO
-  // JSValue *val_a = JSCAST(a->ptr, T_STRING);
-  // JSValue *val_b = JSCAST(b->ptr, T_STRING); 
-
-  // return fh_function_call(arr_custom_sort);
-  return 0;
+  State *state = arr_js_cmp_state;
+  JSArgs *args = fh_new_args(a->ptr, b->ptr, 0);
+  JSValue *result = fh_function_call(state->ctx, JSUNDEF(), state, 
+                                     arr_js_cmp_func, args);
+  return TO_BOOL(result)->number.val > 0;
 }
 
 JSValue *

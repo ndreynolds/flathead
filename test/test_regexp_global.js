@@ -17,6 +17,18 @@ var assertRegExpEquals = function(a, b) {
   assertEquals(a.ignoreCase, b.ignoreCase);
 };
 
+var assertEmptyRegExp = function(r, cmp) {
+  // The value of the 'source' prop seems to be implementation-specific
+  // when the 'pattern' constructor argument is undefined.
+  //
+  // Either '(?:)' or '' is acceptable.
+  if (!(r.source === '(?:)' || r.source === ''))
+    assert(false);
+  assertEquals(r.global, cmp.global);
+  assertEquals(r.multiline, cmp.multiline);
+  assertEquals(r.ignoreCase, cmp.ignoreCase);
+};
+
 
 // ----------------------------------------------------------------------------
 // RegExp Global
@@ -30,8 +42,9 @@ assertEquals('function', typeof RegExp);
 assertEquals('object', typeof new RegExp);
 assertEquals('object', typeof new RegExp());
 assertEquals('object', typeof RegExp());
-assertRegExpEquals(/(?:)/, new RegExp());
-assertRegExpEquals(/(?:)/gim, new RegExp(undefined, 'igm'));
+assertEmptyRegExp(new RegExp, /(?:)/);
+assertEmptyRegExp(new RegExp(), /(?:)/);
+assertEmptyRegExp(new RegExp(undefined, 'igm'), /(?:)/igm);
 assertRegExpEquals(/null/gim, new RegExp(null, 'igm'));
 assertRegExpEquals(/abc/i, new RegExp('abc', 'i'));
 assertRegExpEquals(/abc/i, RegExp('abc', 'i'));
