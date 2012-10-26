@@ -55,7 +55,7 @@ else
   LIBS += -lpcre
 endif
 
-.PHONY: test
+.PHONY: test ctest
 
 all: clean default
 
