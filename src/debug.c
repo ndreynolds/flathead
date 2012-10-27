@@ -25,72 +25,6 @@
 // ----------------------------------------------------------------------------
 
 void
-fh_debug_obj(FILE *stream, JSValue *obj, int indent)
-{
-  if (HASH_COUNT(obj->map) == 0) {
-    fprintf(stream, "{}");
-    return;
-  }
-
-  JSProp *x;
-  int i;
-  bool first = true;
-
-  OBJ_ITER(obj, x) {
-    if (first) {
-      fprintf(stream, "\n");
-      for (i = 0; i < indent; i++) fprintf(stream, " ");
-      fprintf(stream, "{");
-      first = false;
-    }
-    else {
-      fprintf(stream, ",\n");
-      for (i = 0; i < (indent + 1); i++) fprintf(stream, " ");
-    }
-    fprintf(stream, " %s: ", x->name);
-    x->circular ? 
-      fprintf(stream, "[Circular]") : 
-      fh_debug(stream, x->ptr, indent+3, false);
-  };
-  fprintf(stream, " }");
-}
-
-void
-fh_debug_arr(FILE *stream, JSValue *arr, int indent)
-{
-  if (HASH_COUNT(arr->map) == 0) {
-    fprintf(stream, "[]");
-    return;
-  }
-  bool first = true;
-  JSProp *x, *tmp;
-  fprintf(stream, "[ ");
-  HASH_ITER(hh, arr->map, x, tmp) {
-    if (!first) 
-      fprintf(stream, ", ");
-    else if (x->enumerable)
-      first = false;
-    if (x->enumerable)
-      fh_debug(stream, x->ptr, 0, false);
-  };
-  fprintf(stream, " ]");
-}
-
-void
-fh_debug_args(FILE *stream, JSArgs *args)
-{
-  bool first = true;
-  while (first || args->next != NULL)
-  {
-    if (!first)
-      args = args->next;
-    if (args->arg != NULL)
-      fh_debug(stream, args->arg, 0, 1);
-    first = false;
-  }
-}
-
-void
 fh_debug(FILE *stream, JSValue *val, int indent, bool newline)
 {
   switch(val->type) {
@@ -125,4 +59,61 @@ fh_debug(FILE *stream, JSValue *val, int indent, bool newline)
       break;
   }
   if (newline) fprintf(stream, "\n");
+}
+
+void
+fh_debug_obj(FILE *stream, JSValue *obj, int indent)
+{
+  JSProp *x;
+  int i;
+  bool first = true;
+
+  OBJ_ITER(obj, x) {
+    if (!x->enumerable) continue;
+    if (first) {
+      fprintf(stream, "\n");
+      for (i = 0; i < indent; i++) fprintf(stream, " ");
+      fprintf(stream, "{");
+      first = false;
+    }
+    else {
+      fprintf(stream, ",\n");
+      for (i = 0; i < (indent + 1); i++) fprintf(stream, " ");
+    }
+    fprintf(stream, " %s: ", x->name);
+    x->circular ? 
+      fprintf(stream, "[Circular]") : 
+      fh_debug(stream, x->ptr, indent+3, false);
+  };
+
+  fprintf(stream, first ? "{}" : " }");
+}
+
+void
+fh_debug_arr(FILE *stream, JSValue *arr, int indent)
+{
+  if (HASH_COUNT(arr->map) == 0) {
+    fprintf(stream, "[]");
+    return;
+  }
+  bool first = true;
+  JSProp *x;
+  fprintf(stream, "[ ");
+  OBJ_ITER(arr, x) {
+    if (!first) 
+      fprintf(stream, ", ");
+    else if (x->enumerable)
+      first = false;
+    if (x->enumerable)
+      fh_debug(stream, x->ptr, 0, false);
+  };
+  fprintf(stream, " ]");
+}
+
+void
+fh_debug_args(FILE *stream, JSArgs *args)
+{
+  int i;
+  for (i = 0; i < ARGLEN(args); i++)
+    fh_debug(stream, ARG(args, i), 0, 1);
 }
