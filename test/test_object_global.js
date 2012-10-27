@@ -3,6 +3,9 @@
 
 var assert = console.assert;
 
+var assertObjectEquals = function(a, b) {
+};
+
 
 // -----------------------------------------------------------------------------
 // Object Global
@@ -13,9 +16,18 @@ assert(typeof Object === 'function');
 
 var obj = { a: 1, b: 2, c:3 };
 
+
 // Object.create()
 
-// TODO
+var newObj = Object.create(Object.prototype, {
+  foo: {writable: true, configurable: true, value: 'hello'},
+  bar: {configurable: false, value: 'and'},
+  baz: {enumerable: true, value: 'goodbye'}
+});
+
+assert(newObj.foo === 'hello');
+assert(newObj.bar === 'and');
+assert(newObj.baz === 'goodbye');
 
 
 // Object.defineProperty(obj, descriptor)
@@ -74,6 +86,7 @@ assert(x.hasOwnProperty('a'));
 assert(!x.hasOwnProperty('toString'));
 assert(x.propertyIsEnumerable('b'));
 assert(x.valueOf() === x);
+
 
 // Directly via the prototype
 

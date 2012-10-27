@@ -38,9 +38,9 @@ assertEquals(true, Boolean(1));
 assertEquals(true, Boolean(assertEquals));
 assertEquals(true, Boolean(new Object()));
 assert(new Boolean(false) !== false);
-// FIXME: assert(new Boolean(false) == false);
+assert(new Boolean(false) == false);
 assert(new Boolean(true) !== true);
-// FIXME: assert(new Boolean(true) == true);
+assert(new Boolean(true) == true);
 
 
 // ----------------------------------------------------------------------------

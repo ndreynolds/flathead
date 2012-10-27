@@ -250,8 +250,9 @@ fh_assign(JSValue *ctx, Node *node)
     }
     key = fh_str_from_node(ctx, member->e1)->string.ptr;
   }
-    
-  fh_do_assign(ctx, key, val, node->sval);
+
+  if (IS_OBJ(ctx) || IS_FUNC(ctx))
+    fh_do_assign(ctx, key, val, node->sval);
   return val;
 }
 
@@ -787,6 +788,13 @@ fh_eq(JSValue *a, JSValue *b, bool strict)
   // Objects are equal if they occupy the same memory address
   if (T_BOTH(a, b, T_OBJECT) || T_BOTH(a, b, T_FUNCTION))
     return JSBOOL(a == b);
+
+  // At this point, if one of our arguments is a wrapper object, try
+  // again using the primitive value.
+  if (IS_OBJ(a) && a->object.wraps)
+    return fh_eq(a->object.wraps, b, false);
+  if (IS_OBJ(b) && b->object.wraps)
+    return fh_eq(a, b->object.wraps, false);
 
   return fh_eq(TO_NUM(a), TO_NUM(b), false);
 }

@@ -28,6 +28,7 @@ assertEquals(99, (new Number(99)).valueOf());
 assertEquals('number', typeof Number(1));
 assertEquals('number', typeof Number(42));
 assertEquals(42, Number('42'));
+assert(42 == new Number(42));
 
 
 // Properties
