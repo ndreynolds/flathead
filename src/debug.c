@@ -16,6 +16,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <math.h>
+
 #include "debug.h"
 #include "cli.h"
 
@@ -32,12 +34,7 @@ fh_debug(FILE *stream, JSValue *val, int indent, bool newline)
       fprintf(stream, "%s", !val->boolean.val ? "false" : "true");
       break;
     case T_NUMBER:
-      if (val->number.is_nan)
-        cfprintf(stream, ANSI_ORANGE, "NaN");
-      else if (val->number.is_inf) 
-        cfprintf(stream, ANSI_ORANGE, "%sInfinity", val->number.is_neg ? "-" : "");
-      else 
-        cfprintf(stream, ANSI_ORANGE, "%g", val->number.val);
+      fh_debug_num(stream, val);
       break;
     case T_STRING:
       cfprintf(stream, ANSI_YELLOW, "'%s'", val->string.ptr);
@@ -108,6 +105,24 @@ fh_debug_arr(FILE *stream, JSValue *arr, int indent)
       fh_debug(stream, x->ptr, 0, false);
   };
   fprintf(stream, " ]");
+}
+
+void
+fh_debug_num(FILE *stream, JSValue *num)
+{
+  if (num->number.is_nan)
+    cfprintf(stream, ANSI_ORANGE, "NaN");
+  else if (num->number.is_inf) 
+    cfprintf(stream, ANSI_ORANGE, "%sInfinity", num->number.is_neg ? "-" : "");
+  else {
+    char *fmt = "%f";
+    if (fmod(num->number.val, 1) == 0) 
+      fmt = "%.0f";
+    if (fabs(num->number.val) > 1e21) {
+      fmt = "%g";
+    }
+    cfprintf(stream, ANSI_ORANGE, fmt, num->number.val);
+  }
 }
 
 void

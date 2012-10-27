@@ -819,6 +819,8 @@ fh_gt(JSValue *a, JSValue *b)
   if (T_BOTH(a, b, T_STRING)) 
     return JSBOOL(strcmp(a->string.ptr, b->string.ptr) > 0);
 
+  // TODO: handle object wrappers?
+
   if (a->type == T_UNDEF|| b->type == T_UNDEF) return JSBOOL(0);
 
   assert(0);
