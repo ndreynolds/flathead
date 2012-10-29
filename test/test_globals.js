@@ -4,6 +4,10 @@
 
 var assert = console.assert;
 
+var assertNaN = function(x) {
+  assert(isNaN(x) && x !== undefined);
+};
+
 
 // isFinite(value)
 
@@ -31,12 +35,11 @@ assert(this);
 
 
 // parseInt(string)
-// TODO: handle some of the more exotic cases
 
 // without radix
 assert(parseInt("42") === 42);
 assert(parseInt("3.14") === 3);
-assert(isNaN(parseInt("Not a number")));
+assertNaN(parseInt("Not a number"));
 
 // with radix
 assert(parseInt(" 0xF", 16) === 15);
@@ -52,11 +55,11 @@ assert(parseInt("1111", 2) === 15);
 // FIXME: assert(parseInt("15px", 10) === 15);
 assert(parseInt("12", 13) === 15);
 
-assert(isNaN(parseInt("Not a number", 10)));
+assertNaN(parseInt("Not a number", 10));
 
 
 // parseFloat(string)
 
 assert(parseFloat("3.14") === 3.14);
 assert(parseFloat("42") === 42);
-assert(isNaN(parseFloat("Not a number")));
+assertNaN(parseFloat("Not a number"));

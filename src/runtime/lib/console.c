@@ -29,7 +29,7 @@ console_assert(JSValue *instance, JSArgs *args, State *state)
   if (TO_BOOL(ARG(args, 0))->boolean.val)
     return JSUNDEF();
   fh_error(state, E_ASSERTION, "assertion failed");
-  assert(0);
+  UNREACHABLE();
 }
 
 JSValue *
