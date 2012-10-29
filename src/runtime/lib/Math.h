@@ -1,6 +1,9 @@
 // Math.h
 // ------
 
+#ifndef JS_MATH_H
+#define JS_MATH_H
+
 #include "../runtime.h"
 
 JSValue * math_abs(JSValue *, JSArgs *, State *);
@@ -22,3 +25,5 @@ JSValue * math_sin(JSValue *, JSArgs *, State *);
 JSValue * math_sqrt(JSValue *, JSArgs *, State *);
 JSValue * math_tan(JSValue *, JSArgs *, State *);
 JSValue * bootstrap_math(void);
+
+#endif

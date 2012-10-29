@@ -1,6 +1,9 @@
 // Object.h
 // --------
 
+#ifndef JS_OBJ_H
+#define JS_OBJ_H
+
 #include "../runtime.h"
 
 JSValue * obj_create(JSValue *, JSArgs *, State *);
@@ -27,3 +30,5 @@ JSValue * obj_proto_value_of(JSValue *, JSArgs *, State *);
 JSValue * obj_or_throw(JSValue *, State *, const char *);
 JSPropFlags flags_from_descriptor(JSValue *);
 JSValue * bootstrap_object(void);
+
+#endif

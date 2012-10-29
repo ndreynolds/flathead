@@ -2,6 +2,9 @@
 // --------
 // String properties, methods, and prototype
 
+#ifndef JS_STRING_H
+#define JS_STRING_H
+
 #include "../runtime.h"
 
 JSValue * str_new(JSValue *, JSArgs *, State *);
@@ -31,3 +34,5 @@ JSValue * str_proto_trim_right(JSValue *, JSArgs *, State *);
 JSValue * str_proto_value_of(JSValue *, JSArgs *, State *);
 
 JSValue * bootstrap_string(void);
+
+#endif

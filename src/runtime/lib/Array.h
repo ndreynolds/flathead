@@ -1,6 +1,9 @@
 // Array.h
 // -------
 
+#ifndef JS_ARR_H
+#define JS_ARR_H
+
 #include "../runtime.h"
 
 JSValue * arr_new(JSValue *, JSArgs *, State *);
@@ -39,3 +42,5 @@ int arr_key_sort(JSProp *, JSProp *);
 JSValue * arr_do_join(JSValue *, JSValue *);
 
 JSValue * bootstrap_array(void);
+
+#endif
