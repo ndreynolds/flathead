@@ -580,7 +580,7 @@ fh_postfix_exp(JSValue *ctx, Node *node)
     fh_set(ctx, node->e1->sval, fh_sub(old_val, JSNUM(1)));
     return old_val;
   }
-  assert(0);
+  UNREACHABLE();
 }
 
 JSValue *
@@ -625,7 +625,7 @@ fh_prefix_exp(JSValue *ctx, Node *node)
     return new_val;
   }
 
-  assert(0);
+  UNREACHABLE();
 }
 
 
@@ -676,7 +676,7 @@ fh_bin_exp(JSValue *ctx, Node *node)
       fh_error(NULL, E_TYPE, "Expecting an object with 'in' operator");
     return fh_has_property(b, TO_STR(a)->string.ptr);
 
-  assert(0);
+  UNREACHABLE();
 }
 
 JSValue *
@@ -711,7 +711,7 @@ fh_add(JSValue *a, JSValue *b)
   if (T_XOR(a, b, T_NUMBER, T_BOOLEAN))
     return fh_add(TO_NUM(a), TO_NUM(b));
 
-  assert(0);
+  UNREACHABLE();
 }
 
 JSValue *
@@ -823,7 +823,7 @@ fh_gt(JSValue *a, JSValue *b)
 
   if (a->type == T_UNDEF|| b->type == T_UNDEF) return JSBOOL(0);
 
-  assert(0);
+  UNREACHABLE();
 }
 
 JSValue *

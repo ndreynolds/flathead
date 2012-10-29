@@ -38,7 +38,7 @@ fh_malloc(bool first_attempt)
     return fh_malloc(false);
   } 
   fh_error(NULL, E_ERROR, "process out of memory");
-  assert(0);
+  UNREACHABLE();
 }
 
 PoolMetadata *

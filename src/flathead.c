@@ -299,7 +299,7 @@ fh_cast(JSValue *val, JSType type)
     if (type == T_BOOLEAN) return JSBOOL(0);
   }
 
-  assert(0);
+  UNREACHABLE();
 }
 
 

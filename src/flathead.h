@@ -70,6 +70,7 @@
 #define BUILTIN(o,k,v) fh_set_prop((o),(k),(v),P_BUILTIN)
 
 #define DEBUG(x)       fh_debug(stdout,(x),0,1)
+#define UNREACHABLE()  assert(0)
 
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
