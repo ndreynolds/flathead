@@ -30,7 +30,7 @@ date_new(JSValue *instance, JSArgs *args, State *state)
 
   // Date()
   if (len == 0)
-    utc = date_now(instance, args, state);
+    utc = JSNUM(utc_now());
 
   // Date(value|dateString)
   else if (len == 1) {
@@ -43,7 +43,7 @@ date_new(JSValue *instance, JSArgs *args, State *state)
 
   // new Date(year, month, day[, hour, minute, second, millisecond])
   else {
-    utc = utc_from_args(args);
+    utc = JSNUM(utc_time(time_from_args(args)->number.val));
   }
 
   if (state->construct)
@@ -55,7 +55,7 @@ date_new(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 date_now(JSValue *instance, JSArgs *args, State *state)
 {
-  return JSNUM(utc_time());
+  return JSNUM(utc_now());
 }
 
 // Date.parse(dateString)
@@ -70,7 +70,7 @@ date_parse(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 date_utc(JSValue *instance, JSArgs *args, State *state)
 {
-  return utc_from_args(args);
+  return time_from_args(args);
 }
 
 // Date.isDST()   Non-standard
@@ -149,7 +149,8 @@ date_proto_get_time(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 date_proto_get_timezone_offset(JSValue *instance, JSArgs *args, State *state)
 {
-  return JSNUM(utc_offset() / ms_per_min);
+  double t = instance->number.val;
+  return JSNUM((t - local_time(t)) / ms_per_min);
 }
 
 // Date.prototype.getUTCDate()
@@ -164,6 +165,13 @@ JSValue *
 date_proto_get_utc_day(JSValue *instance, JSArgs *args, State *state)
 {
   return JSNUM(week_day(instance->number.val));
+}
+
+// Date.prototype.getUTCFullYear()
+JSValue *
+date_proto_get_utc_full_year(JSValue *instance, JSArgs *args, State *state)
+{
+  return JSNUM(year_from_time(instance->number.val));
 }
 
 // Date.prototype.getUTCHours()
@@ -201,11 +209,12 @@ date_proto_get_utc_seconds(JSValue *instance, JSArgs *args, State *state)
   return JSNUM(sec_from_time(instance->number.val));
 }
 
-// Date.prototype.getUTCYear()
+// Date.prototype.getYear()
 JSValue *
 date_proto_get_year(JSValue *instance, JSArgs *args, State *state)
 {
-  return JSNUM(sec_from_time(instance->number.val));
+  int y = year_from_time(instance->number.val);
+  return JSNUM(y - 1900);
 }
 
 // Date.prototype.setDate(dayValue)
@@ -451,8 +460,8 @@ days_in_year(double y)
 double
 day_from_year(double y)
 {
-  return 365 * (y - 1970) + floor((y - 1969) / 4) - 
-    floor((y - 1901) / 100) + floor((y - 1601) / 400);
+  return 365 * (y - 1970) + floor((y - 1969) / 4.0) - 
+    floor((y - 1901) / 100.0) + floor((y - 1601) / 400.0);
 }
 
 double
@@ -608,7 +617,7 @@ in_leap_year(double t)
 double
 local_time(double t)
 {
-  return t + utc_offset();
+  return t - utc_offset() - dst_offset(t);
 }
 
 double
@@ -619,25 +628,35 @@ utc_offset()
   time_t gmt_sec = mktime(loc_tm);
   time_t loc_sec = mktime(gmtime(&now));
 
-  long delta = loc_sec - gmt_sec;
-  if (loc_tm->tm_isdst) 
-    delta -= min_per_hr * sec_per_min;
-
-  return delta * ms_per_sec;
+  return (loc_sec - gmt_sec) * ms_per_sec;
 }
 
 double
-utc_time()
+utc_time(double t)
+{
+  return t + utc_offset() + dst_offset(t + utc_offset());
+}
+
+double
+utc_now()
 {
   struct timeval t;
   gettimeofday(&t, NULL);
   return t.tv_sec * 1000 + t.tv_usec / 1000;
 }
 
+double
+dst_offset(double raw_t)
+{
+  time_t t = raw_t / 1000;
+  struct tm *loc_tm = localtime(&t);
+  return loc_tm->tm_isdst ? -ms_per_hr : 0;
+}
+
 // new Date(year, month, day[, hour, minute, second, millisecond])
 // Date.UTC(year, month[, date[, hours[, minutes[, seconds[, ms]]]]])
 JSValue *
-utc_from_args(JSArgs *args)
+time_from_args(JSArgs *args)
 {
   JSValue *year    = ARG(args, 0),
           *month   = ARG(args, 1),
@@ -657,7 +676,7 @@ utc_from_args(JSArgs *args)
 
   // Resolve a 2-digit year to 4 digits, relative to the 20th century.
   long yi = floor(y->number.val);
-  if (yi >= 0 || yi <= 99)
+  if (yi >= 0 && yi <= 99)
     yi = 1900 + yi;
   JSValue *yr = JSNUM(yi);
 
@@ -686,13 +705,12 @@ make_day(JSValue *year, JSValue *month, JSValue *date)
   double y = TO_NUM(year)->number.val, 
       m = TO_NUM(month)->number.val,
       dt = TO_NUM(date)->number.val,
-      ym = y + floor(m / 12),
       mn = fmod(m, 12);
 
   y += floor(mn / 12);
   if (mn < 0) mn += 12;
 
-  double yd = floor(time_from_year(ym) / ms_per_day);
+  double yd = floor(time_from_year(y) / ms_per_day);
   double md = day_from_month(mn, y);
 
   return JSNUM(yd + md + dt - 1);
@@ -715,7 +733,7 @@ time_clip(JSValue *time)
 {
   if (IS_INF(time))
     return JSNAN();
-  if (abs(time->number.val) > 8.64E15)
+  if (abs(time->number.val) > 8.64e15)
     return JSNAN();
   return TO_NUM(time);
 }
@@ -747,12 +765,18 @@ bootstrap_date()
   // Methods
   BUILTIN(proto, "getDate", JSNFUNC(&date_proto_get_date));
   BUILTIN(proto, "getDay", JSNFUNC(&date_proto_get_day));
+  BUILTIN(proto, "getHours", JSNFUNC(&date_proto_get_hours));
   BUILTIN(proto, "getFullYear", JSNFUNC(&date_proto_get_full_year));
+  BUILTIN(proto, "getMilliseconds", JSNFUNC(&date_proto_get_milliseconds));
+  BUILTIN(proto, "getMinutes", JSNFUNC(&date_proto_get_minutes));
   BUILTIN(proto, "getMonth", JSNFUNC(&date_proto_get_month));
   BUILTIN(proto, "getSeconds", JSNFUNC(&date_proto_get_seconds));
   BUILTIN(proto, "getTime", JSNFUNC(&date_proto_get_time));
   BUILTIN(proto, "getTimezoneOffset", JSNFUNC(&date_proto_get_timezone_offset));
   BUILTIN(proto, "getUTCDate", JSNFUNC(&date_proto_get_utc_date));
+  BUILTIN(proto, "getUTCDay", JSNFUNC(&date_proto_get_utc_day));
+  BUILTIN(proto, "getUTCHours", JSNFUNC(&date_proto_get_utc_hours));
+  BUILTIN(proto, "getUTCFullYear", JSNFUNC(&date_proto_get_utc_full_year));
   BUILTIN(proto, "getUTCMilliseconds", JSNFUNC(&date_proto_get_utc_milliseconds));
   BUILTIN(proto, "getUTCMinutes", JSNFUNC(&date_proto_get_utc_minutes));
   BUILTIN(proto, "getUTCMonth", JSNFUNC(&date_proto_get_utc_month));

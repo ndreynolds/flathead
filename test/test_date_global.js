@@ -71,10 +71,27 @@ var d3 = new Date(2000, 5, 28, 15, 30, 0, 0);
 // Thu, 25 Dec 2149 08:20:46 GMT
 var d4 = new Date(2149, 11, 25, 3, 20, 46, 670);
 
-console.log(d1.valueOf());
-console.log(d2.valueOf());
-console.log(d3.valueOf());
-console.log(d4.valueOf());
+// Thu, 01 Jan 1970 05:00:00 GMT
+var d1u = Date.UTC(1970, 0, 1, 0, 0, 0, 0);
+// Mon, 07 May 1990 04:05:00 GMT
+var d2u = Date.UTC(1990, 4, 7, 0, 5, 0, 0);
+// Wed, 28 Jun 2000 19:30:00 GMT
+var d3u = Date.UTC(2000, 5, 28, 15, 30, 0, 0);
+// Thu, 25 Dec 2149 08:20:46 GMT
+var d4u = Date.UTC(2149, 11, 25, 3, 20, 46, 670);
+
+
+// Date.prototype.valueOf()
+
+assertEquals(0, d1u);
+assertEquals(642038700000, d2u);
+assertEquals(962206200000, d3u);
+assertEquals(5679688846670, d4u);
+
+assertEqualsWhenEDT(18000000, d1.valueOf());
+assertEqualsWhenEDT(642053100000, d2.valueOf());
+assertEqualsWhenEDT(962220600000, d3.valueOf());
+assertEqualsWhenEDT(5679706846670, d4.valueOf());
 
 
 // Date.prototype.getDate()
