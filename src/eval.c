@@ -239,16 +239,20 @@ fh_assign(JSValue *ctx, Node *node)
   char *key = node->e1->sval;
 
   if (node->e1->type == NODE_MEMBER) {
+    JSValue *old_ctx = ctx; 
+
     Node *member = node->e1;
     ctx = member->e2->type == NODE_MEMBER ?
       fh_member(ctx, member->e2) :
-      fh_get(ctx, fh_str_from_node(ctx, member->e2)->string.ptr);
+      fh_get_rec(ctx, fh_str_from_node(ctx, member->e2)->string.ptr);
+
+    // Set the array length.
     if (IS_ARR(ctx) && member->e1->type == NODE_NUM) {
       int val = member->e1->val;
       if (val >= ctx->object.length)
         fh_set_len(ctx, val + 1);
     }
-    key = fh_str_from_node(ctx, member->e1)->string.ptr;
+    key = fh_str_from_node(old_ctx, member->e1)->string.ptr;
   }
 
   if (IS_OBJ(ctx) || IS_FUNC(ctx))

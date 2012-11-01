@@ -23,6 +23,15 @@ console_error(JSValue *instance, JSArgs *args, State *state)
 }
 
 JSValue *
+console_info(JSValue *instance, JSArgs *args, State *state)
+{
+  int i;
+  for (i = 0; i < ARGLEN(args); i++)
+    fh_debug_verbose(stderr, ARG(args, i), 0);
+  return JSUNDEF();
+}
+
+JSValue *
 console_assert(JSValue *instance, JSArgs *args, State *state)
 {
   // Non-standard, found in new Webkit builds and Firebug
@@ -47,6 +56,7 @@ bootstrap_console()
 
   BUILTIN(console, "log", JSNFUNC(&console_log));
   BUILTIN(console, "error", JSNFUNC(&console_error));
+  BUILTIN(console, "info", JSNFUNC(&console_info));
   BUILTIN(console, "assert", JSNFUNC(&console_assert));
   BUILTIN(console, "time", JSNFUNC(&console_time));
 

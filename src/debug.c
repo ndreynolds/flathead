@@ -52,21 +52,58 @@ fh_debug(FILE *stream, JSValue *val, int indent, bool newline)
       if (val->object.is_array)
         fh_debug_arr(stream, val, indent);
       else
-        fh_debug_obj(stream, val, indent);
+        fh_debug_obj(stream, val, indent, false);
       break;
   }
   if (newline) fprintf(stream, "\n");
 }
 
+// Debug an object with extra verbosity, displaying non-enumerable properties.
 void
-fh_debug_obj(FILE *stream, JSValue *obj, int indent)
+fh_debug_verbose(FILE *stream, JSValue *val, int indent)
+{
+  switch(val->type) {
+    case T_BOOLEAN:
+      fprintf(stream, "Boolean: (%s)", !val->boolean.val ? "false" : "true");
+      break;
+    case T_NUMBER:
+      fh_debug_num(stream, val);
+      break;
+    case T_STRING:
+      cfprintf(stream, ANSI_YELLOW, "String: '%s'", val->string.ptr);
+      break;
+    case T_NULL:
+      cfprintf(stream, ANSI_GRAY, "null");
+      break;
+    case T_FUNCTION:
+      cfprintf(stream, ANSI_BLUE, "Function: ");
+      break;
+    case T_UNDEF:
+      cfprintf(stream, ANSI_GRAY, "undefined");
+      break;
+    case T_OBJECT:
+      if (val->object.is_array)
+        fprintf(stream, "Array: ");
+      else
+        fprintf(stream, "Object: ");
+      break;
+  }
+
+  if (IS_FUNC(val) || IS_OBJ(val))
+    fh_debug_obj(stream, val, indent, true);
+
+  fprintf(stream, "\n");
+}
+
+void
+fh_debug_obj(FILE *stream, JSValue *obj, int indent, bool force_enum)
 {
   JSProp *x;
   int i;
   bool first = true;
 
   OBJ_ITER(obj, x) {
-    if (!x->enumerable) continue;
+    if (!x->enumerable && !force_enum) continue;
     if (first) {
       fprintf(stream, "\n");
       for (i = 0; i < indent; i++) fprintf(stream, " ");
