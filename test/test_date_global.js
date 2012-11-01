@@ -39,6 +39,13 @@ assert((new Date()).valueOf() >= now);
 assert((new Date(0)).valueOf() < now);
 assert((new Date(100)).valueOf() < now);
 
+assertEqualsWhenEDT(18000000, (new Date(1970, 0, 1, 0, 0, 0, 0)).valueOf());
+
+// These could fail on a slow system or implementation. Need a better test.
+assertEquals((new Date(Date.now())).toString(), Date());
+assertEquals((new Date(Date.now())).toString(), Date(10041));
+assertEquals((new Date(Date.now())).toString(), Date(1970, 0, 1, 0, 0, 0, 0));
+
 
 // Date.now()
 

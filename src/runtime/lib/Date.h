@@ -85,7 +85,7 @@ char * tz_string(double);
 char * day_string(int);
 char * month_string(int);
 
-JSValue * date_format(double, bool, bool);
+JSValue * date_format_loc(double, bool, bool);
 JSValue * date_format_utc(double);
 JSValue * date_format_iso(double);
 double ms_from_args(JSArgs *);

@@ -29,15 +29,20 @@ date_new(JSValue *instance, JSArgs *args, State *state)
   int len = ARGLEN(args);
 
   // Date()
+  if (!state->construct)
+    return date_format_loc(utc_now(), true, true);
+
+  // new Date()
   if (len == 0)
     utc = JSNUM(utc_now());
 
-  // Date(value|dateString)
+  // new Date(value|dateString)
   else if (len == 1) {
     JSValue *arg = ARG(args, 0);
     if (IS_NUM(arg))
       utc = JSNUM(arg->number.val);
     else
+      // TODO: parse date string
       assert(0);
   }
 
@@ -46,9 +51,8 @@ date_new(JSValue *instance, JSArgs *args, State *state)
     utc = JSNUM(utc_time(ms_from_args(args)));
   }
 
-  if (state->construct)
-    state->this->object.wraps = utc;
-  return JSSTR("TODO");
+  state->this->object.wraps = utc;
+  return state->this;
 }
 
 // Date.now()
@@ -355,16 +359,16 @@ date_proto_set_utc_seconds(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 date_proto_set_year(JSValue *instance, JSArgs *args, State *state)
 {
-  double t = instance->number.val;
+  double t = local_time(instance->number.val);
 
   // Adjust the year argument and put it back
   int y = TO_NUM(ARG(args, 0))->number.val;
   if (y >= 0 && y <= 99)
     y += 1900;
-  JSArgs *new_args = fh_new_args(JSNUM(y + 1), 0, 0);
+  JSArgs *new_args = fh_new_args(JSNUM(y), 0, 0);
 
   // Same procedure as setFullYear, but with no additional parameters
-  instance->number.val = time_clip(make_date_from_args(new_args, t, 0, 1));
+  instance->number.val = utc_time(time_clip(make_date_from_args(new_args, t, 0, 1)));
   return instance;
 }
 
@@ -372,7 +376,7 @@ date_proto_set_year(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 date_proto_to_date_string(JSValue *instance, JSArgs *args, State *state)
 {
-  return date_format(instance->number.val, true, false);
+  return date_format_loc(instance->number.val, true, false);
 }
 
 // Date.prototype.toISOString()
@@ -407,14 +411,14 @@ date_proto_to_locale_time_string(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 date_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 {
-  return date_format(instance->number.val, true, true);
+  return date_format_loc(instance->number.val, true, true);
 }
 
 // Date.prototype.toTimeString()
 JSValue *
 date_proto_to_time_string(JSValue *instance, JSArgs *args, State *state)
 {
-  return date_format(instance->number.val, false, true);
+  return date_format_loc(instance->number.val, false, true);
 }
 
 // Date.prototype.toUTCString()
@@ -693,7 +697,7 @@ ms_from_args(JSArgs *args)
 }
 
 JSValue *
-date_format(double ut, bool incl_date, bool incl_time)
+date_format_loc(double ut, bool incl_date, bool incl_time)
 {
   double t = local_time(ut);
   JSValue *res = JSSTR("");
