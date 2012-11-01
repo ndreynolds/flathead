@@ -43,7 +43,7 @@ date_new(JSValue *instance, JSArgs *args, State *state)
 
   // new Date(year, month, day[, hour, minute, second, millisecond])
   else {
-    utc = JSNUM(utc_time(time_from_args(args)->number.val));
+    utc = JSNUM(utc_time(ms_from_args(args)));
   }
 
   if (state->construct)
@@ -70,7 +70,7 @@ date_parse(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 date_utc(JSValue *instance, JSArgs *args, State *state)
 {
-  return time_from_args(args);
+  return JSNUM(ms_from_args(args));
 }
 
 // Date.isDST()   Non-standard
@@ -221,208 +221,207 @@ date_proto_get_year(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 date_proto_set_date(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = local_time(instance->number.val);
+  instance->number.val = utc_time(time_clip(make_date_from_args(args, t, 2, 1)));
+  return instance;
 }
 
 // Date.prototype.setFullYear(yearValue[, monthValue[, dayValue]])
 JSValue *
 date_proto_set_full_year(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = local_time(instance->number.val);
+  instance->number.val = utc_time(time_clip(make_date_from_args(args, t, 0, 3)));
+  return instance;
 }
 
 // Date.prototype.setHours(hourValue[, minutesValue[, secondsValue[, msValue]]])
 JSValue *
 date_proto_set_hours(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = local_time(instance->number.val);
+  instance->number.val = utc_time(time_clip(make_date_from_args(args, t, 3, 4)));
+  return instance;
 }
 
 // Date.prototype.setMilliseconds(msValue)
 JSValue *
 date_proto_set_milliseconds(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = local_time(instance->number.val);
+  instance->number.val = utc_time(time_clip(make_date_from_args(args, t, 6, 1)));
+  return instance;
 }
 
 // Date.prototype.setMinutes(minutesValue[, secondsValue[, msValue]])
 JSValue *
 date_proto_set_minutes(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = local_time(instance->number.val);
+  instance->number.val = utc_time(time_clip(make_date_from_args(args, t, 4, 3)));
+  return instance;
 }
 
-// Date.prototype.setMonth(monthValue)
+// Date.prototype.setMonth(monthValue[, dayValue])
 JSValue *
 date_proto_set_month(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = local_time(instance->number.val);
+  instance->number.val = utc_time(time_clip(make_date_from_args(args, t, 1, 2)));
+  return instance;
 }
 
 // Date.prototype.setSeconds(secondsValue[, msValue])
 JSValue *
 date_proto_set_seconds(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = local_time(instance->number.val);
+  instance->number.val = utc_time(time_clip(make_date_from_args(args, t, 5, 2)));
+  return instance;
 }
 
 // Date.prototype.setTime(timeValue)
 JSValue *
 date_proto_set_time(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  instance->number.val = time_clip(TO_NUM(ARG(args, 0))->number.val);
+  return instance;
 }
 
 // Date.prototype.setUTCDate(dayValue)
 JSValue *
 date_proto_set_utc_date(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = instance->number.val;
+  instance->number.val = time_clip(make_date_from_args(args, t, 2, 1));
+  return instance;
 }
 
 // Date.prototype.setUTCFullYear(yearValue[, monthValue[, dayValue]])
 JSValue *
 date_proto_set_utc_full_year(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = instance->number.val;
+  instance->number.val = time_clip(make_date_from_args(args, t, 0, 3));
+  return instance;
 }
 
 // Date.prototype.setUTCHours(hoursValue[, minutesValue[, secondsValue[, msValue]]])
 JSValue *
 date_proto_set_utc_hours(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = instance->number.val;
+  instance->number.val = time_clip(make_date_from_args(args, t, 3, 4));
+  return instance;
 }
 
 // Date.prototype.setUTCMilliseconds(msValue)
 JSValue *
 date_proto_set_utc_milliseconds(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = instance->number.val;
+  instance->number.val = time_clip(make_date_from_args(args, t, 6, 1));
+  return instance;
 }
 
-// Date.prototype.setUTCMinutes(
+// Date.prototype.setUTCMinutes(minutesValue[, secondsValue[, msValue]])
 JSValue *
 date_proto_set_utc_minutes(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = instance->number.val;
+  instance->number.val = time_clip(make_date_from_args(args, t, 4, 3));
+  return instance;
 }
 
-// Date.prototype.setUTCMonth(
+// Date.prototype.setUTCMonth(monthValue[, dayValue])
 JSValue *
 date_proto_set_utc_month(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = instance->number.val;
+  instance->number.val = time_clip(make_date_from_args(args, t, 1, 2));
+  return instance;
 }
 
-// Date.prototype.setUTCSeconds(
+// Date.prototype.setUTCSeconds(secondsValue[, msValue])
 JSValue *
 date_proto_set_utc_seconds(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = instance->number.val;
+  instance->number.val = time_clip(make_date_from_args(args, t, 5, 2));
+  return instance;
 }
 
-// Date.prototype.setYear(
+// Date.prototype.setYear(yearValue)
 JSValue *
 date_proto_set_year(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  double t = instance->number.val;
+
+  // Adjust the year argument and put it back
+  int y = TO_NUM(ARG(args, 0))->number.val;
+  if (y >= 0 && y <= 99)
+    y += 1900;
+  JSArgs *new_args = fh_new_args(JSNUM(y + 1), 0, 0);
+
+  // Same procedure as setFullYear, but with no additional parameters
+  instance->number.val = time_clip(make_date_from_args(new_args, t, 0, 1));
+  return instance;
 }
 
 // Date.prototype.toDateString()
 JSValue *
 date_proto_to_date_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return date_format(instance->number.val, true, false);
 }
 
 // Date.prototype.toISOString()
 JSValue *
 date_proto_to_iso_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
-}
-
-// Date.prototype.toJSON()
-JSValue *
-date_proto_to_json(JSValue *instance, JSArgs *args, State *state)
-{
-  // TODO
-  return JSUNDEF();
-}
-
-// Date.prototype.toGMTString()
-JSValue *
-date_proto_to_gmt_string(JSValue *instance, JSArgs *args, State *state)
-{
-  // TODO
-  return JSUNDEF();
+  return date_format_iso(instance->number.val);
 }
 
 // Date.prototype.toLocaleDateString()
 JSValue *
 date_proto_to_locale_date_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return date_proto_to_date_string(instance, args, state);
 }
 
 // Date.prototype.toLocaleString()
 JSValue *
 date_proto_to_locale_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return date_proto_to_string(instance, args, state);
 }
 
 // Date.prototype.toLocaleTimeString()
 JSValue *
 date_proto_to_locale_time_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return date_proto_to_time_string(instance, args, state);
 }
 
 // Date.prototype.toString()
 JSValue *
 date_proto_to_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return date_format(instance->number.val, true, true);
 }
 
 // Date.prototype.toTimeString()
 JSValue *
 date_proto_to_time_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return date_format(instance->number.val, false, true);
 }
 
 // Date.prototype.toUTCString()
 JSValue *
 date_proto_to_utc_string(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return date_format_utc(instance->number.val);
 }
 
 // Date.prototype.valueOf()
@@ -518,6 +517,15 @@ double
 time_from_year(double y)
 {
   return day_from_year(y) * ms_per_day;
+}
+
+double
+time_within_day(double t)
+{
+  double res = fmod(t, ms_per_day);
+  if (res < 0)
+    res += ms_per_day;
+  return res;
 }
 
 double
@@ -655,8 +663,8 @@ dst_offset(double raw_t)
 
 // new Date(year, month, day[, hour, minute, second, millisecond])
 // Date.UTC(year, month[, date[, hours[, minutes[, seconds[, ms]]]]])
-JSValue *
-time_from_args(JSArgs *args)
+double
+ms_from_args(JSArgs *args)
 {
   JSValue *year    = ARG(args, 0),
           *month   = ARG(args, 1),
@@ -678,64 +686,220 @@ time_from_args(JSArgs *args)
   long yi = floor(y->number.val);
   if (yi >= 0 && yi <= 99)
     yi = 1900 + yi;
-  JSValue *yr = JSNUM(yi);
 
-  JSValue *day = make_day(yr, m, dt);
-  JSValue *time = make_time(h, min, s, mil);
+  double day = make_day(yi, m->number.val, dt->number.val);
+  double time = make_time(h->number.val, min->number.val, s->number.val, mil->number.val);
   return time_clip(make_date(day, time));
 }
 
 JSValue *
-make_time(JSValue *hour, JSValue *min, JSValue *sec, JSValue *ms)
+date_format(double ut, bool incl_date, bool incl_time)
 {
-  double h = TO_NUM(hour)->number.val, 
-      m = TO_NUM(min)->number.val,
-      s = TO_NUM(sec)->number.val,
-      l = TO_NUM(ms)->number.val;
+  double t = local_time(ut);
+  JSValue *res = JSSTR("");
+  char *fmt;
 
-  return JSNUM(((h * min_per_hr + m) * sec_per_min + s) * ms_per_sec + l);
+  if (incl_date) {
+    int m = month_from_time(t);
+    int y = year_from_time(t);
+    int d = week_day(t);
+    int dt = date_from_time(t);
+
+    // e.g. Wed Oct 12 1984
+    fmt = "%s %s %02d %d";
+
+    size_t size = snprintf(NULL, 0, fmt, day_string(d), month_string(m), dt, y) + 1;
+    char *date = malloc(size);
+    snprintf(date, size, fmt, day_string(d), month_string(m), dt, y);
+
+    res->string.ptr = fh_str_concat(res->string.ptr, date);
+  }
+
+  if (incl_date && incl_time)
+    res->string.ptr = fh_str_concat(res->string.ptr, " ");
+
+  if (incl_time) {
+    int h = hour_from_time(t);
+    int m = min_from_time(t);
+    int s = sec_from_time(t);
+    int offset = utc_offset() + dst_offset(t);
+    int offset_h = hour_from_time(offset);
+    int offset_m = min_from_time(offset);
+    char sign = offset > 0 ? '-' : '+';
+    char *tz = tz_string(ut);
+
+    // e.g. 12:31:19 GMT-0400 (EDT)
+    fmt = "%02d:%02d:%02d GMT%c%02d%02d (%s)";
+
+    size_t size = snprintf(NULL, 0, fmt, h, m, s, sign, offset_h, offset_m, tz) + 1;
+    char *time = malloc(size);
+    snprintf(time, size, fmt, h, m, s, sign, offset_h, offset_m, tz);
+
+    res->string.ptr = fh_str_concat(res->string.ptr, time);
+  }
+  return res;
 }
 
 JSValue *
-make_day(JSValue *year, JSValue *month, JSValue *date)
+date_format_utc(double t)
 {
-  if (IS_INF(year) || IS_INF(date))
-    return JSNAN();
+  int m = month_from_time(t);
+  int y = year_from_time(t);
+  int d = week_day(t);
+  int dt = date_from_time(t);
+  int h = hour_from_time(t);
+  int mn = min_from_time(t);
+  int s = sec_from_time(t);
 
-  double y = TO_NUM(year)->number.val, 
-      m = TO_NUM(month)->number.val,
-      dt = TO_NUM(date)->number.val,
-      mn = fmod(m, 12);
+  // e.g. Mon, 03 Jul 2001 23:21:48 GMT
+  char *fmt = "%s, %02d %s %d %02d:%02d:%02d GMT";
 
-  y += floor(mn / 12);
-  if (mn < 0) mn += 12;
+  size_t size = snprintf(NULL, 0, fmt, day_string(d), 
+                         dt, month_string(m), y, h, mn, s) + 1;
+  char *str = malloc(size);
+  snprintf(str, size, fmt, day_string(d), dt, month_string(m), y, h, mn, s);
+
+  return JSSTR(str);
+}
+
+JSValue *
+date_format_iso(double t)
+{
+  int m = month_from_time(t) + 1;
+  int y = year_from_time(t);
+  int dt = date_from_time(t);
+  int h = hour_from_time(t);
+  int mn = min_from_time(t);
+  int s = sec_from_time(t);
+  int ms = ms_from_time(t);
+
+  // e.g. 2011-10-05T14:48:00.000Z
+  char *fmt = "%d-%02d-%02dT%02d:%02d:%02d.%03dZ";
+
+  size_t size = snprintf(NULL, 0, fmt, y, m, dt, h, mn, s, ms) + 1;
+  char *str = malloc(size);
+  snprintf(str, size, fmt, y, m, dt, h, mn, s, ms);
+
+  return JSSTR(str);
+}
+
+char *
+tz_string(double t)
+{
+  time_t time = t / 1000;
+  struct tm *loc_tm = localtime(&time);
+  return loc_tm->tm_zone;
+}
+
+char *
+day_string(int d) {
+  switch(d) {
+    case 0: return "Sun";
+    case 1: return "Mon";
+    case 2: return "Tue";
+    case 3: return "Wed";
+    case 4: return "Thu";
+    case 5: return "Fri";
+    default: return "Sat";
+  }
+}
+
+char *
+month_string(int m) {
+  switch(m) {
+    case 0: return "Jan";
+    case 1: return "Feb";
+    case 2: return "Mar";
+    case 3: return "Apr";
+    case 4: return "May";
+    case 5: return "Jun";
+    case 6: return "Jul";
+    case 7: return "Aug";
+    case 8: return "Sep";
+    case 9: return "Oct";
+    case 10: return "Nov";
+    default: return "Dec";
+  }
+}
+
+double
+make_time(double h, double m, double s, double ms)
+{
+  return ((h * min_per_hr + m) * sec_per_min + s) * ms_per_sec + ms;
+}
+
+double
+make_day(double y, double m, double dt)
+{
+  m = fmod(m, 12);
+  y += floor(m / 12);
+  if (m < 0) m += 12;
 
   double yd = floor(time_from_year(y) / ms_per_day);
-  double md = day_from_month(mn, y);
+  double md = day_from_month(m, y);
 
-  return JSNUM(yd + md + dt - 1);
+  return yd + md + dt - 1;
 }
 
-JSValue *
-make_date(JSValue *day, JSValue *time)
+double
+make_date(double d, double t)
 {
-  if (IS_INF(day) || IS_INF(time))
-    return JSNAN();
-
-  double d = TO_NUM(day)->number.val,
-      t = TO_NUM(time)->number.val;
-
-  return JSNUM(d * ms_per_day + t);
+  return d * ms_per_day + t;
 }
 
-JSValue *
-time_clip(JSValue *time)
+double
+make_part(double t, int shift)
 {
-  if (IS_INF(time))
-    return JSNAN();
-  if (abs(time->number.val) > 8.64e15)
-    return JSNAN();
-  return TO_NUM(time);
+  switch(shift) {
+    case 0: return year_from_time(t);
+    case 1: return month_from_time(t);
+    case 2: return date_from_time(t);
+    case 3: return hour_from_time(t);
+    case 4: return min_from_time(t);
+    case 5: return sec_from_time(t);
+    default: return ms_from_time(t);
+  }
+}
+
+// This is intended to DRY up the setX and setUTCX method implementations.
+// Each of the methods takes as parameters some subset of:
+//
+//   { year, month, date, hour, minute, seconds, milliseconds }
+//
+// always in order, and always requiring the first argument. An array of date
+// parts is built using the shift from the start of the full set above and the
+// maximum number of allowed args. When a date part is missing (and not
+// required) or not part of the subset, the part is calculated using the UTC
+// time.
+double
+make_date_from_args(JSArgs *args, double t, int shift, int max_args)
+{
+  double parts[6];
+  int i, j = 0;
+  JSValue *arg;
+
+  for (i = 0; i < 7; i++) {
+    if (shift <= i && (i - shift) < max_args) {
+      arg = ARG(args, j++);
+      if (!IS_UNDEF(arg) || j == 1) {
+        parts[i] = TO_NUM(arg)->number.val;
+        continue;
+      }
+    }
+    parts[i] = make_part(t, i);
+  }
+
+  double day = make_day(parts[0], parts[1], parts[2]);
+  double time = make_time(parts[3], parts[4], parts[5], parts[6]);
+  return make_date(day, time);
+}
+
+double
+time_clip(double t)
+{
+  if (abs(t) > 8.64e15)
+    return 0;
+  return t;
 }
 
 JSValue *
@@ -800,6 +964,11 @@ bootstrap_date()
   BUILTIN(proto, "setUTCSeconds", JSNFUNC(&date_proto_set_utc_seconds));
   BUILTIN(proto, "setYear", JSNFUNC(&date_proto_set_year));
 
+  BUILTIN(proto, "toDateString", JSNFUNC(&date_proto_to_date_string));
+  BUILTIN(proto, "toGMTString", JSNFUNC(&date_proto_to_utc_string));
+  BUILTIN(proto, "toISOString", JSNFUNC(&date_proto_to_iso_string));
+  BUILTIN(proto, "toJSON", JSNFUNC(&date_proto_to_iso_string));
+  BUILTIN(proto, "toLocaleDateString", JSNFUNC(&date_proto_to_locale_date_string));
   BUILTIN(proto, "toLocaleString", JSNFUNC(&date_proto_to_locale_string));
   BUILTIN(proto, "toLocaleTimeString", JSNFUNC(&date_proto_to_locale_time_string));
   BUILTIN(proto, "toString", JSNFUNC(&date_proto_to_string));

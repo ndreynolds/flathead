@@ -53,7 +53,10 @@ assert(Date.now() >= now);
 
 // Date.UTC()
 
-// TODO
+assertEquals(0, Date.UTC(1970, 0, 1, 0, 0, 0, 0));
+assertEquals(642038700000, Date.UTC(1990, 4, 7, 0, 5, 0, 0));
+assertEquals(962206200000, Date.UTC(2000, 5, 28, 15, 30, 0, 0));
+assertEquals(5679688846670, Date.UTC(2149, 11, 25, 3, 20, 46, 670));
 
 
 // ----------------------------------------------------------------------------
@@ -61,24 +64,79 @@ assert(Date.now() >= now);
 // ----------------------------------------------------------------------------
 
 assert(Date.prototype);
+assert(typeof Date.prototype === 'object');
+
 
 // Thu, 01 Jan 1970 05:00:00 GMT
 var d1 = new Date(1970, 0, 1, 0, 0, 0, 0);
+var d1u = Date.UTC(1970, 0, 1, 0, 0, 0, 0);
+
 // Mon, 07 May 1990 04:05:00 GMT
 var d2 = new Date(1990, 4, 7, 0, 5, 0, 0);
+var d2u = Date.UTC(1990, 4, 7, 0, 5, 0, 0);
+
 // Wed, 28 Jun 2000 19:30:00 GMT
 var d3 = new Date(2000, 5, 28, 15, 30, 0, 0);
+var d3u = Date.UTC(2000, 5, 28, 15, 30, 0, 0);
+
 // Thu, 25 Dec 2149 08:20:46 GMT
 var d4 = new Date(2149, 11, 25, 3, 20, 46, 670);
-
-// Thu, 01 Jan 1970 05:00:00 GMT
-var d1u = Date.UTC(1970, 0, 1, 0, 0, 0, 0);
-// Mon, 07 May 1990 04:05:00 GMT
-var d2u = Date.UTC(1990, 4, 7, 0, 5, 0, 0);
-// Wed, 28 Jun 2000 19:30:00 GMT
-var d3u = Date.UTC(2000, 5, 28, 15, 30, 0, 0);
-// Thu, 25 Dec 2149 08:20:46 GMT
 var d4u = Date.UTC(2149, 11, 25, 3, 20, 46, 670);
+
+
+// Date.prototype.toDateString()
+// Date.prototype.toLocaleDateString()
+
+assertEqualsWhenEDT('Thu Jan 01 1970', d1.toDateString());
+assertEqualsWhenEDT('Mon May 07 1990', d2.toDateString());
+assertEqualsWhenEDT('Wed Jun 28 2000', d3.toDateString());
+assertEqualsWhenEDT('Thu Dec 25 2149', d4.toDateString());
+
+
+// Date.prototype.toISOString()
+// Date.prototype.toJSON()
+
+assertEquals('1970-01-01T05:00:00.000Z', d1.toISOString());
+assertEquals('1990-05-07T04:05:00.000Z', d2.toISOString());
+assertEquals('2000-06-28T19:30:00.000Z', d3.toISOString());
+assertEquals('2149-12-25T08:20:46.670Z', d4.toISOString());
+
+assertEquals('1970-01-01T05:00:00.000Z', d1.toJSON());
+assertEquals('1990-05-07T04:05:00.000Z', d2.toJSON());
+assertEquals('2000-06-28T19:30:00.000Z', d3.toJSON());
+assertEquals('2149-12-25T08:20:46.670Z', d4.toJSON());
+
+
+// Date.prototype.toUTCString()
+// Date.prototype.toGMTString()
+
+assertEquals('Thu, 01 Jan 1970 05:00:00 GMT', d1.toUTCString());
+assertEquals('Mon, 07 May 1990 04:05:00 GMT', d2.toUTCString());
+assertEquals('Wed, 28 Jun 2000 19:30:00 GMT', d3.toUTCString());
+assertEquals('Thu, 25 Dec 2149 08:20:46 GMT', d4.toUTCString());
+
+assertEquals('Thu, 01 Jan 1970 05:00:00 GMT', d1.toGMTString());
+assertEquals('Mon, 07 May 1990 04:05:00 GMT', d2.toGMTString());
+assertEquals('Wed, 28 Jun 2000 19:30:00 GMT', d3.toGMTString());
+assertEquals('Thu, 25 Dec 2149 08:20:46 GMT', d4.toGMTString());
+
+
+// Date.prototype.toTimeString()
+// Date.prototype.toLocaleTimeString()
+
+assertEquals('00:00:00 GMT-0500 (EST)', d1.toTimeString());
+assertEquals('00:05:00 GMT-0400 (EDT)', d2.toTimeString());
+assertEquals('15:30:00 GMT-0400 (EDT)', d3.toTimeString());
+assertEquals('03:20:46 GMT-0500 (EST)', d4.toTimeString());
+
+
+// Date.prototype.toString()
+// Date.prototype.toLocaleString()
+
+assertEquals('Thu Jan 01 1970 00:00:00 GMT-0500 (EST)', d1.toString());
+assertEquals('Mon May 07 1990 00:05:00 GMT-0400 (EDT)', d2.toString());
+assertEquals('Wed Jun 28 2000 15:30:00 GMT-0400 (EDT)', d3.toString());
+assertEquals('Thu Dec 25 2149 03:20:46 GMT-0500 (EST)', d4.toString());
 
 
 // Date.prototype.valueOf()
@@ -212,3 +270,196 @@ assertEqualsWhenEDT(70, d1.getYear());
 assertEqualsWhenEDT(90, d2.getYear());
 assertEqualsWhenEDT(100, d3.getYear());
 assertEqualsWhenEDT(249, d4.getYear());
+
+
+var d = new Date(0);
+
+
+// Date.prototype.setDate(dayValue)
+// Date.prototype.setUTCDate(dayValue)
+
+d.setDate(20);
+assertEqualsWhenEDT(20, d.getDate());
+d.setDate(3);
+assertEqualsWhenEDT(3, d.getDate());
+d.setDate(0);
+assertEqualsWhenEDT(30, d.getDate());
+d.setDate(32);
+assertEqualsWhenEDT(2, d.getDate());
+
+d.setUTCDate(15);
+assertEquals(15, d.getUTCDate());
+d.setUTCDate(9);
+assertEquals(9, d.getUTCDate());
+d.setUTCDate(0);
+assertEquals(30, d.getUTCDate());
+d.setUTCDate(32);
+assertEquals(2, d.getUTCDate());
+
+
+// Date.prototype.setFullYear(yearValue[, monthValue[, dayValue]])
+// Date.prototype.setUTCFullYear(yearValue[, monthValue[, dayValue]])
+
+d.setFullYear(1990);
+assertEqualsWhenEDT(1990, d.getFullYear());
+
+d.setFullYear(1700);
+assertEqualsWhenEDT(1700, d.getFullYear());
+
+d.setFullYear(2200, 11);
+assertEqualsWhenEDT(2200, d.getFullYear());
+assertEqualsWhenEDT(11, d.getMonth());
+
+d.setFullYear(1645, 5, 21);
+assertEqualsWhenEDT(1645, d.getFullYear());
+assertEqualsWhenEDT(5, d.getMonth());
+assertEqualsWhenEDT(21, d.getDate());
+
+
+d.setUTCFullYear(1880);
+assertEquals(1880, d.getUTCFullYear());
+
+d.setUTCFullYear(1950);
+assertEquals(1950, d.getUTCFullYear());
+
+d.setUTCFullYear(1971, 3);
+assertEquals(1971, d.getUTCFullYear());
+assertEquals(3, d.getUTCMonth());
+
+d.setUTCFullYear(2050, 10, 30);
+assertEquals(2050, d.getUTCFullYear());
+assertEquals(10, d.getUTCMonth());
+assertEquals(30, d.getUTCDate());
+
+
+// Date.prototype.setHours(hoursValue[, minutesValue[, secondsValue[, msValue]]])
+// Date.prototype.setUTCHours(hoursValue[, minutesValue[, secondsValue[, msValue]]])
+
+d.setHours(22);
+assertEqualsWhenEDT(22, d.getHours());
+
+d.setHours(18, 21);
+assertEqualsWhenEDT(18, d.getHours());
+assertEqualsWhenEDT(21, d.getMinutes());
+
+d.setHours(4, 59, 10);
+assertEqualsWhenEDT(4, d.getHours());
+assertEqualsWhenEDT(59, d.getMinutes());
+assertEqualsWhenEDT(10, d.getSeconds());
+
+d.setHours(0, 12, 40, 300);
+assertEqualsWhenEDT(0, d.getHours());
+assertEqualsWhenEDT(12, d.getMinutes());
+assertEqualsWhenEDT(40, d.getSeconds());
+assertEqualsWhenEDT(300, d.getMilliseconds());
+
+
+d.setUTCHours(22);
+assertEquals(22, d.getUTCHours());
+
+d.setUTCHours(18, 21);
+assertEquals(18, d.getUTCHours());
+assertEquals(21, d.getUTCMinutes());
+
+d.setUTCHours(4, 59, 10);
+assertEquals(4, d.getUTCHours());
+assertEquals(59, d.getUTCMinutes());
+assertEquals(10, d.getUTCSeconds());
+
+d.setUTCHours(0, 12, 40, 300);
+assertEquals(0, d.getUTCHours());
+assertEquals(12, d.getUTCMinutes());
+assertEquals(40, d.getUTCSeconds());
+assertEquals(300, d.getUTCMilliseconds());
+
+
+// Date.prototype.setMilliseconds(msValue)
+// Date.prototype.setUTCMilliseconds(msValue)
+
+d.setMilliseconds(984);
+assertEquals(984, d.getMilliseconds());
+
+d.setUTCMilliseconds(571);
+assertEquals(571, d.getUTCMilliseconds());
+
+
+// Date.prototype.setMinutes(minutesValue[, secondsValue[, msValue]])
+// Date.prototype.setUTCMinutes(minutesValue[, secondsValue[, msValue]])
+
+d.setMinutes(3);
+assertEqualsWhenEDT(3, d.getMinutes());
+
+d.setMinutes(5, 21);
+assertEqualsWhenEDT(5, d.getMinutes());
+assertEquals(21, d.getSeconds());
+
+d.setMinutes(53, 50, 320);
+assertEqualsWhenEDT(53, d.getMinutes());
+assertEquals(50, d.getSeconds());
+assertEquals(320, d.getMilliseconds());
+
+
+d.setUTCMinutes(3);
+assertEquals(3, d.getUTCMinutes());
+
+d.setUTCMinutes(5, 12);
+assertEquals(5, d.getUTCMinutes());
+assertEquals(12, d.getUTCSeconds());
+
+d.setUTCMinutes(53, 50, 320);
+assertEquals(53, d.getUTCMinutes());
+assertEquals(50, d.getUTCSeconds());
+assertEquals(320, d.getUTCMilliseconds());
+
+
+// Date.prototype.setMonth(monthValue[, dayValue])
+// Date.prototype.setUTCMonth(monthValue[, dayValue])
+
+d.setMonth(11);
+assertEqualsWhenEDT(11, d.getMonth());
+
+d.setMonth(5, 12);
+assertEqualsWhenEDT(5, d.getMonth());
+assertEqualsWhenEDT(12, d.getDate());
+
+d.setUTCMonth(11);
+assertEqualsWhenEDT(11, d.getUTCMonth());
+
+d.setUTCMonth(5, 12);
+assertEqualsWhenEDT(5, d.getUTCMonth());
+assertEqualsWhenEDT(12, d.getUTCDate());
+
+
+// Date.prototype.setSeconds(secondsValue[, msValue])
+// Date.prototype.setUTCSeconds(secondsValue[, msValue])
+
+d.setSeconds(24);
+assertEquals(24, d.getSeconds());
+
+d.setSeconds(43, 12);
+assertEquals(43, d.getSeconds());
+assertEquals(12, d.getMilliseconds());
+
+
+d.setUTCSeconds(18);
+assertEquals(18, d.getUTCSeconds());
+
+d.setUTCSeconds(57, 882);
+assertEquals(57, d.getUTCSeconds());
+assertEquals(882, d.getUTCMilliseconds());
+
+
+// Date.prototype.setTime(timeValue)
+
+d.setTime(42);
+assertEquals(42, d.valueOf());
+
+
+// Date.prototype.setYear(yearValue)
+
+d.setYear(96);
+assertEquals(1996, d.getFullYear());
+d.setYear(1996);
+assertEquals(1996, d.getFullYear());
+d.setYear(2000);
+assertEquals(2000, d.getFullYear());

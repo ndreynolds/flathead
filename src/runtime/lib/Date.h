@@ -61,6 +61,7 @@ JSValue * date_proto_to_utc_string(JSValue *, JSArgs *, State *);
 JSValue * date_proto_value_of(JSValue *, JSArgs *, State *);
 
 double time_from_year(double);
+double time_within_day(double);
 double days_in_year(double);
 double day_from_year(double);
 double date_from_time(double);
@@ -80,12 +81,21 @@ long hour_from_time(double);
 long min_from_time(double);
 long sec_from_time(double);
 long ms_from_time(double);
+char * tz_string(double);
+char * day_string(int);
+char * month_string(int);
 
-JSValue * time_from_args(JSArgs *);
-JSValue * make_time(JSValue *, JSValue *, JSValue *, JSValue *);
-JSValue * make_day(JSValue *, JSValue *, JSValue *);
-JSValue * make_date(JSValue *, JSValue *);
-JSValue * time_clip(JSValue *);
+JSValue * date_format(double, bool, bool);
+JSValue * date_format_utc(double);
+JSValue * date_format_iso(double);
+double ms_from_args(JSArgs *);
+
+double make_time(double, double, double, double);
+double make_day(double, double, double);
+double make_date(double, double);
+double make_part(double, int);
+double make_date_from_args(JSArgs *, double, int, int);
+double time_clip(double);
 
 JSValue * bootstrap_date(void);
 
