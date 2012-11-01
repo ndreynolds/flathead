@@ -28,7 +28,8 @@
 JSValue * 
 fh_eval(JSValue *ctx, Node *node)
 {
-  JSValue *result = JSUNDEF();
+  if (!node) return JSUNDEF();
+
   switch(node->type) {
     case NODE_BOOL: return JSBOOL(node->val);
     case NODE_STR: return JSSTR(node->sval);
@@ -68,7 +69,8 @@ fh_eval(JSValue *ctx, Node *node)
         "Unsupported syntax type (%d)", node->type
       );
   }
-  return result;
+
+  return JSUNDEF();
 }
 
 
@@ -389,38 +391,24 @@ fh_switch(JSValue *ctx, Node *node)
 
   bool matched = false;
 
-  // TODO: DRY these up
-  
-  // Check case clauses before the default case
-  if (clauses_a) {
-    while (!clauses_a->visited) {
-      current = pop_node(clauses_a);
-      val = fh_eval(ctx, current->e1);
-      // Cases fall-through to the next when breaks are omitted.
-      if (matched || fh_eq(test, val, true)->boolean.val) {
-        matched = true;
-        if (!current->e2) continue;
-        result = fh_eval(ctx, current->e2);
-        if (result->signal == S_BREAK) {
-          result->signal = S_NONE;
-          return result;
-        }
-      }
-    }
-  }
-
-  // Check case clauses after the default case
-  if (clauses_b) {
-    while (!clauses_b->visited) {
-      current = pop_node(clauses_b);
-      val = fh_eval(ctx, current->e1);
-      if (matched || fh_eq(test, val, true)->boolean.val) {
-        matched = true;
-        if (!current->e2) continue;
-        result = fh_eval(ctx, current->e2);
-        if (result->signal == S_BREAK) {
-          result->signal = S_NONE;
-          return result;
+  // Check case clauses before and after the default case
+  Node *clauses, *clauses_lst[] = {clauses_a, clauses_b};
+  int i;
+  for (i = 0; i < 2; i++) {
+    clauses = clauses_lst[i];
+    if (clauses) {
+      while (!clauses->visited) {
+        current = pop_node(clauses);
+        val = fh_eval(ctx, current->e1);
+        // Cases fall-through to the next when breaks are omitted.
+        if (matched || fh_eq(test, val, true)->boolean.val) {
+          matched = true;
+          if (!current->e2) continue;
+          result = fh_eval(ctx, current->e2);
+          if (result->signal == S_BREAK) {
+            result->signal = S_NONE;
+            return result;
+          }
         }
       }
     }
