@@ -17,13 +17,17 @@
  */
 
 %{
+
+  #include <stdlib.h>
+
   #include "src/flathead.h"
   #include "y.tab.h"
-  #include <stdlib.h>
-  void parse_error(char *);
+
   int yycolumn = 1;
   void yyuseraction(void);
+
   char * fh_extract_string(char *);
+  void fh_parse_error(char *);
   int fh_get_input(char *, int);
   int fh_token(char *, int);
 
@@ -34,131 +38,157 @@
   #define YY_USER_ACTION yyuseraction();
   #undef YY_INPUT
   #define YY_INPUT(buf,result,max_size) result = fh_get_input(buf, max_size);
+
 %}
+
 
 %option yylineno
 %option nounput
 %option noinput
 
-D            [0-9]
-H            [a-fA-F0-9]
-E            [Ee][+-]?{D}+
+D                            [0-9]
+H                            [a-fA-F0-9]
+E                            [Ee][+-]?{D}+
 
 
 %%
 
     /* KEYWORDS (reserved words) */
-"while"      return KEYWORD(WHILE);
-"do"         return KEYWORD(DO);
-"for"        return KEYWORD(FOR);
-"if"         return KEYWORD(IF);
-"in"         return KEYWORD(IN);
-"else"       return KEYWORD(ELSE);
-"break"      return KEYWORD(BREAK);
-"continue"   return KEYWORD(CONTINUE);
-"return"     return KEYWORD(RETURNT);
-"throw"      return KEYWORD(THROW);
-"try"        return KEYWORD(TRY);
-"catch"      return KEYWORD(CATCH);
-"finally"    return KEYWORD(FINALLY);
-"with"       return KEYWORD(WITH);
-"function"   return KEYWORD(FUNCTION);
-"delete"     return KEYWORD(DELETE);
-"void"       return KEYWORD(VOID);
-"typeof"     return KEYWORD(TYPEOF);
-"instanceof" return KEYWORD(INSTANCEOF);
-"switch"     return KEYWORD(SWITCH);
-"case"       return KEYWORD(CASE);
-"default"    return KEYWORD(DEFAULT);
-"debugger"   return KEYWORD(DEBUGGER);
-"new"        return KEYWORD(NEW);
-"var"        return KEYWORD(VAR);
-"null"       return KEYWORD(NULLT);
-"true"       return KEYWORD(TRUE); 
-"false"      return KEYWORD(FALSE);
+
+"while"                      return KEYWORD(WHILE);
+"do"                         return KEYWORD(DO);
+"for"                        return KEYWORD(FOR);
+"if"                         return KEYWORD(IF);
+"in"                         return KEYWORD(IN);
+"else"                       return KEYWORD(ELSE);
+"break"                      return KEYWORD(BREAK);
+"continue"                   return KEYWORD(CONTINUE);
+"return"                     return KEYWORD(RETURNT);
+"throw"                      return KEYWORD(THROW);
+"try"                        return KEYWORD(TRY);
+"catch"                      return KEYWORD(CATCH);
+"finally"                    return KEYWORD(FINALLY);
+"with"                       return KEYWORD(WITH);
+"function"                   return KEYWORD(FUNCTION);
+"delete"                     return KEYWORD(DELETE);
+"void"                       return KEYWORD(VOID);
+"typeof"                     return KEYWORD(TYPEOF);
+"instanceof"                 return KEYWORD(INSTANCEOF);
+"switch"                     return KEYWORD(SWITCH);
+"case"                       return KEYWORD(CASE);
+"default"                    return KEYWORD(DEFAULT);
+"debugger"                   return KEYWORD(DEBUGGER);
+"new"                        return KEYWORD(NEW);
+"var"                        return KEYWORD(VAR);
+"null"                       return KEYWORD(NULLT);
+"true"                       return KEYWORD(TRUE); 
+"false"                      return KEYWORD(FALSE);
+
 
     /* LITERALS */
+
+    /* double-quoted strings */
 L?\"(\\.|[^\\"])*\"          { yylval.val = fh_extract_string(yytext); 
-                               return TOKEN("STR", STRING); } 
+                               return TOKEN("STR", STRING); }
+
+    /* single-quoted strings */
 L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext); 
-                               return TOKEN("STR", STRING); } 
+                               return TOKEN("STR", STRING); }
+
+    /* identifiers */
 [_\$A-Za-z][_\$0-9A-Za-z]*   { yylval.val = yytext; 
                                return TOKEN("IDENT", IDENT); }
+
+    /* integers */
 {D}+({E})?                   { yylval.floatval = atof(yytext); 
                                return TOKEN("INT", NUMBER); }
+
+    /* hexadecimals */
 0[xX]{H}+                    { yylval.floatval = atof(yytext);
                                return TOKEN("HEX", NUMBER); }
+
+    /* floats */
 {D}+\.{D}+({E})?             { yylval.floatval = atof(yytext); 
                                return TOKEN("FLOAT", NUMBER); }
 
-    /* FIXME: This is very incomplete */
-L?\/[^\ \/]+\/([imgy]{0,4})  { yylval.val = yytext;
+    /* regexps */
+L?\/[^\ \/]+\/([imgy]{0,4})  { /* FIXME: This is very incomplete */
+                               yylval.val = yytext;
                                return TOKEN("REGEXP", REGEXP); }
 
+
     /* COMMENTS */
-[/][/].*       ; /* ignore comments */
+
+[/][/].*                     ; /* ignore comments */
+
 
     /* MULTI-CHARACTER PUNCTUATORS & OPERATORS */
-"||"        return OP(OR); 
-"&&"        return OP(AND); 
-"++"        return OP(PLUSPLUS); 
-"--"        return OP(MINUSMINUS); 
-"=="        return OP(EQEQ); 
-"!="        return OP(NE); 
-"<="        return OP(LTE); 
-">="        return OP(GTE); 
-"+="        return OP(PLUSEQ);
-"-="        return OP(MINUSEQ); 
-"*="        return OP(MULTEQ); 
-"/="        return OP(DIVEQ); 
-"%="        return OP(MODEQ);
-"&="        return OP(ANDEQ);
-"^="        return OP(XOREQ);
-"|="        return OP(OREQ);
-"<<"        return OP(LSHIFT);
-">>"        return OP(RSHIFT);
-"<<="       return OP(LSHIFTEQ);
-">>="       return OP(RSHIFTEQ);
-"<<<"       return OP(ULSHIFT);
-">>>"       return OP(URSHIFT);
-"==="       return OP(STEQ);
-"!=="       return OP(STNE);
-">>>="      return OP(URSHIFTEQ);
+
+"||"                         return OP(OR); 
+"&&"                         return OP(AND); 
+"++"                         return OP(PLUSPLUS); 
+"--"                         return OP(MINUSMINUS); 
+"=="                         return OP(EQEQ); 
+"!="                         return OP(NE); 
+"<="                         return OP(LTE); 
+">="                         return OP(GTE); 
+"+="                         return OP(PLUSEQ);
+"-="                         return OP(MINUSEQ); 
+"*="                         return OP(MULTEQ); 
+"/="                         return OP(DIVEQ); 
+"%="                         return OP(MODEQ);
+"&="                         return OP(ANDEQ);
+"^="                         return OP(XOREQ);
+"|="                         return OP(OREQ);
+"<<"                         return OP(LSHIFT);
+">>"                         return OP(RSHIFT);
+"<<="                        return OP(LSHIFTEQ);
+">>="                        return OP(RSHIFTEQ);
+"<<<"                        return OP(ULSHIFT);
+">>>"                        return OP(URSHIFT);
+"==="                        return OP(STEQ);
+"!=="                        return OP(STNE);
+">>>="                       return OP(URSHIFTEQ);
+
 
     /* SINGLE-CHARACTER PUNCTUATORS & OPERATORS */
-[-+()\[\]=*/%<>,.:`;?!{}]  { TOKEN("LITERAL", 0); 
-                            return *yytext; }
+
+[-+()\[\]=*/%<>,.:`;?!{}]    { 
+                               TOKEN("LITERAL", 0); 
+                               return *yytext; 
+                             }
+
 
     /* WHITESPACE & TABS */
-[ \t\v\f]   ;
+
+[ \t\v\f]                    ;
+
 
     /* NEWLINES */
-\n          { yycolumn = 0; 
-              yytext = NULL;
-              TOKEN("NEWLINE", 0);
-              if (fh_opt_interactive) return EOF; }
+
+\n                           { yycolumn = 0; 
+                               yytext = NULL;
+                               TOKEN("NEWLINE", 0);
+                               if (fh_opt_interactive) return EOF; }
+
 
     /* END OF FILE */
-<<EOF>>     { yycolumn = 0; 
-              if (fh_opt_interactive) exit(0);
-              return EOF; }
+
+<<EOF>>                      { yycolumn = 0; 
+                               if (fh_opt_interactive) exit(0);
+                               return EOF; }
+
 
     /* UNKNOWN CHARACTER */
-.           parse_error(yytext);
+
+.                            fh_parse_error(yytext);
+
 
 %%
   
-void
-parse_error(char * val)
-{
-  fprintf(
-    stderr, "ParseError: unexpected '%s'\n  at Line %d:%d\n", 
-    val, yylloc.first_line, yylloc.first_column
-  );
-}
 
-int 
-yywrap(void) 
+int
+yywrap(void)
 {
   return 1;
 }
@@ -170,6 +200,13 @@ yyuseraction(void)
   yylloc.first_column = yycolumn; 
   yylloc.last_column = yycolumn + yyleng - 1;
   yycolumn += yyleng; 
+}
+
+void
+fh_parse_error(char * val)
+{
+  State *state = fh_new_state(yylloc.first_line, yylloc.first_column);
+  fh_error(state, E_PARSE, "unexpected '%s'", val);
 }
 
 // Wrap token returns for debugging.

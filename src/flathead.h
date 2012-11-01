@@ -29,7 +29,7 @@
 #include "../ext/uthash.h"
 
 
-#define VERSION        "0.5.1"
+#define VERSION        "0.6.0"
 
 #define JSBOOL(x)      fh_new_boolean(x)
 #define JSSTR(x)       fh_new_string(x)
