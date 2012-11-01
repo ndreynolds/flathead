@@ -33,6 +33,8 @@ JSValue * global_parse_float(JSValue *, JSArgs *, State *);
 JSValue * glboal_parse_int(JSValue *, JSArgs *, State *);
 JSValue * global_eval(JSValue *, JSArgs *, State *);
 JSValue * global_gc(JSValue *, JSArgs *, State *);
+
+void fh_connect_prototypes(JSValue *);
 JSValue * fh_bootstrap(void);
 
 #endif

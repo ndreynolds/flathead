@@ -96,3 +96,9 @@ assert(Object.prototype.hasOwnProperty('toString'));
 assert(!Object.prototype.hasOwnProperty('a'));
 assert(!Object.prototype.propertyIsEnumerable('toString'));
 assert(Object.prototype.valueOf() === Object.prototype);
+
+
+// Object.prototype methods should inherit from Function.prototype
+assert(typeof Object.prototype.toString.call === 'function');
+assert(typeof Object.prototype.hasOwnProperty.apply === 'function');
+assert(typeof Object.prototype.toLocaleString.bind === 'function');

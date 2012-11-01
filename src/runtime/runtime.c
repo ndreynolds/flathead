@@ -105,6 +105,22 @@ global_load(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
+void
+fh_connect_prototypes(JSValue *global)
+{
+  // Hook up the Function.prototype to the Object.prototype methods.
+  //
+  // Note: this doesn't happen automatically because the Function object
+  // does not exist when the Object# methods are defined.
+  JSValue *obj_proto = fh_get(fh_get(global, "Object"), "prototype");
+  JSValue *func_proto = fh_get(fh_get(global, "Function"), "prototype");
+  JSProp *prop;
+  OBJ_ITER(obj_proto, prop) {
+    if (prop->ptr && IS_FUNC(prop->ptr) && prop->ptr->function.is_native)
+      prop->ptr->proto = func_proto;
+  }
+}
+
 JSValue *
 fh_bootstrap()
 {
@@ -120,6 +136,8 @@ fh_bootstrap()
   fh_set(global, "Boolean", bootstrap_boolean());
   fh_set(global, "Date", bootstrap_date());
   fh_set(global, "RegExp", bootstrap_regexp());
+
+  fh_connect_prototypes(global);
 
   fh_set(global, "console", bootstrap_console());
   fh_set(global, "Math", bootstrap_math());
