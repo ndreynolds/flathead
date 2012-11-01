@@ -71,8 +71,8 @@ parser:
 clean:
 	rm -rf y.* lex.yy.c bin/fh* a.out
 
-install: default 
-	cp bin/fh /usr/local/bin/
+install:
+	cp $(OUT_FILE) /usr/local/bin/
 
 default: parser lexer 
 	$(CC) $(CFLAGS) -o $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(SRC_FILES) $(LIB_FILES) $(LIBS)
