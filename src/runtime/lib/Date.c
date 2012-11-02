@@ -4,6 +4,8 @@
 // Portions borrowed or inspired from Mozilla Rhino.
 
 #include <math.h>
+#include <ctype.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -41,9 +43,8 @@ date_new(JSValue *instance, JSArgs *args, State *state)
     JSValue *arg = ARG(args, 0);
     if (IS_NUM(arg))
       utc = JSNUM(arg->number.val);
-    else
-      // TODO: parse date string
-      assert(0);
+    else 
+      utc = date_parse_str(TO_STR(arg)->string.ptr);
   }
 
   // new Date(year, month, day[, hour, minute, second, millisecond])
@@ -66,8 +67,7 @@ date_now(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 date_parse(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  return date_parse_str(TO_STR(ARG(args, 0))->string.ptr);
 }
 
 // Date.UTC(year, month[, date[, hours[, minutes[, seconds[, ms]]]]])
@@ -785,6 +785,145 @@ date_format_iso(double t)
   snprintf(str, size, fmt, y, m, dt, h, mn, s, ms);
 
   return JSSTR(str);
+}
+
+bool
+date_verify_format(char *str, char *fmt)
+{
+  if (strlen(str) != strlen(fmt)) 
+    return false;
+
+  // Within the format string:
+  //  a - any alphabetic character
+  //  d - any digit character
+  //
+  // Everything else is taken literally.
+  
+  int i;
+  for (i = 0; i < strlen(str); i++) {
+    char c = str[i], f = fmt[i];
+
+    if (f == 'a' && !isalpha(c)) 
+      return false;
+    if (f == 'd' && !isdigit(c)) 
+      return false;
+    if (f != 'a' && f != 'd' && c != f)
+      return false;
+  }
+
+  return true;
+}
+
+JSValue *
+date_parse_str(char *str)
+{
+  double t;
+
+  // Rely on short-circuiting here. We'll take the first one that parses.
+  // ISO parse is least forgiving, so it goes first. 
+  if (date_parse_iso(str, &t) || date_parse_utc(str, &t) || date_parse_loc(str, &t))
+    return JSNUM(t);
+  return JSNAN();
+}
+
+// The date_parse_x functions take a date string and a double pointer. They
+// return true when a date (and time) can be parsed from the given string, and
+// false otherwise. When true, the parsed UTC time in milliseconds is stored in
+// the double.
+
+bool
+date_parse_loc(char *str, double *t)
+{
+  // FIXME: Incorrect assumptions being made:
+  //
+  // - Assumes TZ abbreviation is always 3 letters (not true!)
+  // - Assumes this is a local time (could be another TZ)
+  
+  // Wed Oct 12 1984 12:31:19 GMT-0400 (EDT)
+  char *fmt = "aaa aaa dd dddd dd:dd:dd GMT-dddd (aaa)";
+
+  // Verify the format
+  if (!date_verify_format(str, fmt))
+    return false;
+
+  char *mname = fh_str_slice(str, 4, 7);
+  int date = atoi(fh_str_slice(str, 8, 10));
+  int year = atoi(fh_str_slice(str, 11, 15));
+  int hour = atoi(fh_str_slice(str, 16, 18));
+  int min = atoi(fh_str_slice(str, 19, 21));
+  int sec = atoi(fh_str_slice(str, 22, 24));
+
+  // Get the month as an integer
+  int month = 0;
+  while(month < 12) {
+    if (STREQ(month_string(month), mname)) break;
+    month++;
+  };
+  // Invalid month
+  if (month == 12) return false;
+
+  double day = make_day(year, month, date);
+  double time = make_time(hour, min, sec, 0);
+
+  *t = time_clip(utc_time(make_date(day, time)));
+  return true;
+}
+
+bool
+date_parse_utc(char *str, double *t)
+{
+  // Mon, 03 Jul 2006 21:44:38 GMT
+  char *fmt = "aaa, dd aaa dddd dd:dd:dd GMT";
+
+  // Verify the format
+  if (!date_verify_format(str, fmt))
+    return false;
+
+  // Pull out the parts
+  int date = atoi(fh_str_slice(str, 5, 7));
+  char *mname = fh_str_slice(str, 8, 11);
+  int year = atoi(fh_str_slice(str, 12, 16));
+  int hour = atoi(fh_str_slice(str, 17, 19));
+  int min = atoi(fh_str_slice(str, 20, 22));
+  int sec = atoi(fh_str_slice(str, 23, 25));
+
+  int month = 0;
+  while(month < 12) {
+    if (STREQ(month_string(month), mname)) break;
+    month++;
+  };
+  if (month == 12) return false;
+
+  double day = make_day(year, month, date);
+  double time = make_time(hour, min, sec, 0);
+
+  *t = time_clip(make_date(day, time));
+  return true;
+}
+
+bool
+date_parse_iso(char *str, double *t)
+{
+  char *fmt = "dddd-dd-ddTdd:dd:dd.dddZ";
+
+  // Verify the format
+  if (!date_verify_format(str, fmt))
+    return false;
+
+  // Pull out the parts
+  int year = atoi(fh_str_slice(str, 0, 4));
+  int month = atoi(fh_str_slice(str, 5, 7)) - 1;
+  int date = atoi(fh_str_slice(str, 8, 10));
+  int hour = atoi(fh_str_slice(str, 11, 13));
+  int min = atoi(fh_str_slice(str, 14, 16));
+  int sec = atoi(fh_str_slice(str, 17, 19));
+  int msec = atoi(fh_str_slice(str, 20, 23));
+
+  double day = make_day(year, month, date);
+  double time = make_time(hour, min, sec, msec);
+
+  *t = time_clip(make_date(day, time));
+  return true;
 }
 
 char *

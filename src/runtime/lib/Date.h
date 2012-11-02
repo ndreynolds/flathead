@@ -88,6 +88,13 @@ char * month_string(int);
 JSValue * date_format_loc(double, bool, bool);
 JSValue * date_format_utc(double);
 JSValue * date_format_iso(double);
+
+JSValue * date_parse_str(char *);
+bool date_verify_format(char *, char *);
+bool date_parse_loc(char *, double *);
+bool date_parse_utc(char *, double *);
+bool date_parse_iso(char *, double *);
+
 double ms_from_args(JSArgs *);
 
 double make_time(double, double, double, double);
