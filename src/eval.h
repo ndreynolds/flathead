@@ -42,7 +42,6 @@ JSValue * fh_prop_lst(JSValue *, Node *);
 JSValue * fh_stmt_lst(JSValue *, Node *);
 JSValue * fh_src_lst(JSValue *, Node *);
 JSValue * fh_new_exp(JSValue *, Node *);
-JSValue * fh_func(JSValue *, Node *);
 JSValue * fh_obj(JSValue *, Node *);
 JSValue * fh_arr(JSValue *, Node *);
 JSValue * fh_call(JSValue *, Node *);

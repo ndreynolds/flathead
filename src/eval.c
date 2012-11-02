@@ -36,7 +36,7 @@ fh_eval(JSValue *ctx, Node *node)
     case NODE_REGEXP: return JSREGEXP(node->sval);
     case NODE_NUM: return JSNUM(node->val);
     case NODE_NULL: return JSNULL();
-    case NODE_FUNC: return fh_func(ctx, node);
+    case NODE_FUNC: return JSFUNC(node);
     case NODE_OBJ: return fh_obj(ctx, node);
     case NODE_ARR: return fh_arr(ctx, node);
     case NODE_CALL: return fh_call(ctx, node);
@@ -160,17 +160,8 @@ fh_new_exp(JSValue *ctx, Node *exp)
 
 
 // ----------------------------------------------------------------------------
-// Functions and Object & Array Literals
+// Object & Array Literals
 // ----------------------------------------------------------------------------
-
-JSValue *
-fh_func(JSValue *ctx, Node *node)
-{
-  JSValue *func = JSFUNC(node);
-  // TODO: figure this out
-  // func->function.closure = ctx;
-  return func;
-}
 
 JSValue *
 fh_obj(JSValue *ctx, Node *node)
@@ -443,7 +434,7 @@ fh_call(JSValue *ctx, Node *call)
 
   // Check for a bound this (see Function#bind)
   JSValue *this = maybe_func->function.bound_this ? 
-    maybe_func->function.bound_this : ctx;
+    maybe_func->function.bound_this : fh_get(ctx, "this");
 
   return fh_function_call(ctx, this, state, maybe_func, args);
 }
@@ -504,6 +495,8 @@ fh_setup_func_env(JSValue *ctx, JSValue *this, JSValue *func, JSArgs *args)
   fh_set(scope, "arguments", arguments);
 
   // Add the function name as ref to itself (if it has a name)
+  // TODO: Take another look at this. Under what circumstances is the name
+  // set in the function environemnt?
   if (func_node->sval != NULL)
     fh_set(scope, func_node->sval, func);
 
@@ -565,11 +558,11 @@ fh_postfix_exp(JSValue *ctx, Node *node)
   JSValue *old_val = TO_NUM(fh_eval(ctx, node->e1));
   char *op = node->sval;
   if (STREQ(op, "++")) {
-    fh_set(ctx, node->e1->sval, fh_add(old_val, JSNUM(1)));
+    fh_set_rec(ctx, node->e1->sval, fh_add(old_val, JSNUM(1)));
     return old_val;
   }
   if (STREQ(op, "--")) {
-    fh_set(ctx, node->e1->sval, fh_sub(old_val, JSNUM(1)));
+    fh_set_rec(ctx, node->e1->sval, fh_sub(old_val, JSNUM(1)));
     return old_val;
   }
   UNREACHABLE();
@@ -608,12 +601,12 @@ fh_prefix_exp(JSValue *ctx, Node *node)
   JSValue *new_val;
   if (STREQ(op, "++")) {
     new_val = fh_add(old_val, JSNUM(1));
-    fh_set(ctx, node->e1->sval, new_val);
+    fh_set_rec(ctx, node->e1->sval, new_val);
     return new_val;
   }
   if (STREQ(op, "--")) {
     new_val = fh_sub(old_val, JSNUM(1));
-    fh_set(ctx, node->e1->sval, new_val);
+    fh_set_rec(ctx, node->e1->sval, new_val);
     return new_val;
   }
 
