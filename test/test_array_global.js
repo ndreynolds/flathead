@@ -17,6 +17,10 @@ var assertArrayEquals = function(a, b) {
   }
 };
 
+var test = function(name, f) {
+  f();
+};
+
 
 // ----------------------------------------------------------------------------
 // Array Global
@@ -26,41 +30,44 @@ assert(Array);
 assert(typeof Array === 'function');
 
 
-// Constructor
+test('Constructor', function() {
 
-// new Array(arrayLength)
-assertArrayEquals([], new Array);
-assertArrayEquals([], new Array());
-assertArrayEquals([], new Array(0));
-assertArrayEquals([undefined, undefined], new Array(2));
-assertEquals(100, (new Array(100)).length);
-assertEquals(20000, (new Array(20000)).length);
-// assertEquals(4294967295, (new Array(4294967295)).length);
-// TODO: assert throws range error
+  test('new Array(arrayLength)', function() {
+    assertArrayEquals([], new Array);
+    assertArrayEquals([], new Array());
+    assertArrayEquals([], new Array(0));
+    assertArrayEquals([undefined, undefined], new Array(2));
+    assertEquals(100, (new Array(100)).length);
+    assertEquals(20000, (new Array(20000)).length);
+    // assertEquals(4294967295, (new Array(4294967295)).length);
+    // TODO: assert throws range error
+  });
 
-// new Array(element0, element1, ..., elementN)
-assertArrayEquals(['abc'], new Array('abc'));
-assertArrayEquals([1, 2, 3, 4], new Array(1, 2, 3, 4));
-assertArrayEquals([1, 'b', true], new Array(1, 'b', true));
-var a = new Array(0, 1, 2);
-assertArrayEquals([0, 1, 2], a);
+  test('new Array(element0, element1, ..., elementN)', function() {
+    assertArrayEquals(['abc'], new Array('abc'));
+    assertArrayEquals([1, 2, 3, 4], new Array(1, 2, 3, 4));
+    assertArrayEquals([1, 'b', true], new Array(1, 'b', true));
+    var a = new Array(0, 1, 2);
+    assertArrayEquals([0, 1, 2], a);
+  });
 
+});
 
-// Array.isArray(value)
+test('Array.isArray(value)', function() {
+  assert(Array.isArray([]));
+  assert(Array.isArray([1]));
+  assert(Array.isArray(new Array()));
+  assert(Array.isArray(Array.prototype));
 
-assert(Array.isArray([]));
-assert(Array.isArray([1]));
-assert(Array.isArray(new Array()));
-assert(Array.isArray(Array.prototype));
-
-assert(!Array.isArray());
-assert(!Array.isArray({}));
-assert(!Array.isArray(null));
-assert(!Array.isArray(undefined));
-assert(!Array.isArray(17));
-assert(!Array.isArray('Array'));
-assert(!Array.isArray(true));
-assert(!Array.isArray(false));
+  assert(!Array.isArray());
+  assert(!Array.isArray({}));
+  assert(!Array.isArray(null));
+  assert(!Array.isArray(undefined));
+  assert(!Array.isArray(17));
+  assert(!Array.isArray('Array'));
+  assert(!Array.isArray(true));
+  assert(!Array.isArray(false));
+});
 
 
 // ----------------------------------------------------------------------------
@@ -71,204 +78,200 @@ assert(Array.prototype);
 assertEquals('object', typeof Array.prototype);
 assertEquals(0, Array.prototype.length);
 
+test('Array#pop()', function() {
+  var a = [1, 2, 3, 4];
+  assert(a.pop() === 4);
+  assert(a.length === 3);
+  assert(a.pop() === 3);
+  assert(a.length === 2);
+});
 
-var a5 = [1, 2, 3, 4];
+test('Array#push(element1, ..., elementN)', function() {
+  var a = [1, 2];
+  assert(a.push('bears') === 3);
+  assert(a.length === 3);
+  assert(a.push('and', 'tigers', 'and', 'lions') === 7);
+  assert(a.length === 7);
+});
 
-// Array.prototype.pop()
+test('Array#shift()', function() {
+  var a = [1, 2, 'bears', 'and', 'tigers', 'and', 'lions'];
+  assert(a.shift() === 1);
+  assert(a.length === 6);
+  assert(a.shift() === 2);
+  assert(a.length === 5);
+});
 
-assert(a5.pop() === 4);
-assert(a5.length === 3);
-assert(a5.pop() === 3);
-assert(a5.length === 2);
+test('Array#unshift(element1, ..., elementN)', function() {
+  var a = ['bears', 'and', 'tigers', 'and', 'lions'];
+  assert(a.unshift('oh') === 6);
+  assert(a.length === 6);
+  assert(a.unshift('!', 'my') === 8);
+  assert(a.length === 8);
+  // Just for fun
+  // FIXME: assert(a5.reverse().join(' ') === 'lions and tigers and bears oh my !'
+});
 
+test('Array#reverse()', function() {
+  // Even and odd length arrays.
+  var a1 = ['a', 'b', 'c', 'd'];
+  var a2 = ['c', 'a', 't'];
 
-// Array.prototype.push(element1, ..., elementN)
+  var result = a1.reverse();
+  assertArrayEquals(['d', 'c', 'b', 'a'], result);
+  assertArrayEquals(['d', 'c', 'b', 'a'], a1);
 
-assert(a5.push('bears') === 3);
-assert(a5.length === 3);
-assert(a5.push('and', 'tigers', 'and', 'lions') === 7);
-assert(a5.length === 7);
+  a2.reverse();
+  assertArrayEquals(['t', 'a', 'c'], a2);
+});
 
+var concat;
 
-// Array.prototype.shift()
+test('Array#concat(value1, value2, ..., valueN)', function() {
+  var a = ['t', 'a', 'c'];
+  concat = a.concat('t', ['f', 'u', 'l'], 'n', 'e', ['s', 's']);
+  assertArrayEquals(['t', 'a', 'c', 't', 'f', 'u', 'l', 'n', 'e', 's', 's'], concat);
+});
 
-assert(a5.shift() === 1);
-assert(a5.length === 6);
-assert(a5.shift() === 2);
-assert(a5.length === 5);
+test('Array#join(sep)', function() {
+  assert(concat.join('') === 'tactfulness');
 
+  var a1 = ['foo', 'bar'];
+  assert(a1.join('') === 'foobar');
+  assert(a1.join(',') === 'foo,bar');
+  assert(a1.join('baz') === 'foobazbar');
 
-// Array.prototype.unshift(element1, ..., elementN)
+  var a2 = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  assert(a2.join(',') === '1,2,3,4,5,6,7,8,9');
+});
 
-assert(a5.unshift('oh') === 6);
-assert(a5.length === 6);
-assert(a5.unshift('!', 'my') === 8);
-assert(a5.length === 8);
+test('Array#slice(begin[, end])', function() {
+  var a = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
+  var slice1 = a.slice(6);
+  assertArrayEquals([7, 8, 9], slice1);
 
-// Array.prototype.reverse()
+  var slice2 = a.slice(0, 2);
+  assertArrayEquals([1, 2], slice2);
 
-// Just for fun.
-// FIXME: assert(a5.reverse().join(' ') === 'lions and tigers and bears oh my !');
+  var slice3 = a.slice(1, -5);
+  assertArrayEquals([2, 3, 4], slice3);
 
-// Even and odd length arrays.
-var a6 = ['a', 'b', 'c', 'd'];
-var a7 = ['c', 'a', 't'];
+  var slice4 = a.slice(99);
+  assertArrayEquals([], slice4);
 
-var result = a6.reverse();
-assertArrayEquals(['d', 'c', 'b', 'a'], result);
-assertArrayEquals(['d', 'c', 'b', 'a'], a6);
+  var slice5 = a.slice(-50, 100);
+  assertArrayEquals([1, 2, 3, 4, 5, 6, 7, 8, 9], slice5);
+});
 
-a7.reverse();
-assertArrayEquals(['t', 'a', 'c'], a7);
+test('Array#indexOf()', function() {
+  var a = [4, 2, 1, 3, 4];
 
+  assert(a.indexOf(4) === 0);
+  assert(a.indexOf(4, -5) === 0);
+  assert(a.indexOf(2, -3) === -1);
+  assert(a.indexOf(2) === 1);
+  assert(a.indexOf(1, -3) === 2);
+  assert(a.indexOf(3) === 3);
+  assert(a.indexOf(999) === -1);
+});
 
-// Array.prototype.concat(value1, value2, ..., valueN)
+test('Array#lastIndexOf()', function() {
+  var a = [4, 2, 1, 3, 4];
 
-var concat = a7.concat('t', ['f', 'u', 'l'], 'n', 'e', ['s', 's']);
-assertArrayEquals(['t', 'a', 'c', 't', 'f', 'u', 'l', 'n', 'e', 's', 's'], concat);
+  assert(a.lastIndexOf(4) === 4);
+  assert(a.lastIndexOf(4, -2) === 0);
+  assert(a.lastIndexOf(4, -4) === 0);
+  assert(a.lastIndexOf(4, -6) === -1);
+  assert(a.lastIndexOf(2) === 1);
+  assert(a.lastIndexOf(1, -2) === 2);
+  assert(a.lastIndexOf(3) === 3);
+  assert(a.lastIndexOf(999) === -1);
+});
 
+test('Array#splice(index, howMany[, element1[, ...[, elementN]]])', function() {
+  var a = ['angel', 'clown', 'mandarin', 'surgeon'], removed;
 
-// Array.prototype.join(sep)
+  removed = a.splice(2, 0, 'drum');
+  assert(a.length === 5);
+  assertArrayEquals([], removed);
 
-assert(concat.join('') === 'tactfulness');
+  removed = a.splice(3, 1);
+  assert(a.length === 4);
+  assert(removed.length === 1);
+  assertArrayEquals(['mandarin'], removed);
 
-var a8 = ['foo', 'bar'];
-assert(a8.join('') === 'foobar');
-assert(a8.join(',') === 'foo,bar');
-assert(a8.join('baz') === 'foobazbar');
+  removed = a.splice(2, 1, 'trumpet');
+  assert(a.length === 4);
+  assertArrayEquals(['drum'], removed);
 
-var a9 = [1,2,3,4,5,6,7,8,9];
-assert(a9.join(',') === '1,2,3,4,5,6,7,8,9');
+  removed = a.splice(0, 2, 'parrot', 'anemone', 'blue');
+  assert(a.length === 5);
+  assertArrayEquals(['angel', 'clown'], removed);
+});
 
+test('Array#sort()', function() {
+  // TODO: expand these tests
+  var a = [4, 2, 1, 3];
+  a.sort();
+  assertArrayEquals([1, 2, 3, 4], a);
+  assertArrayEquals([200, 45, 7], [7, 45, 200].sort());
+});
 
-// Array.prototype.slice(begin[, end])
+test('Array#forEach(callback[, ctx])', function() {
+  var a = [1, 2, 3, 4];
+  var sum = 0;
+  var f = function(x) { return sum += x; };
 
-var slice1 = a9.slice(6);
-assertArrayEquals([7, 8, 9], slice1);
+  a.forEach(f, this);
+  assertEquals(10, sum);
+});
 
-var slice2 = a9.slice(0, 2);
-assertArrayEquals([1, 2], slice2);
-
-var slice3 = a9.slice(1, -5);
-assertArrayEquals([2, 3, 4], slice3);
-
-var slice4 = a9.slice(99);
-assertArrayEquals([], slice4);
-
-var slice5 = a9.slice(-50, 100);
-assertArrayEquals([1, 2, 3, 4, 5, 6, 7, 8, 9], slice5);
-
-
-// Array.prototype.indexOf()
-
-var a10 = [4, 2, 1, 3, 4];
-
-assert(a10.indexOf(4) === 0);
-assert(a10.indexOf(4, -5) === 0);
-assert(a10.indexOf(2, -3) === -1);
-assert(a10.indexOf(2) === 1);
-assert(a10.indexOf(1, -3) === 2);
-assert(a10.indexOf(3) === 3);
-assert(a10.indexOf(999) === -1);
-
-
-// Array.prototype.lastIndexOf()
-
-assert(a10.lastIndexOf(4) === 4);
-assert(a10.lastIndexOf(4, -2) === 0);
-assert(a10.lastIndexOf(4, -4) === 0);
-assert(a10.lastIndexOf(4, -6) === -1);
-assert(a10.lastIndexOf(2) === 1);
-assert(a10.lastIndexOf(1, -2) === 2);
-assert(a10.lastIndexOf(3) === 3);
-assert(a10.lastIndexOf(999) === -1);
-
-
-// Array.prototype.splice(index, howMany[, element1[, ...[, elementN]]])
-
-var a11 = ['angel', 'clown', 'mandarin', 'surgeon'], removed;
-
-removed = a11.splice(2, 0, 'drum');
-assert(a11.length === 5);
-assertArrayEquals([], removed);
-
-removed = a11.splice(3, 1);
-assert(a11.length === 4);
-assert(removed.length === 1);
-assertArrayEquals(['mandarin'], removed);
-
-removed = a11.splice(2, 1, 'trumpet');
-assert(a11.length === 4);
-assertArrayEquals(['drum'], removed);
-
-removed = a11.splice(0, 2, 'parrot', 'anemone', 'blue');
-assert(a11.length === 5);
-assertArrayEquals(['angel', 'clown'], removed);
-
-
-// Array.prototype.sort()
-
-// TODO: expand these tests
-a11.sort();
-assertArrayEquals([1, 2, 3, 4], a11);
-assertArrayEquals([200, 45, 7], [7, 45, 200].sort());
-
-
-// Array.prototype.forEach(callback[, ctx])
-
-var a12 = [1, 2, 3, 4];
-var sum = 0;
-var f = function(x) { return sum += x; };
-
-a12.forEach(f, this);
-assertEquals(10, sum);
-
-
-// Array.prototype.every(callback[, ctx])
-
-var a13 = [1, 2, 3, 4];
 var f1 = function(x) { return x < 5; };
 var f2 = function(x) { return x % 2 === 0; };
-
-assert(a13.every(f1, this));
-assert(!a13.every(f2, this));
-
-
-// Array.prototype.some(callback[, ctx])
-
 var f3 = function(x) { return x < 0; };
-
-assert(a13.some(f1, this));
-assert(a13.some(f2, this));
-assert(!a13.some(f3, this));
-
-
-// Array.prototype.filter(callback[, ctx])
-
-var result = a13.filter(f2, this);
-assertArrayEquals([2, 4], result);
-
-
-// Array.prototype.map(callback[, ctx])
-
 var f4 = function(x) { return x * x; };
-
-var result = a13.map(f4, this);
-assertArrayEquals([1, 4, 9, 16], result);
-
-
-// Array.prototype.reduce(callback[, seed])
-
-var a14 = [0, 1, 2, 3, 4];
 var f5 = function(prev, cur, index, arr) {
   return prev + cur;
 };
-assert(a14.reduce(f5) === 10);
-assert(a14.reduce(f5, 10) === 20);
 
+test('Array#every(callback[, ctx])', function() {
+  var a = [1, 2, 3, 4];
 
-// Array.prototype.reduceRight(callback[, seed])
+  assert(a.every(f1, this));
+  assert(!a.every(f2, this));
+});
 
-assert(a14.reduceRight(f5) === 10);
-assert(a14.reduceRight(f5, 10) === 20);
+test('Array#some(callback[, ctx])', function() {
+  var a = [1, 2, 3, 4];
+
+  assert(a.some(f1, this));
+  assert(a.some(f2, this));
+  assert(!a.some(f3, this));
+});
+
+test('Array#filter(callback[, ctx])', function() {
+  var a = [1, 2, 3, 4];
+
+  var result = a.filter(f2, this);
+  assertArrayEquals([2, 4], result);
+});
+
+test('Array#map(callback[, ctx])', function() {
+  var a = [1, 2, 3, 4];
+
+  var result = a.map(f4, this);
+  assertArrayEquals([1, 4, 9, 16], result);
+});
+
+test('Array#reduce(callback[, seed])', function() {
+  var a = [0, 1, 2, 3, 4];
+  assert(a.reduce(f5) === 10);
+  assert(a.reduce(f5, 10) === 20);
+});
+
+test('Array#reduceRight(callback[, seed])', function() {
+  var a = [0, 1, 2, 3, 4];
+  assert(a.reduceRight(f5) === 10);
+  assert(a.reduceRight(f5, 10) === 20);
+});

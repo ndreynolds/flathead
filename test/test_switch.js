@@ -1,80 +1,84 @@
 // test_switch.js
 // --------------
-// Switch Statement
+
+var assert = console.assert;
+
+var test = function(name, f) {
+  f();
+};
 
 var counter = 0;
 
 
-// Test matching case
+test('matching case', function() {
+  var x = 42;
 
-var x = 42;
+  switch(x) {
+    case 12:
+      assert(false);
+      break;
+    case 42:
+      counter++;
+      break;
+    default:
+      assert(false);
+      break;
+  }
 
-switch(x) {
-  case 12:
-    console.assert(false);
-    break;
-  case 42:
-    counter++;
-    break;
-  default:
-    console.assert(false);
-    break;
-}
+  assert(counter === 1);
+});
 
-console.assert(counter === 1);
+test('default case', function() {
+  var y = 'not handled';
 
+  switch(y) {
+    case 'a':
+      assert(false);
+      break;
+    case 'b':
+      assert(false);
+      break;
+    case 'c':
+      assert(false);
+      break;
+    default:
+      counter++;
+      break;
+  }
 
-// Test default case
+  assert(counter === 2);
+});
 
-var y = 'not handled';
+test('fall-through cases and missing breaks', function() {
+  var z = 'cat';
 
-switch(y) {
-  case 'a':
-    console.assert(false);
-    break;
-  case 'b':
-    console.assert(false);
-    break;
-  case 'c':
-    console.assert(false);
-    break;
-  default:
-    counter++;
-    break;
-}
+  switch(z) {
+    case 'cat':
+    case 'dog':
+      counter++;
+    case 'lizard':
+      counter++;
+  }
 
-console.assert(counter === 2);
+  assert(counter === 4);
+});
 
+test('cases that follow default are checked first', function() {
+  var z = 'cat';
 
-// Test fall-through cases and missing breaks.
+  switch(z) {
+    case 'dog':
+      assert(false);
+      break;
+    case 'mouse':
+      assert(false);
+      break;
+    default:
+      assert(false);    // This should NOT be executed
+      break;
+    case 'cat':
+      counter++;
+  }
 
-var z = 'cat';
-
-switch(z) {
-  case 'cat':
-  case 'dog':
-    counter++;
-  case 'lizard':
-    counter++;
-}
-
-console.assert(counter === 4);
-
-
-// Test that cases that follow default are checked first.
-
-switch(z) {
-  case 'dog':
-    console.assert(false);
-    break;
-  case 'mouse':
-    console.assert(false);
-    break;
-  default:                   
-    console.assert(false);    // This should NOT be executed
-    break;
-  case 'cat':
-    counter++;
-}
-
-console.assert(counter === 5);
+  assert(counter === 5);
+});
