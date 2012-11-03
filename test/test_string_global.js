@@ -124,7 +124,11 @@ test('String#replace(regexp|substr, newSubStr|function[, flags])', function() {
 });
 
 test('String#search(regexp)', function() {
-  // TODO
+  var s = "abcFOOBARdef";
+  assertEquals(3, s.search(/FOO/));
+  assertEquals(3, s.search(/foo/i));
+  assertEquals(6, s.search(/BAR/));
+  assertEquals(6, s.search(/bar/i));
 });
 
 test('String#slice(beginSlice[, endSlice])', function() {

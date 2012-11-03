@@ -1,8 +1,12 @@
 // test_regexp_global.js
 // ---------------------
-// Tests for the RegExp global object.
+// Tests for the RegExp global object. Some adapted from V8's mjsunit/regexp.js
 
 var assert = console.assert;
+
+var assertTrue = function(a) { assert(a); };
+
+var assertFalse = function(a) { assert(!a); };
 
 var assertEquals = function(a, b) {
   if (a !== b)
@@ -69,7 +73,27 @@ test('RegExp#exec(str)', function() {
 });
 
 test('RegExp#test(str)', function() {
-  // TODO
+  assertFalse(/()foo$\1/.test("football"));
+  assertFalse(/foo$(?=ball)/.test("football"));
+  assertFalse(/foo$(?!bar)/.test("football"));
+  assertTrue(/()foo$\1/.test("foo"));
+  assertTrue(/foo$(?=(ball)?)/.test("foo"));
+  assertTrue(/()foo$(?!bar)/.test("foo"));
+  assertFalse(/(x?)foo$\1/.test("football"));
+  assertFalse(/foo$(?=ball)/.test("football"));
+  assertFalse(/foo$(?!bar)/.test("football"));
+  assertTrue(/(x?)foo$\1/.test("foo"));
+  assertTrue(/foo$(?=(ball)?)/.test("foo"));
+  assertTrue(/foo$(?!bar)/.test("foo"));
+
+  var re = /(?:a$|bc$)/;
+  assertTrue(re.test("a"));
+  assertTrue(re.test("bc"));
+  assertTrue(re.test("abc"));
+  assertTrue(re.test("zimzamzumba"));
+  assertTrue(re.test("zimzamzumbc"));
+  assertFalse(re.test("c"));
+  assertFalse(re.test(""));
 });
 
 test('RegExp#toString(str)', function() {

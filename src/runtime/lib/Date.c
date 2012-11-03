@@ -799,8 +799,8 @@ date_verify_format(char *str, char *fmt)
   //
   // Everything else is taken literally.
   
-  int i;
-  for (i = 0; i < strlen(str); i++) {
+  int i, n;
+  for (i = 0, n = strlen(str); i < n; i++) {
     char c = str[i], f = fmt[i];
 
     if (f == 'a' && !isalpha(c)) 

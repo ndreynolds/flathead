@@ -210,7 +210,7 @@ fh_member(JSValue *ctx, Node *member)
   if (IS_STR(parent) && member->e1->type == NODE_NUM) {
     int i = member->e1->val, len = parent->string.length;
     if (i < len && i >= 0) {
-      char *str = malloc(2);
+      char *str = malloc(sizeof(char) + 1);
       sprintf(str, "%c", parent->string.ptr[i]);
       return JSSTR(str);
     }
@@ -443,6 +443,8 @@ JSArgs *
 fh_build_args(JSValue *ctx, Node *args_node)
 {
   JSArgs *args = malloc(sizeof(JSArgs));
+  if (args == NULL)
+    fh_error(NULL, E_ERROR, "allocation failed");
   args->arg = NULL;
   args->next = NULL;
   if (args_node->e1 == NULL) return args;
@@ -501,11 +503,11 @@ fh_setup_func_env(JSValue *ctx, JSValue *this, JSValue *func, JSArgs *args)
     fh_set(scope, func_node->sval, func);
 
   // Set up the (array-like) arguments object.
-  fh_set(arguments, "callee", func);
-  fh_set(arguments, "length", JSNUM(ARGLEN(args)));
-  int i;
-  for (i = 0; i < ARGLEN(args); i++)
+  int i, arglen = ARGLEN(args);
+  for (i = 0; i < arglen; i++)
     fh_set(arguments, JSNUMKEY(i)->string.ptr, ARG(args, i));
+  fh_set(arguments, "callee", func);
+  fh_set(arguments, "length", JSNUM(arglen));
 
   // Set up params as locals (if any)
   if (func_node->e1 != NULL) {

@@ -902,7 +902,7 @@ fh_get_input(char *buf, int size)
     line = readline("> ");
     if (!line)
       return 0;
-    if (strlen(line) > size - 3) {
+    if ((int)strlen(line) > size - 3) {
       fh_error(NULL, E_ERROR, "input line too long");
       return 0;
     }

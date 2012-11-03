@@ -30,15 +30,17 @@ const int regexp_vector_len = 30;
 // Gateway to the PCRE library. When compiled with fh_no_regexp, this function
 // is still available, but will throw an error when called.
 int *
-fh_regexp(char *str, char *pattern, int *count)
+fh_regexp(char *str, char *pattern, int *count, bool caseless)
 {
 #ifndef fh_no_regexp
   const char *error;
   int rc;
   int error_offset;
+  int options = PCRE_JAVASCRIPT_COMPAT;
+  if (caseless) options |= PCRE_CASELESS;
   int *output_vector = malloc(regexp_vector_len * sizeof(int));
 
-  pcre *regexp = pcre_compile(pattern, 0, &error, &error_offset, NULL);
+  pcre *regexp = pcre_compile(pattern, options, &error, &error_offset, NULL);
   if (!regexp)
     fh_error(NULL, E_SYNTAX, "Regular expression is not valid");
 

@@ -364,6 +364,7 @@ fh_has_instance(JSValue *func, JSValue *val)
   if (!IS_FUNC(func))
     fh_error(NULL, E_TYPE, "");
   // TODO: implement
+  (void)val;
   return JSBOOL(0);
 }
 
@@ -404,8 +405,9 @@ int
 fh_arg_len(JSArgs *args)
 {
   int i = 0;
-  while (1)
+  while (true)
   {
+    if (args == NULL) return i;
     if (args->arg != NULL) i++;
     if (args->next == NULL) break;
     args = args->next;

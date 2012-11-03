@@ -79,21 +79,24 @@ str_proto_index_of(JSValue *instance, JSArgs *args, State *state)
   int i = IS_NUM(from) ? from->number.val : 0;
   int match = 0;
 
+  int needle_len = strlen(needle);
+  int haystack_len = strlen(haystack);
+
   // Searching for an empty string returns the fromIndex when less than
   // the instance string length, and the instance string length otherwise.
-  if (strlen(needle) == 0)
-    return JSNUM(i <= strlen(haystack) ? i : strlen(haystack));
+  if (needle_len == 0)
+    return JSNUM(i <= haystack_len ? i : haystack_len);
 
-  if (strlen(needle) > strlen(haystack) || i > strlen(haystack))
+  if (needle_len > haystack_len || i > haystack_len)
     return JSNUM(-1);
 
-  for (; i < strlen(haystack); i++) {
+  for (; i < haystack_len; i++) {
     if (haystack[i] == needle[match])
       match++;
     else
       match = haystack[i] == needle[0] ? 1 : 0;
-    if (match == strlen(needle))
-      return JSNUM(i - strlen(needle) + 1);
+    if (match == needle_len)
+      return JSNUM(i - needle_len + 1);
   }
 
   return JSNUM(-1);
@@ -113,19 +116,22 @@ str_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
   int match = strlen(needle) - 1;
   int i = strlen(haystack) - 1;
 
+  int needle_len = strlen(needle);
+  int haystack_len = strlen(haystack);
+
   if (max < 0) max = 0;
 
-  if (strlen(needle) == 0)
-    return JSNUM(max <= strlen(haystack) ? max : strlen(haystack));
+  if (needle_len == 0)
+    return JSNUM(max <= haystack_len ? max : haystack_len);
 
-  if (strlen(needle) > strlen(haystack))
+  if (needle_len > haystack_len)
     return JSNUM(-1);
 
   for (; i >= 0; i--) {
     if (haystack[i] == needle[match])
       match--;
     else
-      match = strlen(needle) - (haystack[i] == needle[0] ? 2 : 1);
+      match = needle_len - (haystack[i] == needle[0] ? 2 : 1);
     if (match < 0 && i <= max)
       return JSNUM(i);
   }
@@ -148,9 +154,12 @@ str_proto_match(JSValue *instance, JSArgs *args, State *state)
   JSValue *regexp = ARG(args, 0);
   JSValue *arr = JSARR();
 
+  char *pattern = fh_get_proto(regexp, "source")->string.ptr;
+  bool caseless = fh_get_proto(regexp, "ignoreCase")->boolean.val;
+
   int count;
   char *str = instance->string.ptr;
-  int *matches = fh_regexp(str, regexp->string.ptr, &count);
+  int *matches = fh_regexp(str, pattern, &count, caseless);
 
   if (!matches) 
     return arr;
@@ -179,10 +188,12 @@ JSValue *
 str_proto_search(JSValue *instance, JSArgs *args, State *state)
 {
   JSValue *regexp = ARG(args, 0);
+
   char *pattern = fh_get(regexp, "source")->string.ptr;
+  bool caseless = fh_get_proto(regexp, "ignoreCase")->boolean.val;
 
   int count;
-  int *matches = fh_regexp(instance->string.ptr, pattern, &count);
+  int *matches = fh_regexp(instance->string.ptr, pattern, &count, caseless);
 
   if (!matches) 
     return JSNUM(-1);
@@ -239,13 +250,14 @@ str_proto_split(JSValue *instance, JSArgs *args, State *state)
   int start = 0;                       // start index to split from
   int index = 0;                       // result array index
   int i;                               // instance string index
+  int n;                               // strlen
 
-  for (i = 0; i < strlen(str); i++) {
+  for (i = 0, n = strlen(str); i < n; i++) {
     if (str[i] == sep[match])
       match++;
     else
       match = str[i] == sep[0] ? 1 : 0;
-    if (match == strlen(sep)) {
+    if (match == (int)strlen(sep)) {
       split = fh_str_slice(str, start, i - strlen(sep) + 1);
       fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(split));
       start = i + 1;

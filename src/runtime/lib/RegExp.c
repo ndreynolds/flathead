@@ -14,15 +14,14 @@ regexp_new(JSValue *instance, JSArgs *args, State *state)
   regexp->object.is_regexp = true;
   regexp->proto = fh_try_get_proto("RegExp");
 
-  // TODO: Make a copy of pattern??
   fh_set(regexp, "source", IS_UNDEF(pattern) ? JSSTR("(?:)") : TO_STR(pattern));
 
   if (ARGLEN(args) <= 1)
     return regexp;
   if (!IS_STR(flags))
     fh_error(state, E_TYPE, "Invalid flags supplied to RegExp constructor");
-  int i;
-  for (i = 0; i < strlen(flags->string.ptr); i++) {
+  int i, n;
+  for (i = 0, n = strlen(flags->string.ptr); i < n; i++) {
     switch(flags->string.ptr[i]) {
       case 'g': fh_set(regexp, "global", JSBOOL(1)); break;
       case 'i': fh_set(regexp, "ignoreCase", JSBOOL(1)); break;
@@ -45,8 +44,12 @@ regexp_proto_exec(JSValue *instance, JSArgs *args, State *state)
 JSValue *
 regexp_proto_test(JSValue *instance, JSArgs *args, State *state)
 {
-  // TODO
-  return JSUNDEF();
+  char *str = TO_STR(ARG(args, 0))->string.ptr;
+  char *pattern = TO_STR(fh_get(instance, "source"))->string.ptr;
+  bool caseless = fh_get_proto(instance, "ignoreCase")->boolean.val;
+  int count;
+  fh_regexp(str, pattern, &count, caseless);
+  return JSBOOL(count > 0);
 }
 
 // RegExp.prototype.toString()

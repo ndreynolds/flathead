@@ -16,9 +16,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <stdbool.h>
+
 #ifndef REGEXP_H
 #define REGEXP_H
 
-int * fh_regexp(char *, char *, int *);
+int * fh_regexp(char *, char *, int *, bool);
 
 #endif

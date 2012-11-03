@@ -62,6 +62,10 @@ all: clean default
 debug: CFLAGS += -g -O0
 debug: default
 
+malloc-debug: CC = gcc-4.7
+malloc-debug: LIBS += -lefence
+malloc-debug: debug
+
 lexer:
 	$(LEX) $(LEX_FILE)
 

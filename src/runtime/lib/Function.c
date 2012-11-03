@@ -28,7 +28,8 @@ func_proto_apply(JSValue *instance, JSArgs *args, State *state)
 
   for (i = 0; i < len; i++) {
     func_args->arg = fh_get(arr, JSNUMKEY(i)->string.ptr);
-    if (i < len+1) {
+    func_args->next = NULL;
+    if (i < len - 1) {
       func_args->next = malloc(sizeof(JSArgs));
       func_args = func_args->next;
     }
