@@ -81,7 +81,7 @@ long hour_from_time(double);
 long min_from_time(double);
 long sec_from_time(double);
 long ms_from_time(double);
-char * tz_string(double);
+const char * tz_string(double);
 char * day_string(int);
 char * month_string(int);
 

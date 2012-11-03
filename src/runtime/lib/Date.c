@@ -730,7 +730,7 @@ date_format_loc(double ut, bool incl_date, bool incl_time)
     int offset_h = hour_from_time(offset);
     int offset_m = min_from_time(offset);
     char sign = offset > 0 ? '-' : '+';
-    char *tz = tz_string(ut);
+    const char *tz = tz_string(ut);
 
     // e.g. 12:31:19 GMT-0400 (EDT)
     fmt = "%02d:%02d:%02d GMT%c%02d%02d (%s)";
@@ -926,7 +926,7 @@ date_parse_iso(char *str, double *t)
   return true;
 }
 
-char *
+const char *
 tz_string(double t)
 {
   time_t time = t / 1000;
