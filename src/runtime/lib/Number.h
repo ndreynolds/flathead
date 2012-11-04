@@ -6,15 +6,15 @@
 
 #include "../runtime.h"
 
-JSValue * number_new(JSValue *, JSArgs *, State *);
+js_val * number_new(js_val *, js_args *, eval_state*);
 
-JSValue * number_proto_to_exponential(JSValue *, JSArgs *, State *);
-JSValue * number_proto_to_fixed(JSValue *, JSArgs *, State *);
-JSValue * number_proto_to_locale_string(JSValue *, JSArgs *, State *);
-JSValue * number_proto_to_precision(JSValue *, JSArgs *, State *);
-JSValue * number_proto_to_string(JSValue *, JSArgs *, State *);
-JSValue * number_proto_value_of(JSValue *, JSArgs *, State *);
+js_val * number_proto_to_exponential(js_val *, js_args *, eval_state*);
+js_val * number_proto_to_fixed(js_val *, js_args *, eval_state*);
+js_val * number_proto_to_locale_string(js_val *, js_args *, eval_state*);
+js_val * number_proto_to_precision(js_val *, js_args *, eval_state*);
+js_val * number_proto_to_string(js_val *, js_args *, eval_state*);
+js_val * number_proto_value_of(js_val *, js_args *, eval_state*);
 
-JSValue * bootstrap_number(void);
+js_val * bootstrap_number(void);
 
 #endif

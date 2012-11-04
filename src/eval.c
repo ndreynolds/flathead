@@ -25,8 +25,8 @@
 #include "str.h"
 #include "gc.h"
 
-JSValue * 
-fh_eval(JSValue *ctx, Node *node)
+js_val * 
+fh_eval(js_val *ctx, ast_node *node)
 {
   if (!node) return JSUNDEF();
 
@@ -75,14 +75,14 @@ fh_eval(JSValue *ctx, Node *node)
 
 
 // ----------------------------------------------------------------------------
-// Source & Statement Lists
+// Source & eval_statement Lists
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_src_lst(JSValue *ctx, Node *node)
+js_val *
+fh_src_lst(js_val *ctx, ast_node *node)
 {
   // First sweep for function declarations
-  Node *child;
+  ast_node *child;
   while (!node->visited) {
     child = pop_node(node);
     if (child->type == NODE_FUNC) {
@@ -94,11 +94,11 @@ fh_src_lst(JSValue *ctx, Node *node)
   return fh_stmt_lst(ctx, node);
 }
 
-JSValue *
-fh_stmt_lst(JSValue *ctx, Node *node)
+js_val *
+fh_stmt_lst(js_val *ctx, ast_node *node)
 {
-  JSValue *result = NULL;
-  Node *child;
+  js_val *result = NULL;
+  ast_node *child;
   rewind_node(node);
   while (!node->visited) {
     child = pop_node(node);
@@ -123,11 +123,11 @@ fh_stmt_lst(JSValue *ctx, Node *node)
 // Constructors
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_new_exp(JSValue *ctx, Node *exp)
+js_val *
+fh_new_exp(js_val *ctx, ast_node *exp)
 {
-  JSValue *ctr;
-  JSArgs *args;
+  js_val *ctr;
+  js_args *args;
 
   // new F(x, y, z)
   if (exp->e1 && exp->e1->type == NODE_MEMBER) {
@@ -140,14 +140,14 @@ fh_new_exp(JSValue *ctx, Node *exp)
     args = fh_new_args(0, 0, 0);
   }
 
-  State *state = fh_new_state(exp->line, exp->column);
+  eval_state *state= fh_new_state(exp->line, exp->column);
   state->construct = true;
 
   if (!IS_FUNC(ctr)) {
     fh_error(state, E_TYPE, "%s is not a function", fh_typeof(ctr));
   }
 
-  JSValue *res,
+  js_val *res,
           *obj = JSOBJ(),
           *proto = fh_get(ctr, "prototype");
 
@@ -163,19 +163,19 @@ fh_new_exp(JSValue *ctx, Node *exp)
 // Object & Array Literals
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_obj(JSValue *ctx, Node *node)
+js_val *
+fh_obj(js_val *ctx, ast_node *node)
 {
-  JSValue *obj = JSOBJ();
+  js_val *obj = JSOBJ();
   obj->object.parent = ctx;
   if (node->e1 != NULL) fh_eval(obj, node->e1);
   return obj;
 }
 
-JSValue *
-fh_arr(JSValue *ctx, Node *node)
+js_val *
+fh_arr(js_val *ctx, ast_node *node)
 {
-  JSValue *arr = JSARR();
+  js_val *arr = JSARR();
   if (node->e1 != NULL) {
     int i = 0;
     while (!node->e1->visited) {
@@ -191,10 +191,10 @@ fh_arr(JSValue *ctx, Node *node)
 // Membership
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_member(JSValue *ctx, Node *member)
+js_val *
+fh_member(js_val *ctx, ast_node *member)
 {
-  JSValue *child_name, *parent;
+  js_val *child_name, *parent;
 
   // In `x.foo` we'll take 'foo' literally, in `x[foo]` we need to eval 'foo'.
   // This distinction is stored as 0/1 in the val slot.
@@ -225,16 +225,16 @@ fh_member(JSValue *ctx, Node *member)
 // Declaration & Assignment
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_assign(JSValue *ctx, Node *node)
+js_val *
+fh_assign(js_val *ctx, ast_node *node)
 {
-  JSValue *val = fh_eval(ctx, node->e2);
+  js_val *val = fh_eval(ctx, node->e2);
   char *key = node->e1->sval;
 
   if (node->e1->type == NODE_MEMBER) {
-    JSValue *old_ctx = ctx; 
+    js_val *old_ctx = ctx; 
 
-    Node *member = node->e1;
+    ast_node *member = node->e1;
     ctx = member->e2->type == NODE_MEMBER ?
       fh_member(ctx, member->e2) :
       fh_get_rec(ctx, fh_str_from_node(ctx, member->e2)->string.ptr);
@@ -254,20 +254,20 @@ fh_assign(JSValue *ctx, Node *node)
 }
 
 void 
-fh_do_assign(JSValue *obj, char *name, JSValue *val, char *op)
+fh_do_assign(js_val *obj, char *name, js_val *val, char *op)
 {
   if (STREQ(op, "=")) return fh_set_rec(obj, name, val);
 
   // Handle other assignment operators
-  JSValue *cur = fh_get_rec(obj, name);
+  js_val *cur = fh_get_rec(obj, name);
   if (STREQ(op, "+=")) return fh_set_rec(obj, name, fh_add(cur, val));
   if (STREQ(op, "-=")) return fh_set_rec(obj, name, fh_sub(cur, val));
   if (STREQ(op, "*=")) return fh_set_rec(obj, name, fh_mul(cur, val));
   if (STREQ(op, "/=")) return fh_set_rec(obj, name, fh_div(cur, val));
 }
 
-JSValue *
-fh_var_dec(JSValue *ctx, Node *node)
+js_val *
+fh_var_dec(js_val *ctx, ast_node *node)
 {
   if (node->e2 != NULL)
     fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
@@ -282,9 +282,9 @@ fh_var_dec(JSValue *ctx, Node *node)
 // ----------------------------------------------------------------------------
 
 void
-fh_while(JSValue *ctx, Node *cnd, Node *stmt)
+fh_while(js_val *ctx, ast_node *cnd, ast_node *stmt)
 {
-  JSValue *result;
+  js_val *result;
 
   while (TO_BOOL(fh_eval(ctx, cnd))->boolean.val) {
     result = fh_eval(ctx, stmt);
@@ -293,9 +293,9 @@ fh_while(JSValue *ctx, Node *cnd, Node *stmt)
 }
 
 void
-fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
+fh_for(js_val *ctx, ast_node *exp_grp, ast_node *stmt)
 {
-  JSValue *result;
+  js_val *result;
 
   if (exp_grp->e1)
     fh_eval(ctx, exp_grp->e1);
@@ -309,10 +309,10 @@ fh_for(JSValue *ctx, Node *exp_grp, Node *stmt)
 }
 
 void
-fh_forin(JSValue *ctx, Node *node)
+fh_forin(js_val *ctx, ast_node *node)
 {
-  JSProp *p;
-  JSValue *result,
+  js_prop *p;
+  js_val *result,
           *proto = fh_eval(ctx, node->e2),
           *name = fh_str_from_node(ctx, node->e1);
 
@@ -341,26 +341,26 @@ fh_forin(JSValue *ctx, Node *node)
 // Control
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_return(JSValue *ctx, Node *node)
+js_val *
+fh_return(js_val *ctx, ast_node *node)
 {
-  JSValue *result = node->e1 ? fh_eval(ctx, node->e1) : JSUNDEF();
+  js_val *result = node->e1 ? fh_eval(ctx, node->e1) : JSUNDEF();
   if (result->type == T_FUNCTION) 
     result->function.closure = ctx;
   result->signal = S_BREAK;
   return result;
 }
 
-JSValue *
+js_val *
 fh_break()
 {
-  JSValue *signal = JSNULL();
+  js_val *signal = JSNULL();
   signal->signal = S_BREAK;
   return signal;
 }
 
-JSValue *
-fh_if(JSValue *ctx, Node *node)
+js_val *
+fh_if(js_val *ctx, ast_node *node)
 {
   if (TO_BOOL(fh_eval(ctx, node->e1))->boolean.val)
     return fh_eval(ctx, node->e2);
@@ -369,12 +369,12 @@ fh_if(JSValue *ctx, Node *node)
   return JSUNDEF();
 }
 
-JSValue *
-fh_switch(JSValue *ctx, Node *node)
+js_val *
+fh_switch(js_val *ctx, ast_node *node)
 {
-  JSValue *val, *result, *test = fh_eval(ctx, node->e1);
+  js_val *val, *result, *test = fh_eval(ctx, node->e1);
 
-  Node *current,
+  ast_node *current,
        *caseblock = node->e2,
        *clauses_a = caseblock->e1, 
        *defaultclause = caseblock->e2, 
@@ -383,7 +383,7 @@ fh_switch(JSValue *ctx, Node *node)
   bool matched = false;
 
   // Check case clauses before and after the default case
-  Node *clauses, *clauses_lst[] = {clauses_a, clauses_b};
+  ast_node *clauses, *clauses_lst[] = {clauses_a, clauses_b};
   int i;
   for (i = 0; i < 2; i++) {
     clauses = clauses_lst[i];
@@ -422,27 +422,27 @@ fh_switch(JSValue *ctx, Node *node)
 // Function Application
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_call(JSValue *ctx, Node *call)
+js_val *
+fh_call(js_val *ctx, ast_node *call)
 {
-  JSValue *maybe_func = fh_eval(ctx, call->e1);
-  State *state = fh_new_state(call->line, call->column);
+  js_val *maybe_func = fh_eval(ctx, call->e1);
+  eval_state *state= fh_new_state(call->line, call->column);
   state->ctx = ctx;
   if (maybe_func->type != T_FUNCTION)
     fh_error(state, E_TYPE, "%s is not a function", fh_typeof(maybe_func));
-  JSArgs *args = fh_build_args(ctx, call->e2);
+  js_args *args = fh_build_args(ctx, call->e2);
 
   // Check for a bound this (see Function#bind)
-  JSValue *this = maybe_func->function.bound_this ? 
+  js_val *this = maybe_func->function.bound_this ? 
     maybe_func->function.bound_this : fh_get(ctx, "this");
 
   return fh_function_call(ctx, this, state, maybe_func, args);
 }
 
-JSArgs *
-fh_build_args(JSValue *ctx, Node *args_node)
+js_args *
+fh_build_args(js_val *ctx, ast_node *args_node)
 {
-  JSArgs *args = malloc(sizeof(JSArgs));
+  js_args *args = malloc(sizeof(js_args));
   if (args == NULL)
     fh_error(NULL, E_ERROR, "allocation failed");
   args->arg = NULL;
@@ -456,9 +456,9 @@ fh_build_args(JSValue *ctx, Node *args_node)
   return args;
 }
 
-JSValue *
-fh_function_call(JSValue *ctx, JSValue *this, State *state, 
-                 JSValue *func, JSArgs *args)
+js_val *
+fh_function_call(js_val *ctx, js_val *this, eval_state *state, 
+                 js_val *func, js_args *args)
 {
   if (IS_UNDEF(this) || IS_NULL(this)) 
     this = fh_global();
@@ -468,28 +468,28 @@ fh_function_call(JSValue *ctx, JSValue *this, State *state,
 
   if (func->function.is_native) {
     // Native functions are C functions referenced by pointer.
-    JSNativeFunction native = func->function.native;
-    JSValue *instance = func->function.instance;
+    js_native_function *native = func->function.native;
+    js_val *instance = func->function.instance;
 
     // new Number, new Boolean, etc. return wrapper objects. 
     // Here we resolve the wrapper to the value it wraps.
     if (instance && IS_OBJ(instance) && instance->object.wraps)
       instance = instance->object.wraps;
 
-    return (*native)(instance, args, state);
+    return native(instance, args, state);
   }
 
   rewind_node(func->function.node);
-  JSValue *func_scope = fh_setup_func_env(ctx, this, func, args);
+  js_val *func_scope = fh_setup_func_env(ctx, this, func, args);
   return fh_eval(func_scope, func->function.node->e2);
 }
 
-JSValue *
-fh_setup_func_env(JSValue *ctx, JSValue *this, JSValue *func, JSArgs *args)
+js_val *
+fh_setup_func_env(js_val *ctx, js_val *this, js_val *func, js_args *args)
 {
-  JSValue *arguments = JSOBJ();
-  Node *func_node = func->function.node;
-  JSValue *scope = func->function.closure ? func->function.closure : JSOBJ();
+  js_val *arguments = JSOBJ();
+  ast_node *func_node = func->function.node;
+  js_val *scope = func->function.closure ? func->function.closure : JSOBJ();
 
   scope->object.parent = ctx;
 
@@ -511,7 +511,7 @@ fh_setup_func_env(JSValue *ctx, JSValue *this, JSValue *func, JSArgs *args)
 
   // Set up params as locals (if any)
   if (func_node->e1 != NULL) {
-    Node *params = func_node->e1;
+    ast_node *params = func_node->e1;
     rewind_node(params);
     // Go through each param and match it by position with an arg.
     while (!params->visited) {
@@ -536,8 +536,8 @@ fh_setup_func_env(JSValue *ctx, JSValue *this, JSValue *func, JSArgs *args)
 // Expressions
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_exp(JSValue *ctx, Node *node)
+js_val *
+fh_exp(js_val *ctx, ast_node *node)
 {
   switch (node->sub_type) {
     case NODE_UNARY_POST: 
@@ -554,10 +554,10 @@ fh_exp(JSValue *ctx, Node *node)
 // Unary Expressions
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_postfix_exp(JSValue *ctx, Node *node)
+js_val *
+fh_postfix_exp(js_val *ctx, ast_node *node)
 {
-  JSValue *old_val = TO_NUM(fh_eval(ctx, node->e1));
+  js_val *old_val = TO_NUM(fh_eval(ctx, node->e1));
   char *op = node->sval;
   if (STREQ(op, "++")) {
     fh_set_rec(ctx, node->e1->sval, fh_add(old_val, JSNUM(1)));
@@ -570,8 +570,8 @@ fh_postfix_exp(JSValue *ctx, Node *node)
   UNREACHABLE();
 }
 
-JSValue *
-fh_prefix_exp(JSValue *ctx, Node *node)
+js_val *
+fh_prefix_exp(js_val *ctx, ast_node *node)
 {
   char *op = node->sval;
 
@@ -592,15 +592,15 @@ fh_prefix_exp(JSValue *ctx, Node *node)
   if (STREQ(op, "!"))
     return JSBOOL(!TO_BOOL(fh_eval(ctx, node->e1))->boolean.val);
   if (STREQ(op, "-")) {
-    JSValue *x = TO_NUM(fh_eval(ctx, node->e1));
+    js_val *x = TO_NUM(fh_eval(ctx, node->e1));
     if (x->number.is_inf) return JSNINF();
     if (x->number.is_nan) return JSNAN();
     return JSNUM(-1 * x->number.val);
   }
 
   // Increment and decrement.
-  JSValue *old_val = TO_NUM(fh_eval(ctx, node->e1));
-  JSValue *new_val;
+  js_val *old_val = TO_NUM(fh_eval(ctx, node->e1));
+  js_val *new_val;
   if (STREQ(op, "++")) {
     new_val = fh_add(old_val, JSNUM(1));
     fh_set_rec(ctx, node->e1->sval, new_val);
@@ -620,8 +620,8 @@ fh_prefix_exp(JSValue *ctx, Node *node)
 // Binary Expressions
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_bin_exp(JSValue *ctx, Node *node)
+js_val *
+fh_bin_exp(js_val *ctx, ast_node *node)
 {
   char *op = node->sval;
 
@@ -630,8 +630,8 @@ fh_bin_exp(JSValue *ctx, Node *node)
   if (STREQ(op, "||")) return fh_or(ctx, node->e1, node->e2);
 
   // At this point, we can safely evaluate both expressions.
-  JSValue *a = fh_eval(ctx, node->e1);
-  JSValue *b = fh_eval(ctx, node->e2);
+  js_val *a = fh_eval(ctx, node->e1);
+  js_val *b = fh_eval(ctx, node->e2);
 
   // Arithmetic and string operations
   if (STREQ(op, "+")) return fh_add(a, b);
@@ -666,8 +666,8 @@ fh_bin_exp(JSValue *ctx, Node *node)
   UNREACHABLE();
 }
 
-JSValue *
-fh_add(JSValue *a, JSValue *b)
+js_val *
+fh_add(js_val *a, js_val *b)
 {
   // Two strings => String
   if (T_BOTH(a, b, T_STRING))
@@ -701,8 +701,8 @@ fh_add(JSValue *a, JSValue *b)
   UNREACHABLE();
 }
 
-JSValue *
-fh_sub(JSValue *a, JSValue *b)
+js_val *
+fh_sub(js_val *a, js_val *b)
 {
   if (T_BOTH(a, b, T_NUMBER)) {
     // Subtraction on NaN or Infinity results in NaN
@@ -713,8 +713,8 @@ fh_sub(JSValue *a, JSValue *b)
   return fh_sub(TO_NUM(a), TO_NUM(b));
 }
 
-JSValue *
-fh_mul(JSValue *a, JSValue *b)
+js_val *
+fh_mul(js_val *a, js_val *b)
 {
   if (T_BOTH(a, b, T_NUMBER)) {
     if (a->number.is_nan || b->number.is_nan) return JSNAN();
@@ -724,8 +724,8 @@ fh_mul(JSValue *a, JSValue *b)
   return fh_mul(TO_NUM(a), TO_NUM(b));
 }
 
-JSValue *
-fh_div(JSValue *a, JSValue *b)
+js_val *
+fh_div(js_val *a, js_val *b)
 {
   if (T_BOTH(a, b, T_NUMBER)) {
     if (a->number.is_nan || b->number.is_nan) return JSNAN();
@@ -737,8 +737,8 @@ fh_div(JSValue *a, JSValue *b)
   return fh_div(TO_NUM(a), TO_NUM(b));
 }
 
-JSValue *
-fh_mod(JSValue *a, JSValue *b)
+js_val *
+fh_mod(js_val *a, js_val *b)
 {
   if (T_BOTH(a, b, T_NUMBER)) {
     if (a->number.is_nan || b->number.is_nan) return JSNAN();
@@ -748,8 +748,8 @@ fh_mod(JSValue *a, JSValue *b)
   return fh_mod(TO_NUM(a), TO_NUM(b));
 }
 
-JSValue *
-fh_eq(JSValue *a, JSValue *b, bool strict)
+js_val *
+fh_eq(js_val *a, js_val *b, bool strict)
 {
   // Strict equality on different types is always false
   if (a->type != b->type && strict) return JSBOOL(0);
@@ -786,15 +786,15 @@ fh_eq(JSValue *a, JSValue *b, bool strict)
   return fh_eq(TO_NUM(a), TO_NUM(b), false);
 }
 
-JSValue *
-fh_neq(JSValue *a, JSValue *b, bool strict)
+js_val *
+fh_neq(js_val *a, js_val *b, bool strict)
 {
   // Invert the result of fh_eq
   return JSBOOL(!fh_eq(a, b, strict)->boolean.val);
 }
 
-JSValue *
-fh_gt(JSValue *a, JSValue *b)
+js_val *
+fh_gt(js_val *a, js_val *b)
 {
   if (T_BOTH(a, b, T_NUMBER)) {
     // _ > NaN == false, NaN > _ == false
@@ -813,27 +813,27 @@ fh_gt(JSValue *a, JSValue *b)
   UNREACHABLE();
 }
 
-JSValue *
-fh_lt(JSValue *a, JSValue *b)
+js_val *
+fh_lt(js_val *a, js_val *b)
 {
   // !(a > b || a == b)
   return JSBOOL(!(fh_gt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val));
 }
 
-JSValue *
-fh_and(JSValue *ctx, Node *a, Node *b)
+js_val *
+fh_and(js_val *ctx, ast_node *a, ast_node *b)
 {
   // && operator returns the first false value, or the second true value. 
-  JSValue *aval = fh_eval(ctx, a);
+  js_val *aval = fh_eval(ctx, a);
   if (TO_BOOL(aval)->boolean.val) return fh_eval(ctx, b);
   return aval;
 }
 
-JSValue *
-fh_or(JSValue *ctx, Node *a, Node *b)
+js_val *
+fh_or(js_val *ctx, ast_node *a, ast_node *b)
 {
   // || returns the first true value, or the second false value.
-  JSValue *aval = fh_eval(ctx, a);
+  js_val *aval = fh_eval(ctx, a);
   if (TO_BOOL(aval)->boolean.val) return aval;
   return fh_eval(ctx, b);
 }
@@ -843,8 +843,8 @@ fh_or(JSValue *ctx, Node *a, Node *b)
 // Utilities
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_str_from_node(JSValue *ctx, Node *node)
+js_val *
+fh_str_from_node(js_val *ctx, ast_node *node)
 {
   // Need to evaluate the node to a string key.
   // e.g. obj['a']  obj.a  arr[1]  arr[arr.length - 1]
@@ -854,10 +854,10 @@ fh_str_from_node(JSValue *ctx, Node *node)
   return TO_STR(fh_eval(ctx, node));
 }
 
-JSValue *
-fh_eval_each(JSValue *ctx, Node *node)
+js_val *
+fh_eval_each(js_val *ctx, ast_node *node)
 {
-  JSValue *result = JSUNDEF();
+  js_val *result = JSUNDEF();
   rewind_node(node);
   while (!node->visited) result = fh_eval(ctx, pop_node(node));
   return result;

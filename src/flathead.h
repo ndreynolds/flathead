@@ -66,7 +66,7 @@
 #define ARGLEN(args)   fh_arg_len(args)
 
 #define STREQ(a,b)     (strcmp((a),(b)) == 0)
-#define OBJ_ITER(o,p)  JSProp *_tmp; HASH_ITER(hh,(o)->map,p,_tmp)
+#define OBJ_ITER(o,p)  js_prop *_tmp; HASH_ITER(hh,(o)->map,p,_tmp)
 #define BUILTIN(o,k,v) fh_set_prop((o),(k),(v),P_BUILTIN)
 
 #define DEBUG(x)       fh_debug(stdout,(x),0,1)
@@ -76,25 +76,25 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 
-struct JSArgs;
-struct JSValue;
-struct Node;
+struct js_args;
+struct js_val;
+struct ast_node;
 
-typedef struct State {
+typedef struct {
   int line;
   int column;
   bool construct;
-  struct JSValue *ctx;
-  struct JSValue *this;
-} State;
+  struct js_val *ctx;
+  struct js_val *this;
+} eval_state;
 
-typedef enum Signal {
+typedef enum {
   S_BREAK = 1,
   S_NOOP,
   S_NONE
-} Signal;
+} ctl_signal;
 
-typedef enum JSType {
+typedef enum {
   T_NUMBER,
   T_STRING,
   T_BOOLEAN,
@@ -102,9 +102,9 @@ typedef enum JSType {
   T_FUNCTION,
   T_NULL,
   T_UNDEF
-} JSType;
+} js_type;
 
-typedef enum JSErrorType {
+typedef enum {
   E_TYPE,
   E_SYNTAX,
   E_EVAL,
@@ -113,57 +113,57 @@ typedef enum JSErrorType {
   E_ASSERTION,
   E_PARSE,
   E_ERROR
-} JSErrorType;
+} js_error_type;
 
-typedef struct JSArgs {
-  struct JSValue *arg;
-  struct JSArgs *next;
-  struct State *state;
-} JSArgs;
-
-typedef struct JSProp {
+typedef struct {
   char *name;
   bool writable;
   bool enumerable;
   bool configurable;
   bool circular;
-  struct JSValue *ptr;
+  struct js_val *ptr;
   UT_hash_handle hh;
-} JSProp;
+} js_prop;
 
-typedef enum JSPropFlags {
+typedef enum {
   P_WRITE   = 0x01,
   P_ENUM    = 0x02,
   P_CONF    = 0x04,
   P_BUILTIN = P_WRITE | P_CONF,
   P_DEFAULT = P_WRITE | P_ENUM | P_CONF
-} JSPropFlags;
+} js_prop_flags;
 
-struct JSNumber {
+typedef struct js_args {
+  struct js_val *arg;
+  struct js_args *next;
+  struct eval_eval_state*eval_state;
+} js_args;
+
+struct js_number {
   double val;
   bool is_nan;
   bool is_inf;
   bool is_neg;
 };
 
-struct JSString {
+struct js_string {
   long length;
   char *ptr;
 };
 
-struct JSBoolean {
+struct js_boolean {
   bool val;
 };
 
-struct JSObject {
+struct js_object {
   int length;
   bool is_array;
   bool is_regexp;
   bool frozen;
   bool sealed;
   bool extensible;
-  struct JSValue *wraps;
-  struct JSValue *parent;
+  struct js_val *wraps;
+  struct js_val *parent;
 };
 
 /**
@@ -171,58 +171,58 @@ struct JSObject {
  * applicable), the arguments as values in linked-list format, and the evaluation
  * state, which contains information that may be used for error reporting.
  */
-typedef struct JSValue * (*JSNativeFunction)(struct JSValue *, JSArgs *, State *); 
+typedef struct js_val * (js_native_function)(struct js_val *, js_args *, eval_state*); 
 
-struct JSFunction {
+struct js_function {
   bool is_native;
   bool is_generator;
-  struct Node *node; 
-  struct JSValue *construct;
-  struct JSValue *closure;
-  struct JSValue *bound_this;
-  struct JSArgs *bound_args;
-  struct JSValue *instance;
-  JSNativeFunction native;
+  struct ast_node *node; 
+  struct js_val *construct;
+  struct js_val *closure;
+  struct js_val *bound_this;
+  struct js_args *bound_args;
+  struct js_val *instance;
+  js_native_function *native;
 };
 
-typedef struct JSValue {
+typedef struct js_val {
   union {
-    struct JSNumber number;
-    struct JSString string;
-    struct JSBoolean boolean;
-    struct JSObject object;
-    struct JSFunction function;
+    struct js_number number;
+    struct js_string string;
+    struct js_boolean boolean;
+    struct js_object object;
+    struct js_function function;
   };
-  JSType type;
-  Signal signal;
-  struct JSValue *proto;
+  js_type type;
+  ctl_signal signal;
+  struct js_val *proto;
   bool marked;
-  JSProp *map;
-} JSValue;
+  js_prop *map;
+} js_val;
 
-JSValue * fh_new_val(JSType);
-JSValue * fh_new_number(double, bool, bool, bool);
-JSValue * fh_new_string(char *);
-JSValue * fh_new_boolean(bool);
-JSValue * fh_new_object();
-JSValue * fh_new_array();
-JSValue * fh_new_function(struct Node *);
-JSValue * fh_new_native_function(JSNativeFunction);
-JSValue * fh_new_regexp(char *);
-JSValue * fh_get_arg(JSArgs *, int);
-JSArgs * fh_new_args(JSValue *, JSValue *, JSValue *);
-JSProp * fh_new_prop(JSPropFlags);
-State * fh_new_state(int, int);
+js_val * fh_new_val(js_type);
+js_val * fh_new_number(double, bool, bool, bool);
+js_val * fh_new_string(char *);
+js_val * fh_new_boolean(bool);
+js_val * fh_new_object();
+js_val * fh_new_array();
+js_val * fh_new_function(struct ast_node *);
+js_val * fh_new_native_function(js_native_function);
+js_val * fh_new_regexp(char *);
+js_val * fh_get_arg(js_args *, int);
+js_args * fh_new_args(js_val *, js_val *, js_val *);
+js_prop * fh_new_prop(js_prop_flags);
+eval_state * fh_new_state(int, int);
 
-JSValue * fh_eval_file(FILE *, JSValue *, int);
-JSValue * fh_try_get_proto(char *);
-JSValue * fh_cast(JSValue *, JSType);
-JSValue * fh_has_instance(JSValue *, JSValue *);
-JSValue * fh_has_property(JSValue *, char *);
-char * fh_typeof(JSValue *);
-void fh_set_len(JSValue *, int);
-void fh_error(State *, JSErrorType, const char *, ...);
-int fh_arg_len(JSArgs*);
+js_val * fh_eval_file(FILE *, js_val *, int);
+js_val * fh_try_get_proto(char *);
+js_val * fh_cast(js_val *, js_type);
+js_val * fh_has_instance(js_val *, js_val *);
+js_val * fh_has_property(js_val *, char *);
+char * fh_typeof(js_val *);
+void fh_set_len(js_val *, int);
+void fh_error(eval_state *, js_error_type, const char *, ...);
+int fh_arg_len(js_args*);
 
 extern int fh_opt_interactive;
 extern int fh_opt_print_ast;

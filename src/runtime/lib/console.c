@@ -4,8 +4,8 @@
 
 #include "console.h"
 
-JSValue *
-console_log(JSValue *instance, JSArgs *args, State *state)
+js_val *
+console_log(js_val *instance, js_args *args, eval_state *state)
 {
   int i;
   for (i = 0; i < ARGLEN(args); i++)
@@ -13,8 +13,8 @@ console_log(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
-JSValue *
-console_error(JSValue *instance, JSArgs *args, State *state)
+js_val *
+console_error(js_val *instance, js_args *args, eval_state *state)
 {
   int i;
   for (i = 0; i < ARGLEN(args); i++)
@@ -22,8 +22,8 @@ console_error(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
-JSValue *
-console_info(JSValue *instance, JSArgs *args, State *state)
+js_val *
+console_info(js_val *instance, js_args *args, eval_state *state)
 {
   int i;
   for (i = 0; i < ARGLEN(args); i++)
@@ -31,8 +31,8 @@ console_info(JSValue *instance, JSArgs *args, State *state)
   return JSUNDEF();
 }
 
-JSValue *
-console_assert(JSValue *instance, JSArgs *args, State *state)
+js_val *
+console_assert(js_val *instance, js_args *args, eval_state *state)
 {
   // Non-standard, found in new Webkit builds and Firebug
   if (TO_BOOL(ARG(args, 0))->boolean.val)
@@ -41,24 +41,24 @@ console_assert(JSValue *instance, JSArgs *args, State *state)
   UNREACHABLE();
 }
 
-JSValue *
-console_time(JSValue *instance, JSArgs *args, State *state)
+js_val *
+console_time(js_val *instance, js_args *args, eval_state *state)
 {
   // https://developer.mozilla.org/en/DOM/console.time
   // TODO
   return JSUNDEF();
 }
 
-JSValue *
+js_val *
 bootstrap_console()
 {
-  JSValue *console = JSOBJ();
+  js_val *console = JSOBJ();
 
-  BUILTIN(console, "log", JSNFUNC(&console_log));
-  BUILTIN(console, "error", JSNFUNC(&console_error));
-  BUILTIN(console, "info", JSNFUNC(&console_info));
-  BUILTIN(console, "assert", JSNFUNC(&console_assert));
-  BUILTIN(console, "time", JSNFUNC(&console_time));
+  BUILTIN(console, "log", JSNFUNC(console_log));
+  BUILTIN(console, "error", JSNFUNC(console_error));
+  BUILTIN(console, "info", JSNFUNC(console_info));
+  BUILTIN(console, "assert", JSNFUNC(console_assert));
+  BUILTIN(console, "time", JSNFUNC(console_time));
 
   return console;
 }

@@ -9,20 +9,20 @@
 
 
 // new Number(value)
-JSValue *
-number_new(JSValue *instance, JSArgs *args, State *state)
+js_val *
+number_new(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *value = ARG(args, 0);
+  js_val *value = ARG(args, 0);
   if (state->construct)
     state->this->object.wraps = TO_NUM(value);
   return TO_NUM(value);
 }
 
 // Number.prototype.toExponential([fractionalDigits])
-JSValue *
-number_proto_to_exponential(JSValue *instance, JSArgs *args, State *state)
+js_val *
+number_proto_to_exponential(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *digits = ARG(args, 0);
+  js_val *digits = ARG(args, 0);
 
   if (instance->number.is_nan || instance->number.is_inf) 
     return TO_STR(instance);
@@ -59,8 +59,8 @@ number_proto_to_exponential(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Number.prototype.toFixed([digits])
-JSValue *
-number_proto_to_fixed(JSValue *instance, JSArgs *args, State *state)
+js_val *
+number_proto_to_fixed(js_val *instance, js_args *args, eval_state *state)
 {
   int digits = ARG(args, 0)->type == T_NUMBER ? ARG(args, 0)->number.val : 0;
   int size = snprintf(NULL, 0, "%.*f", digits, instance->number.val);
@@ -70,17 +70,17 @@ number_proto_to_fixed(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Number.prototype.toLocaleString()
-JSValue *
-number_proto_to_locale_string(JSValue *instance, JSArgs *args, State *state)
+js_val *
+number_proto_to_locale_string(js_val *instance, js_args *args, eval_state *state)
 {
   return number_proto_to_string(instance, args, state);
 }
 
 // Number.prototype.toPrecision([precision])
-JSValue *
-number_proto_to_precision(JSValue *instance, JSArgs *args, State *state)
+js_val *
+number_proto_to_precision(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *precision = ARG(args, 0);
+  js_val *precision = ARG(args, 0);
   if (IS_UNDEF(precision))
     return number_proto_to_string(instance, args, state);
 
@@ -95,24 +95,24 @@ number_proto_to_precision(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Number.prototype.toString()
-JSValue *
-number_proto_to_string(JSValue *instance, JSArgs *args, State *state)
+js_val *
+number_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 {
   return TO_STR(instance);
 }
 
 // Number.prototype.valueOf()
-JSValue *
-number_proto_value_of(JSValue *instance, JSArgs *args, State *state)
+js_val *
+number_proto_value_of(js_val *instance, js_args *args, eval_state *state)
 {
   return instance;
 }
 
-JSValue *
+js_val *
 bootstrap_number()
 {
-  JSValue *number = JSNFUNC(&number_new);
-  JSValue *prototype = JSOBJ();
+  js_val *number = JSNFUNC(number_new);
+  js_val *prototype = JSOBJ();
 
   // Number
   // ------
@@ -129,15 +129,15 @@ bootstrap_number()
   // ----------------
   
   // Properties
-  BUILTIN(prototype, "constructor", JSNFUNC(&number_new));
+  BUILTIN(prototype, "constructor", JSNFUNC(number_new));
 
   // Methods
-  BUILTIN(prototype, "toExponential", JSNFUNC(&number_proto_to_exponential));
-  BUILTIN(prototype, "toFixed", JSNFUNC(&number_proto_to_fixed));
-  BUILTIN(prototype, "toLocaleString", JSNFUNC(&number_proto_to_locale_string));
-  BUILTIN(prototype, "toPrecision", JSNFUNC(&number_proto_to_precision));
-  BUILTIN(prototype, "toString", JSNFUNC(&number_proto_to_string));
-  BUILTIN(prototype, "valueOf", JSNFUNC(&number_proto_value_of));
+  BUILTIN(prototype, "toExponential", JSNFUNC(number_proto_to_exponential));
+  BUILTIN(prototype, "toFixed", JSNFUNC(number_proto_to_fixed));
+  BUILTIN(prototype, "toLocaleString", JSNFUNC(number_proto_to_locale_string));
+  BUILTIN(prototype, "toPrecision", JSNFUNC(number_proto_to_precision));
+  BUILTIN(prototype, "toString", JSNFUNC(number_proto_to_string));
+  BUILTIN(prototype, "valueOf", JSNFUNC(number_proto_value_of));
 
   return number;
 }

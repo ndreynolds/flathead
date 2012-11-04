@@ -205,7 +205,7 @@ yyuseraction(void)
 void
 fh_parse_error(char * val)
 {
-  State *state = fh_new_state(yylloc.first_line, yylloc.first_column);
+  eval_state *state = fh_new_state(yylloc.first_line, yylloc.first_column);
   fh_error(state, E_PARSE, "unexpected '%s'", val);
 }
 

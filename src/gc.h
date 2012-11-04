@@ -21,23 +21,23 @@
 
 #include "flathead.h"
 
-#define SLOTS_PER_POOL 10000
+#define SLOTS_PER_ARENA 10000
 
-typedef struct PoolMetadata {
-  JSValue *slots;
-  JSValue *global;
+typedef struct {
+  js_val *slots;
+  js_val *global;
   int num_slots;
-  bool freelist[SLOTS_PER_POOL];
-} PoolMetadata;
+  bool freelist[SLOTS_PER_ARENA];
+} gc_arena;
 
-PoolMetadata * fh_new_pool(void);
-PoolMetadata * fh_get_pool(void);
-JSValue * fh_global(void);
-JSValue * fh_malloc(bool);
+gc_arena * fh_new_arena(void);
+gc_arena * fh_get_arena(void);
+js_val * fh_global(void);
+js_val * fh_malloc(bool);
 void fh_gc(void);
-void fh_gc_register_global(JSValue *);
-void fh_gc_mark(JSValue *);
-void fh_gc_free_val(JSValue *);
-void fh_gc_sweep(PoolMetadata *);
+void fh_gc_register_global(js_val *);
+void fh_gc_mark(js_val *);
+void fh_gc_free_val(js_val *);
+void fh_gc_sweep(gc_arena *);
 
 #endif

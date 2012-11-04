@@ -36,7 +36,7 @@
 
   #define YYDEBUG 0
 
-  // The `Node` struct is used to build the AST. Each has slots for three
+  // The `ast_node` struct is used to build the AST. Each has slots for three
   // child nodes, a double, a string, and an identifying type. To keep things
   // generic, this struct is used throughout. The macros below offer a little
   // more clarity and serve as reference to the locations of child nodes and
@@ -102,8 +102,8 @@
   int yydebug;
   FILE *yyin;
   int fh_get_input(char *, int);
-  Node *root;
-  State *state;
+  ast_node *root;
+  eval_state *state;
 
   int fh_opt_interactive  = 0;
   int fh_opt_print_tokens = 0;
@@ -149,7 +149,7 @@
   char *val;
   int intval;
   double floatval;
-  struct Node *node;
+  struct ast_node *node;
 }
 
 %type<val> AssignmentOperator 
@@ -885,7 +885,7 @@ yyerror(const char *s)
 {
   // Trim the "syntax error: " prefix so we can use fh_error.
   char *trimmed = strndup(s + 14, strlen(s) - 14);
-  State *state = fh_new_state(yylloc.first_line, yylloc.first_column);
+  eval_state *state = fh_new_state(yylloc.first_line, yylloc.first_column);
   fh_error(state, E_SYNTAX, trimmed);
 }
 
@@ -926,12 +926,12 @@ fh_get_input(char *buf, int size)
   return strlen(buf);
 }
 
-JSValue *
-fh_eval_file(FILE *file, JSValue *ctx, int is_repl)
+js_val *
+fh_eval_file(FILE *file, js_val *ctx, int is_repl)
 {
   // This may be called during evaluation, so we need
   // to keep track of the globals.
-  Node *root_ = root;
+  ast_node *root_ = root;
   int interactive_ = fh_opt_interactive;
   fh_opt_interactive = is_repl;
 
@@ -941,7 +941,7 @@ fh_eval_file(FILE *file, JSValue *ctx, int is_repl)
   if (fh_opt_print_ast) 
     print_node(root, true, 0);
 
-  JSValue *res = fh_eval(ctx, root);
+  js_val *res = fh_eval(ctx, root);
 
   // Reset the originals
   root = root_;
@@ -985,7 +985,7 @@ main(int argc, char **argv)
     fh_opt_interactive = true;
 
   // Bootstrap our runtime
-  JSValue *global = fh_bootstrap();
+  js_val *global = fh_bootstrap();
 
   // We can operate as a REPL or in file/stdin mode.
   if (fh_opt_interactive) {

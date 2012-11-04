@@ -14,19 +14,19 @@
 #include "Array.h"
 
 // Pointer to the comparison function that the merge sort will call.
-int (*arr_cmp_func)(JSProp *, JSProp *);
+int (*arr_cmp_func)(js_prop *, js_prop *);
 
 // Little bit of evil to allow sorting to work with user defined function
 // without needing to pass the func & state through so many calls.
-JSValue *arr_js_cmp_func;
-State *arr_js_cmp_state;
+js_val *arr_js_cmp_func;
+eval_state *arr_js_cmp_state;
 
 // new Array(element0, element1, ..., elementN)
 // new Array(arrayLength)
-JSValue *
-arr_new(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_new(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *arr = JSARR();
+  js_val *arr = JSARR();
 
   // Create array of given length:
   if (ARGLEN(args) == 1 && IS_NUM(ARG(args, 0))) {
@@ -49,22 +49,22 @@ arr_new(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.isArray(obj)
-JSValue *
-arr_is_array(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_is_array(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *obj = ARG(args, 0);
+  js_val *obj = ARG(args, 0);
   return JSBOOL(IS_ARR(obj));
 }
 
 // Array.prototype.pop()
-JSValue *
-arr_proto_pop(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_pop(js_val *instance, js_args *args, eval_state *state)
 {
   int len = instance->object.length;
   if (len == 0) return JSUNDEF();
 
-  JSValue *key = JSNUMKEY(len-1);
-  JSValue *popped = fh_get(instance, key->string.ptr);
+  js_val *key = JSNUMKEY(len-1);
+  js_val *popped = fh_get(instance, key->string.ptr);
 
   fh_del_prop(instance, key->string.ptr);
   fh_set_len(instance, len - 1);
@@ -72,14 +72,14 @@ arr_proto_pop(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.push(element1, ..., elementN)
-JSValue *
-arr_proto_push(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_push(js_val *instance, js_args *args, eval_state *state)
 {
   int len = instance->object.length;
   int nargs = ARGLEN(args);
   int i;
   for (i = 0; i < nargs; i++) {
-    JSValue *key = JSNUMKEY(len);
+    js_val *key = JSNUMKEY(len);
     fh_set(instance, key->string.ptr, ARG(args, i));
     len++;
   }
@@ -89,13 +89,13 @@ arr_proto_push(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.reverse()
-JSValue *
-arr_proto_reverse(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_reverse(js_val *instance, js_args *args, eval_state *state)
 {
   int len = instance->object.length;
   int i = 0, j = len - 1;
-  JSValue *ikey, *jkey, *tmp;
-  JSProp *iprop, *jprop;
+  js_val *ikey, *jkey, *tmp;
+  js_prop *iprop, *jprop;
 
   while (i < j) {
     // While i & j converge, swap the values they point to.
@@ -112,8 +112,8 @@ arr_proto_reverse(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.shift()
-JSValue *
-arr_proto_shift(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_shift(js_val *instance, js_args *args, eval_state *state)
 {
   // Shift off first element, but then we have to rename all the keys.
   
@@ -121,14 +121,14 @@ arr_proto_shift(JSValue *instance, JSArgs *args, State *state)
   if (len == 0) return JSUNDEF();
 
   char *key = "0";
-  JSValue *shifted = fh_get(instance, key);
+  js_val *shifted = fh_get(instance, key);
   fh_del_prop(instance, key);
 
   int i;
   for (i = 1; i < len; i++) {
-    JSValue *old_key = JSNUMKEY(i);
-    JSValue *new_key = JSNUMKEY(i-1);
-    JSProp *prop = fh_get_prop(instance, old_key->string.ptr);
+    js_val *old_key = JSNUMKEY(i);
+    js_val *new_key = JSNUMKEY(i-1);
+    js_prop *prop = fh_get_prop(instance, old_key->string.ptr);
     fh_del_prop(instance, old_key->string.ptr);
     fh_set(instance, new_key->string.ptr, prop->ptr);
   }
@@ -138,10 +138,10 @@ arr_proto_shift(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.sort([compareFunction])
-JSValue *
-arr_proto_sort(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_sort(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *cmp_func = ARG(args, 0);
+  js_val *cmp_func = ARG(args, 0);
   if (IS_FUNC(cmp_func)) {
     arr_cmp_func = arr_cmp_js;
     arr_js_cmp_func = cmp_func;
@@ -151,11 +151,11 @@ arr_proto_sort(JSValue *instance, JSArgs *args, State *state)
     arr_cmp_func = arr_cmp;
   }
 
-  JSValue *sorted = JSARR();
+  js_val *sorted = JSARR();
 
-  // Build an array of JSProp pointers from the hashmap.
+  // Build an array of js_prop pointers from the hashmap.
   int i, j, len = instance->object.length;
-  JSProp *prop, *prop_lst[len];
+  js_prop *prop, *prop_lst[len];
   for (i = 0; i < len; i++) {
     prop = fh_get_prop(instance, JSNUMKEY(i)->string.ptr);
     if (!prop) {
@@ -165,7 +165,7 @@ arr_proto_sort(JSValue *instance, JSArgs *args, State *state)
     prop_lst[i] = prop;
   }
 
-  // Do a merge sort of the JSProp pointers array.
+  // Do a merge sort of the js_prop pointers array.
   arr_merge_sort(prop_lst, i);
 
   // Rebuild the hashmap (using a donor array).
@@ -182,14 +182,14 @@ arr_proto_sort(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.splice(index, howMany[, element1[, ..., elementN]])
-JSValue *
-arr_proto_splice(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_splice(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *index = ARG(args, 0);
-  JSValue *how_many = ARG(args, 1);
+  js_val *index = ARG(args, 0);
+  js_val *how_many = ARG(args, 1);
 
-  JSValue *rejects = JSARR();             // elements we've spliced out
-  JSValue *keepers = JSARR();             // elements we've kept + added elements
+  js_val *rejects = JSARR();             // elements we've spliced out
+  js_val *keepers = JSARR();             // elements we've kept + added elements
 
   int i = 0;                              // instance index
   int j = 0;                              // rejects index
@@ -203,7 +203,7 @@ arr_proto_splice(JSValue *instance, JSArgs *args, State *state)
   if (j < 0) j = len + j;
 
   // For each element in the array.
-  JSValue *val;
+  js_val *val;
   while (i < len) {
 
     // If we're at the splice point:
@@ -245,10 +245,10 @@ arr_proto_splice(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.unshift(element1, ..., elementN)
-JSValue *
-arr_proto_unshift(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_unshift(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *newarr = JSARR();
+  js_val *newarr = JSARR();
   int nargs = ARGLEN(args);
   int len = instance->object.length;
 
@@ -261,7 +261,7 @@ arr_proto_unshift(JSValue *instance, JSArgs *args, State *state)
   }
 
   // Add the instance's elements
-  JSValue *val;
+  js_val *val;
   for (; j < len; j++, i++) {
     val = fh_get(instance, JSNUMKEY(j)->string.ptr);
     fh_set(newarr, JSNUMKEY(i)->string.ptr, val);
@@ -276,13 +276,13 @@ arr_proto_unshift(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.concat(value1, value2, ..., valueN)
-JSValue *
-arr_proto_concat(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_concat(js_val *instance, js_args *args, eval_state *state)
 {
   int nargs = ARGLEN(args);
   int len = instance->object.length;
-  JSValue *concat = JSARR();
-  JSValue *key;
+  js_val *concat = JSARR();
+  js_val *key;
 
   int i = 0; // newarr index
   int j = 0; // args index
@@ -294,14 +294,14 @@ arr_proto_concat(JSValue *instance, JSArgs *args, State *state)
   }
 
   // Add the arguments to the new array.
-  JSValue *arg;
+  js_val *arg;
   for (; j < nargs; j++, i++) {
     key = JSNUMKEY(i);
     arg = ARG(args, j);
     // Extract array elements one level deep.
     if (IS_ARR(arg)) {
       int k;
-      JSValue *inner_key;
+      js_val *inner_key;
       for (k = 0; k < arg->object.length; k++) {
         key = JSNUMKEY(i);
         inner_key = JSNUMKEY(k);
@@ -320,19 +320,19 @@ arr_proto_concat(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.join(separator)
-JSValue *
-arr_proto_join(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_join(js_val *instance, js_args *args, eval_state *state)
 {
   return arr_do_join(instance, ARG(args, 0));
 }
 
 // Array.prototype.slice(begin[, end])
-JSValue *
-arr_proto_slice(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_slice(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *begin = ARG(args, 0);
-  JSValue *end = ARG(args, 1);
-  JSValue *slice = JSARR();
+  js_val *begin = ARG(args, 0);
+  js_val *end = ARG(args, 1);
+  js_val *slice = JSARR();
   int len = instance->object.length;
 
   int i = 0;
@@ -348,7 +348,7 @@ arr_proto_slice(JSValue *instance, JSArgs *args, State *state)
   if (k > len) k = len;
 
   // slice from j inclusive to k exclusive. 
-  JSValue *val;
+  js_val *val;
   for (; j < k && j < len; j++, i++) {
     val = fh_get(instance, JSNUMKEY(j)->string.ptr);
     fh_set(slice, JSNUMKEY(i)->string.ptr, val);
@@ -359,18 +359,18 @@ arr_proto_slice(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.toString()
-JSValue *
-arr_proto_to_string(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 {
   return arr_do_join(instance, JSSTR(","));
 }
 
 // Array.prototype.indexOf(searchElement[, fromIndex])
-JSValue *
-arr_proto_index_of(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_index_of(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *search = ARG(args, 0);
-  JSValue *from = ARG(args, 1);
+  js_val *search = ARG(args, 0);
+  js_val *from = ARG(args, 1);
   int len = instance->object.length;
 
   int i = 0;
@@ -381,7 +381,7 @@ arr_proto_index_of(JSValue *instance, JSArgs *args, State *state)
       i = from->number.val;
   }
 
-  JSValue *key, *equals;
+  js_val *key, *equals;
   for (; i < len && i >= 0; i++) {
     key = JSNUMKEY(i);
     // indexOf uses strict equality
@@ -394,11 +394,11 @@ arr_proto_index_of(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.lastIndexOf(searchElement[, fromIndex])
-JSValue *
-arr_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_last_index_of(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *search = ARG(args, 0);
-  JSValue *from = ARG(args, 1);
+  js_val *search = ARG(args, 0);
+  js_val *from = ARG(args, 1);
   int len = instance->object.length;
 
   int i = len - 1;
@@ -409,7 +409,7 @@ arr_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
       i = from->number.val;
   }
 
-  JSValue *key, *equals;
+  js_val *key, *equals;
   for (; i >= 0; i--) {
     key = JSNUMKEY(i);
     // lastIndexOf uses strict equality
@@ -422,16 +422,16 @@ arr_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.filter(callback[, thisArg])
-JSValue *
-arr_proto_filter(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_filter(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *callback = ARG(args, 0);
-  JSValue *this = ARG(args, 1);
-  JSValue *filtered = JSARR();
+  js_val *callback = ARG(args, 0);
+  js_val *this = ARG(args, 1);
+  js_val *filtered = JSARR();
   int len = instance->object.length;
 
-  JSValue *ikey, *jkey, *val, *result;
-  JSArgs *cbargs;
+  js_val *ikey, *jkey, *val, *result;
+  js_args *cbargs;
   int i = 0, j = 0;
   for (; i < len; i++) {
     ikey = JSNUMKEY(i);
@@ -449,15 +449,15 @@ arr_proto_filter(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.forEach(callback[, thisArg])
-JSValue *
-arr_proto_for_each(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_for_each(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *callback = ARG(args, 0);
-  JSValue *this = ARG(args, 1);
+  js_val *callback = ARG(args, 0);
+  js_val *this = ARG(args, 1);
   int len = instance->object.length;
 
-  JSValue *key, *val;
-  JSArgs *cbargs;
+  js_val *key, *val;
+  js_args *cbargs;
   int i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
@@ -470,15 +470,15 @@ arr_proto_for_each(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.every(callback[, thisArg])
-JSValue *
-arr_proto_every(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_every(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *callback = ARG(args, 0);
-  JSValue *this = ARG(args, 1);
+  js_val *callback = ARG(args, 0);
+  js_val *this = ARG(args, 1);
   int len = instance->object.length;
 
-  JSValue *key, *val, *result;
-  JSArgs *cbargs;
+  js_val *key, *val, *result;
+  js_args *cbargs;
   int i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
@@ -493,16 +493,16 @@ arr_proto_every(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.map(callback[, thisArg])
-JSValue *
-arr_proto_map(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_map(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *callback = ARG(args, 0);
-  JSValue *this = ARG(args, 1);
+  js_val *callback = ARG(args, 0);
+  js_val *this = ARG(args, 1);
   int len = instance->object.length;
-  JSValue *map = JSARR();
+  js_val *map = JSARR();
 
-  JSValue *key, *val, *result;
-  JSArgs *cbargs;
+  js_val *key, *val, *result;
+  js_args *cbargs;
   int i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
@@ -517,15 +517,15 @@ arr_proto_map(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.some(callback[, thisArg])
-JSValue *
-arr_proto_some(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_some(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *callback = ARG(args, 0);
-  JSValue *this = ARG(args, 1);
+  js_val *callback = ARG(args, 0);
+  js_val *this = ARG(args, 1);
   int len = instance->object.length;
 
-  JSValue *key, *val, *result;
-  JSArgs *cbargs;
+  js_val *key, *val, *result;
+  js_args *cbargs;
   int i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
@@ -540,11 +540,11 @@ arr_proto_some(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.reduce(callback[, seed])
-JSValue *
-arr_proto_reduce(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_reduce(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *callback = ARG(args, 0);
-  JSValue *reduction = ARG(args, 1);
+  js_val *callback = ARG(args, 0);
+  js_val *reduction = ARG(args, 1);
   int len = instance->object.length;
   int i = 0;
 
@@ -553,8 +553,8 @@ arr_proto_reduce(JSValue *instance, JSArgs *args, State *state)
     i = 1;
   }
 
-  JSValue *key, *val;
-  JSArgs *cbargs;
+  js_val *key, *val;
+  js_args *cbargs;
   for (; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
@@ -566,11 +566,11 @@ arr_proto_reduce(JSValue *instance, JSArgs *args, State *state)
 }
 
 // Array.prototype.reduceRight(callback[, seed])
-JSValue *
-arr_proto_reduce_right(JSValue *instance, JSArgs *args, State *state)
+js_val *
+arr_proto_reduce_right(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *callback = ARG(args, 0);
-  JSValue *reduction = ARG(args, 1);
+  js_val *callback = ARG(args, 0);
+  js_val *reduction = ARG(args, 1);
   int len = instance->object.length;
   int i = len - 1;
 
@@ -579,8 +579,8 @@ arr_proto_reduce_right(JSValue *instance, JSArgs *args, State *state)
     i = len - 2;
   }
 
-  JSValue *key, *val;
-  JSArgs *cbargs;
+  js_val *key, *val;
+  js_args *cbargs;
   for (; i >= 0; i--) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
@@ -592,7 +592,7 @@ arr_proto_reduce_right(JSValue *instance, JSArgs *args, State *state)
 }
 
 void 
-arr_merge(JSProp **left, JSProp **right, int l_len, int r_len, JSProp **out)
+arr_merge(js_prop **left, js_prop **right, int l_len, int r_len, js_prop **out)
 {
   int i, j, k;
   for (i = j = k = 0; i < l_len && j < r_len; )
@@ -603,7 +603,7 @@ arr_merge(JSProp **left, JSProp **right, int l_len, int r_len, JSProp **out)
 }
  
 void 
-arr_recur(JSProp **arr, JSProp **tmp, int len)
+arr_recur(js_prop **arr, js_prop **tmp, int len)
 {
   int l = len / 2;
   if (len <= 1) return;
@@ -615,10 +615,10 @@ arr_recur(JSProp **arr, JSProp **tmp, int len)
 }
  
 void 
-arr_merge_sort(JSProp **arr, int len)
+arr_merge_sort(js_prop **arr, int len)
 {
-  JSProp **tmp = malloc(sizeof(JSProp *) * len);
-  memcpy(tmp, arr, sizeof(JSProp *) * len);
+  js_prop **tmp = malloc(sizeof(js_prop *) * len);
+  memcpy(tmp, arr, sizeof(js_prop *) * len);
 
   arr_recur(arr, tmp, len);
 
@@ -626,29 +626,29 @@ arr_merge_sort(JSProp **arr, int len)
 }
 
 int
-arr_cmp(JSProp *a, JSProp *b)
+arr_cmp(js_prop *a, js_prop *b)
 {
   return strcmp(TO_STR(a->ptr)->string.ptr, TO_STR(b->ptr)->string.ptr) < 0;
 }
 
 int
-arr_cmp_js(JSProp *a, JSProp *b)
+arr_cmp_js(js_prop *a, js_prop *b)
 {
-  State *state = arr_js_cmp_state;
-  JSArgs *args = fh_new_args(a->ptr, b->ptr, 0);
-  JSValue *result = fh_function_call(state->ctx, JSUNDEF(), state, 
+  eval_state *state = arr_js_cmp_state;
+  js_args *args = fh_new_args(a->ptr, b->ptr, 0);
+  js_val *result = fh_function_call(state->ctx, JSUNDEF(), state, 
                                      arr_js_cmp_func, args);
   return TO_BOOL(result)->number.val > 0;
 }
 
-JSValue *
-arr_do_join(JSValue *arr, JSValue *sep)
+js_val *
+arr_do_join(js_val *arr, js_val *sep)
 {
-  JSValue *result = JSSTR("");
+  js_val *result = JSSTR("");
 
   bool first = true;
-  JSProp *p;
-  JSValue *strval;
+  js_prop *p;
+  js_val *strval;
 
   OBJ_ITER(arr, p) {
     if (!p->enumerable) continue;
@@ -665,11 +665,11 @@ arr_do_join(JSValue *arr, JSValue *sep)
   return result;
 }
 
-JSValue *
+js_val *
 bootstrap_array()
 {
-  JSValue *array = JSNFUNC(&arr_new);
-  JSValue *proto = JSARR();
+  js_val *array = JSNFUNC(arr_new);
+  js_val *proto = JSARR();
 
   // Array
   // -----
@@ -678,38 +678,38 @@ bootstrap_array()
   BUILTIN(array, "prototype", proto);
 
   // Methods
-  BUILTIN(array, "isArray", JSNFUNC(&arr_is_array));
+  BUILTIN(array, "isArray", JSNFUNC(arr_is_array));
 
   // Array.prototype
   // ---------------
 
   // Properties
-  BUILTIN(proto, "constructor", JSNFUNC(&arr_new));
+  BUILTIN(proto, "constructor", JSNFUNC(arr_new));
   BUILTIN(proto, "length", JSNUM(0));
 
   // Methods
-  BUILTIN(proto, "pop", JSNFUNC(&arr_proto_pop));
-  BUILTIN(proto, "push", JSNFUNC(&arr_proto_push));
-  BUILTIN(proto, "reverse", JSNFUNC(&arr_proto_reverse));
-  BUILTIN(proto, "shift", JSNFUNC(&arr_proto_shift));
-  BUILTIN(proto, "sort", JSNFUNC(&arr_proto_sort));
-  BUILTIN(proto, "splice", JSNFUNC(&arr_proto_splice));
-  BUILTIN(proto, "unshift", JSNFUNC(&arr_proto_unshift));
+  BUILTIN(proto, "pop", JSNFUNC(arr_proto_pop));
+  BUILTIN(proto, "push", JSNFUNC(arr_proto_push));
+  BUILTIN(proto, "reverse", JSNFUNC(arr_proto_reverse));
+  BUILTIN(proto, "shift", JSNFUNC(arr_proto_shift));
+  BUILTIN(proto, "sort", JSNFUNC(arr_proto_sort));
+  BUILTIN(proto, "splice", JSNFUNC(arr_proto_splice));
+  BUILTIN(proto, "unshift", JSNFUNC(arr_proto_unshift));
 
-  BUILTIN(proto, "concat", JSNFUNC(&arr_proto_concat));
-  BUILTIN(proto, "join", JSNFUNC(&arr_proto_join));
-  BUILTIN(proto, "slice", JSNFUNC(&arr_proto_slice));
-  BUILTIN(proto, "toString", JSNFUNC(&arr_proto_to_string));
-  BUILTIN(proto, "indexOf", JSNFUNC(&arr_proto_index_of));
-  BUILTIN(proto, "lastIndexOf", JSNFUNC(&arr_proto_last_index_of));
+  BUILTIN(proto, "concat", JSNFUNC(arr_proto_concat));
+  BUILTIN(proto, "join", JSNFUNC(arr_proto_join));
+  BUILTIN(proto, "slice", JSNFUNC(arr_proto_slice));
+  BUILTIN(proto, "toString", JSNFUNC(arr_proto_to_string));
+  BUILTIN(proto, "indexOf", JSNFUNC(arr_proto_index_of));
+  BUILTIN(proto, "lastIndexOf", JSNFUNC(arr_proto_last_index_of));
 
-  BUILTIN(proto, "filter", JSNFUNC(&arr_proto_filter));
-  BUILTIN(proto, "forEach", JSNFUNC(&arr_proto_for_each));
-  BUILTIN(proto, "every", JSNFUNC(&arr_proto_every));
-  BUILTIN(proto, "map", JSNFUNC(&arr_proto_map));
-  BUILTIN(proto, "some", JSNFUNC(&arr_proto_some));
-  BUILTIN(proto, "reduce", JSNFUNC(&arr_proto_reduce));
-  BUILTIN(proto, "reduceRight", JSNFUNC(&arr_proto_reduce_right));
+  BUILTIN(proto, "filter", JSNFUNC(arr_proto_filter));
+  BUILTIN(proto, "forEach", JSNFUNC(arr_proto_for_each));
+  BUILTIN(proto, "every", JSNFUNC(arr_proto_every));
+  BUILTIN(proto, "map", JSNFUNC(arr_proto_map));
+  BUILTIN(proto, "some", JSNFUNC(arr_proto_some));
+  BUILTIN(proto, "reduce", JSNFUNC(arr_proto_reduce));
+  BUILTIN(proto, "reduceRight", JSNFUNC(arr_proto_reduce_right));
 
   return array;
 }

@@ -7,26 +7,26 @@
 
 #include "String.h"
 
-JSValue *
-str_new(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_new(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *value = ARGLEN(args) > 0 ? ARG(args, 0) : JSSTR("");
+  js_val *value = ARGLEN(args) > 0 ? ARG(args, 0) : JSSTR("");
   if (state->construct)
     state->this->object.wraps = TO_STR(value);
   return TO_STR(value);
 }
 
 // String.fromCharCode(num1, ..., numN)
-JSValue *
-str_from_char_code(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_from_char_code(js_val *instance, js_args *args, eval_state *state)
 {
   fh_error(state, E_EVAL, "Unicode is not supported");
   return JSUNDEF();
 }
 
 // String.prototype.charAt(index)
-JSValue *
-str_proto_char_at(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_char_at(js_val *instance, js_args *args, eval_state *state)
 {
   int index = TO_NUM(ARG(args, 0))->number.val;
 
@@ -38,20 +38,20 @@ str_proto_char_at(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.charCodeAt(index)
-JSValue *
-str_proto_char_code_at(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_char_code_at(js_val *instance, js_args *args, eval_state *state)
 {
   fh_error(state, E_EVAL, "Unicode is not supported");
   return JSUNDEF();
 }
 
 // String.prototype.concat(string2, string3[, ..., stringN])
-JSValue *
-str_proto_concat(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_concat(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *new = JSSTR(instance->string.ptr);
+  js_val *new = JSSTR(instance->string.ptr);
 
-  JSValue *arg;
+  js_val *arg;
   char *tmp;
   int i;
   for (i = 0; i < ARGLEN(args); i++) {
@@ -67,14 +67,14 @@ str_proto_concat(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.indexOf(searchValue[, fromIndex])
-JSValue *
-str_proto_index_of(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_index_of(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *search_str = TO_STR(ARG(args, 0));
+  js_val *search_str = TO_STR(ARG(args, 0));
 
   char *haystack = instance->string.ptr;
   char *needle = search_str->string.ptr;
-  JSValue *from = ARG(args, 1);
+  js_val *from = ARG(args, 1);
 
   int i = IS_NUM(from) ? from->number.val : 0;
   int match = 0;
@@ -103,11 +103,11 @@ str_proto_index_of(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.lastIndexOf(searchValue[, fromIndex])
-JSValue *
-str_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_last_index_of(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *search_str = TO_STR(ARG(args, 0));
-  JSValue *from = ARG(args, 1);
+  js_val *search_str = TO_STR(ARG(args, 0));
+  js_val *from = ARG(args, 1);
 
   char *haystack = instance->string.ptr;
   char *needle = search_str->string.ptr;
@@ -140,19 +140,19 @@ str_proto_last_index_of(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.localeCompare(compareString)
-JSValue *
-str_proto_locale_compare(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_locale_compare(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *compare_str = TO_STR(ARG(args, 0));
+  js_val *compare_str = TO_STR(ARG(args, 0));
   return JSNUM(strcmp(instance->string.ptr, compare_str->string.ptr));
 }
 
 // String.prototype.match(regexp)
-JSValue *
-str_proto_match(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_match(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *regexp = ARG(args, 0);
-  JSValue *arr = JSARR();
+  js_val *regexp = ARG(args, 0);
+  js_val *arr = JSARR();
 
   char *pattern = fh_get_proto(regexp, "source")->string.ptr;
   bool caseless = fh_get_proto(regexp, "ignoreCase")->boolean.val;
@@ -166,7 +166,7 @@ str_proto_match(JSValue *instance, JSArgs *args, State *state)
 
   int i;
   for (i = 0; i < count; i++) {
-    JSValue *match = JSSTR(fh_str_slice(str, matches[2 * i], matches[2 * i + 1]));
+    js_val *match = JSSTR(fh_str_slice(str, matches[2 * i], matches[2 * i + 1]));
     fh_set(arr, JSNUMKEY(i)->string.ptr, match);
   }
   free(matches);
@@ -175,8 +175,8 @@ str_proto_match(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.replace(regexp|substr, newSubStr|function[, flags])
-JSValue *
-str_proto_replace(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_replace(js_val *instance, js_args *args, eval_state *state)
 {
   // NOTE: flags parameter is non-standard
   // TODO: requires regex
@@ -184,10 +184,10 @@ str_proto_replace(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.search(regexp)
-JSValue *
-str_proto_search(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_search(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *regexp = ARG(args, 0);
+  js_val *regexp = ARG(args, 0);
 
   char *pattern = fh_get(regexp, "source")->string.ptr;
   bool caseless = fh_get_proto(regexp, "ignoreCase")->boolean.val;
@@ -198,16 +198,16 @@ str_proto_search(JSValue *instance, JSArgs *args, State *state)
   if (!matches) 
     return JSNUM(-1);
 
-  JSValue *result = JSNUM(matches[0]);
+  js_val *result = JSNUM(matches[0]);
   free(matches);
   return result;
 }
 
 // String.prototype.slice(beginSlice[, endSlice])
-JSValue *
-str_proto_slice(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_slice(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *end_arg = ARG(args, 1);
+  js_val *end_arg = ARG(args, 1);
   int len = strlen(instance->string.ptr);
   int end = IS_UNDEF(end_arg) ? len : TO_NUM(end_arg)->number.val;
   int start = TO_NUM(ARG(args, 0))->number.val;
@@ -221,15 +221,15 @@ str_proto_slice(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.split([separator][, limit])
-JSValue *
-str_proto_split(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_split(js_val *instance, js_args *args, eval_state *state)
 {
   // TODO: regex separators
   
-  JSValue *sep_arg = ARG(args, 0);
-  JSValue *limit_arg = ARG(args, 1);
+  js_val *sep_arg = ARG(args, 0);
+  js_val *limit_arg = ARG(args, 1);
 
-  JSValue *arr = JSARR();
+  js_val *arr = JSARR();
 
   int limit = IS_UNDEF(limit_arg) ? pow(2, 32) - 1 : TO_NUM(limit_arg)->number.val;
 
@@ -277,8 +277,8 @@ str_proto_split(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.substr(start[, length])
-JSValue *
-str_proto_substr(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_substr(js_val *instance, js_args *args, eval_state *state)
 {
   int strlen = instance->string.length;
   int start = TO_NUM(ARG(args, 0))->number.val;
@@ -295,8 +295,8 @@ str_proto_substr(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.substring(start[, end])
-JSValue *
-str_proto_substring(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_substring(js_val *instance, js_args *args, eval_state *state)
 {
   int len = instance->string.length;
   int start = TO_NUM(ARG(args, 0))->number.val;
@@ -312,24 +312,24 @@ str_proto_substring(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.toLocaleLowerCase()
-JSValue *
-str_proto_to_locale_lower_case(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_to_locale_lower_case(js_val *instance, js_args *args, eval_state *state)
 {
   return str_proto_to_lower_case(instance, args, state);
 }
 
 // String.prototype.toLocaleUpperCase()
-JSValue *
-str_proto_to_locale_upper_case(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_to_locale_upper_case(js_val *instance, js_args *args, eval_state *state)
 {
   return str_proto_to_upper_case(instance, args, state);
 }
 
 // String.prototype.toLowerCase()
-JSValue *
-str_proto_to_lower_case(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_to_lower_case(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *new = JSSTR(instance->string.ptr);
+  js_val *new = JSSTR(instance->string.ptr);
   char *str = new->string.ptr;
   int i = 0;
   while (str[i]) {
@@ -340,17 +340,17 @@ str_proto_to_lower_case(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.toString()
-JSValue *
-str_proto_to_string(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 {
   return instance;
 }
 
 // String.prototype.toUpperCase()
-JSValue *
-str_proto_to_upper_case(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_to_upper_case(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *new = JSSTR(instance->string.ptr);
+  js_val *new = JSSTR(instance->string.ptr);
   char *str = new->string.ptr;
   int i = 0;
   while (str[i]) {
@@ -361,18 +361,18 @@ str_proto_to_upper_case(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.trim()
-JSValue *
-str_proto_trim(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_trim(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *rtrimmed = str_proto_trim_right(instance, args, state);
+  js_val *rtrimmed = str_proto_trim_right(instance, args, state);
   return str_proto_trim_left(rtrimmed, args, state);
 }
 
 // String.prototype.trimLeft()
-JSValue *
-str_proto_trim_left(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_trim_left(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *new = JSSTR(instance->string.ptr);
+  js_val *new = JSSTR(instance->string.ptr);
   char *str = new->string.ptr;
   int n = 0;
   while (str[n] != '\0' && isspace((unsigned char)str[n]))
@@ -383,10 +383,10 @@ str_proto_trim_left(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.trimRight()
-JSValue *
-str_proto_trim_right(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_trim_right(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *new = JSSTR(instance->string.ptr);
+  js_val *new = JSSTR(instance->string.ptr);
   char *str = new->string.ptr;
   int n = strlen(str);
   while (n > 0 && isspace((unsigned char)str[n - 1]))
@@ -397,56 +397,56 @@ str_proto_trim_right(JSValue *instance, JSArgs *args, State *state)
 }
 
 // String.prototype.valueOf()
-JSValue *
-str_proto_value_of(JSValue *instance, JSArgs *args, State *state)
+js_val *
+str_proto_value_of(js_val *instance, js_args *args, eval_state *state)
 {
   return instance;
 }
 
-JSValue *
+js_val *
 bootstrap_string()
 {
-  JSValue *string = JSNFUNC(&str_new);
-  JSValue *prototype = JSOBJ();
+  js_val *string = JSNFUNC(str_new);
+  js_val *prototype = JSOBJ();
 
   // String
   // ------
 
   BUILTIN(string, "prototype", prototype);
-  BUILTIN(string, "fromCharCode", JSNFUNC(&str_from_char_code));
+  BUILTIN(string, "fromCharCode", JSNFUNC(str_from_char_code));
 
   // String.prototype
   // ----------------
 
   // Properties
 
-  BUILTIN(prototype, "constructor", JSNFUNC(&str_new)); 
+  BUILTIN(prototype, "constructor", JSNFUNC(str_new)); 
   BUILTIN(prototype, "length", JSNUM(0));
 
   // Methods
   
-  BUILTIN(prototype, "charAt", JSNFUNC(&str_proto_char_at));
-  BUILTIN(prototype, "charCodeAt", JSNFUNC(&str_proto_char_code_at));
-  BUILTIN(prototype, "concat", JSNFUNC(&str_proto_concat));
-  BUILTIN(prototype, "indexOf", JSNFUNC(&str_proto_index_of));
-  BUILTIN(prototype, "lastIndexOf", JSNFUNC(&str_proto_last_index_of));
-  BUILTIN(prototype, "localeCompare", JSNFUNC(&str_proto_locale_compare));
-  BUILTIN(prototype, "match", JSNFUNC(&str_proto_match));
-  BUILTIN(prototype, "replace", JSNFUNC(&str_proto_replace));
-  BUILTIN(prototype, "search", JSNFUNC(&str_proto_search));
-  BUILTIN(prototype, "slice", JSNFUNC(&str_proto_slice));
-  BUILTIN(prototype, "split", JSNFUNC(&str_proto_split));
-  BUILTIN(prototype, "substr", JSNFUNC(&str_proto_substr));
-  BUILTIN(prototype, "substring", JSNFUNC(&str_proto_substring));
-  BUILTIN(prototype, "toLocaleLowerCase", JSNFUNC(&str_proto_to_locale_lower_case));
-  BUILTIN(prototype, "toLocaleUpperCase", JSNFUNC(&str_proto_to_locale_upper_case));
-  BUILTIN(prototype, "toLowerCase", JSNFUNC(&str_proto_to_lower_case));
-  BUILTIN(prototype, "toString", JSNFUNC(&str_proto_to_string));
-  BUILTIN(prototype, "toUpperCase", JSNFUNC(&str_proto_to_upper_case));
-  BUILTIN(prototype, "trim", JSNFUNC(&str_proto_trim));
-  BUILTIN(prototype, "trimLeft", JSNFUNC(&str_proto_trim_left));
-  BUILTIN(prototype, "trimRight", JSNFUNC(&str_proto_trim_right));
-  BUILTIN(prototype, "valueOf", JSNFUNC(&str_proto_value_of));
+  BUILTIN(prototype, "charAt", JSNFUNC(str_proto_char_at));
+  BUILTIN(prototype, "charCodeAt", JSNFUNC(str_proto_char_code_at));
+  BUILTIN(prototype, "concat", JSNFUNC(str_proto_concat));
+  BUILTIN(prototype, "indexOf", JSNFUNC(str_proto_index_of));
+  BUILTIN(prototype, "lastIndexOf", JSNFUNC(str_proto_last_index_of));
+  BUILTIN(prototype, "localeCompare", JSNFUNC(str_proto_locale_compare));
+  BUILTIN(prototype, "match", JSNFUNC(str_proto_match));
+  BUILTIN(prototype, "replace", JSNFUNC(str_proto_replace));
+  BUILTIN(prototype, "search", JSNFUNC(str_proto_search));
+  BUILTIN(prototype, "slice", JSNFUNC(str_proto_slice));
+  BUILTIN(prototype, "split", JSNFUNC(str_proto_split));
+  BUILTIN(prototype, "substr", JSNFUNC(str_proto_substr));
+  BUILTIN(prototype, "substring", JSNFUNC(str_proto_substring));
+  BUILTIN(prototype, "toLocaleLowerCase", JSNFUNC(str_proto_to_locale_lower_case));
+  BUILTIN(prototype, "toLocaleUpperCase", JSNFUNC(str_proto_to_locale_upper_case));
+  BUILTIN(prototype, "toLowerCase", JSNFUNC(str_proto_to_lower_case));
+  BUILTIN(prototype, "toString", JSNFUNC(str_proto_to_string));
+  BUILTIN(prototype, "toUpperCase", JSNFUNC(str_proto_to_upper_case));
+  BUILTIN(prototype, "trim", JSNFUNC(str_proto_trim));
+  BUILTIN(prototype, "trimLeft", JSNFUNC(str_proto_trim_left));
+  BUILTIN(prototype, "trimRight", JSNFUNC(str_proto_trim_right));
+  BUILTIN(prototype, "valueOf", JSNFUNC(str_proto_value_of));
 
   return string;
 }

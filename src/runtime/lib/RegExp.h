@@ -6,11 +6,11 @@
 
 #include "../runtime.h"
 
-JSValue * regexp_new(JSValue *, JSArgs *, State *);
-JSValue * regexp_proto_exec(JSValue *, JSArgs *, State *);
-JSValue * regexp_proto_test(JSValue *, JSArgs *, State *);
-JSValue * regexp_proto_to_string(JSValue *, JSArgs *, State *);
+js_val * regexp_new(js_val *, js_args *, eval_state*);
+js_val * regexp_proto_exec(js_val *, js_args *, eval_state*);
+js_val * regexp_proto_test(js_val *, js_args *, eval_state*);
+js_val * regexp_proto_to_string(js_val *, js_args *, eval_state*);
 
-JSValue * bootstrap_regexp(void);
+js_val * bootstrap_regexp(void);
 
 #endif

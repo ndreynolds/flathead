@@ -27,10 +27,10 @@
 // Value Constructors
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_new_val(JSType type)
+js_val *
+fh_new_val(js_type type)
 {
-  JSValue *val = fh_malloc(true);
+  js_val *val = fh_malloc(true);
 
   val->map = NULL;
   val->type = type;
@@ -40,10 +40,10 @@ fh_new_val(JSType type)
   return val;
 }
 
-JSValue *
+js_val *
 fh_new_number(double x, bool is_nan, bool is_inf, bool is_neg)
 {
-  JSValue *val = fh_new_val(T_NUMBER);
+  js_val *val = fh_new_val(T_NUMBER);
 
   val->number.val = x;
   val->number.is_nan = is_nan;
@@ -54,10 +54,10 @@ fh_new_number(double x, bool is_nan, bool is_inf, bool is_neg)
   return val;
 }
 
-JSValue *
+js_val *
 fh_new_string(char *x)
 {
-  JSValue *val = fh_new_val(T_STRING);
+  js_val *val = fh_new_val(T_STRING);
 
   val->string.ptr = malloc((strlen(x) + 1) * sizeof(char));
   strcpy(val->string.ptr, x);
@@ -67,10 +67,10 @@ fh_new_string(char *x)
   return val;
 }
 
-JSValue *
+js_val *
 fh_new_boolean(bool x)
 {
-  JSValue *val = fh_new_val(T_BOOLEAN);
+  js_val *val = fh_new_val(T_BOOLEAN);
 
   val->boolean.val = x;
   val->proto = fh_try_get_proto("Boolean");
@@ -78,10 +78,10 @@ fh_new_boolean(bool x)
   return val;
 }
 
-JSValue *
+js_val *
 fh_new_object()
 {
-  JSValue *val = fh_new_val(T_OBJECT);
+  js_val *val = fh_new_val(T_OBJECT);
 
   val->object.length = 0;
   val->object.is_array = false;
@@ -95,10 +95,10 @@ fh_new_object()
   return val;
 }
 
-JSValue *
+js_val *
 fh_new_array()
 {
-  JSValue *val = fh_new_object();
+  js_val *val = fh_new_object();
 
   val->object.is_array = true;
   val->proto = fh_try_get_proto("Array");
@@ -107,10 +107,10 @@ fh_new_array()
   return val;
 }
 
-JSValue *
-fh_new_function(struct Node *node)
+js_val *
+fh_new_function(struct ast_node *node)
 {
-  JSValue *val = fh_new_val(T_FUNCTION);
+  js_val *val = fh_new_val(T_FUNCTION);
 
   val->function.is_native = false;
   val->function.is_generator = false;
@@ -124,10 +124,10 @@ fh_new_function(struct Node *node)
   return val;
 }
 
-JSValue *
-fh_new_native_function(JSNativeFunction func)
+js_val *
+fh_new_native_function(js_native_function func)
 {
-  JSValue *val = fh_new_function(NULL);
+  js_val *val = fh_new_function(NULL);
 
   val->function.is_native = true;
   val->function.native = func;
@@ -135,10 +135,10 @@ fh_new_native_function(JSNativeFunction func)
   return val;
 }
 
-JSValue *
+js_val *
 fh_new_regexp(char *re)
 {
-  JSValue *val = fh_new_val(T_OBJECT);
+  js_val *val = fh_new_val(T_OBJECT);
 
   val->object.is_regexp = true;
   val->proto = fh_try_get_proto("RegExp");
@@ -161,10 +161,10 @@ fh_new_regexp(char *re)
   return val;
 }
 
-JSProp *
-fh_new_prop(JSPropFlags flags)
+js_prop *
+fh_new_prop(js_prop_flags flags)
 {
-  JSProp *prop = malloc(sizeof(JSProp));
+  js_prop *prop = malloc(sizeof(js_prop));
 
   prop->writable = flags & P_WRITE;
   prop->configurable = flags & P_CONF;
@@ -175,10 +175,10 @@ fh_new_prop(JSPropFlags flags)
   return prop;
 }
 
-State *
+eval_state *
 fh_new_state(int line, int column)
 {
-  State *state = malloc(sizeof(State));
+  eval_state *state = malloc(sizeof(eval_state));
 
   state->line = line;
   state->column = column;
@@ -189,20 +189,20 @@ fh_new_state(int line, int column)
   return state;
 }
 
-JSArgs *
-fh_new_args(JSValue *arg1, JSValue *arg2, JSValue *arg3)
+js_args *
+fh_new_args(js_val *arg1, js_val *arg2, js_val *arg3)
 {
-  JSArgs *args = malloc(sizeof(JSArgs));
+  js_args *args = malloc(sizeof(js_args));
 
   args->arg = arg1;
   args->next = NULL;
   if (arg2) {
-    args->next = malloc(sizeof(JSArgs));
+    args->next = malloc(sizeof(js_args));
     args->next->arg = arg2;
     args->next->next = NULL;
   }
   if (arg3) {
-    args->next->next = malloc(sizeof(JSArgs));
+    args->next->next = malloc(sizeof(js_args));
     args->next->next->arg = arg3;
     args->next->next->next = NULL;
   }
@@ -215,8 +215,8 @@ fh_new_args(JSValue *arg1, JSValue *arg2, JSValue *arg3)
 // Value Casting
 // ----------------------------------------------------------------------------
 
-JSValue *
-fh_cast(JSValue *val, JSType type)
+js_val *
+fh_cast(js_val *val, js_type type)
 {
   if (val->type == type) return val;
   if (type == T_NULL) return JSNULL();
@@ -308,7 +308,7 @@ fh_cast(JSValue *val, JSType type)
 // ----------------------------------------------------------------------------
 
 void
-fh_error(State *state, JSErrorType type, const char *tpl, ...)
+fh_error(eval_state *state, js_error_type type, const char *tpl, ...)
 {
   char *name = type == E_TYPE ? "TypeError" : 
                type == E_SYNTAX ? "SyntaxError" :
@@ -338,7 +338,7 @@ fh_error(State *state, JSErrorType type, const char *tpl, ...)
 // ----------------------------------------------------------------------------
 
 char *
-fh_typeof(JSValue *value) 
+fh_typeof(js_val *value) 
 {
   /* Per Table 20 of the ECMA5 spec: */
   switch(value->type) {
@@ -358,8 +358,8 @@ fh_typeof(JSValue *value)
   }
 }
 
-JSValue *
-fh_has_instance(JSValue *func, JSValue *val)
+js_val *
+fh_has_instance(js_val *func, js_val *val)
 {
   if (!IS_FUNC(func))
     fh_error(NULL, E_TYPE, "");
@@ -368,27 +368,27 @@ fh_has_instance(JSValue *func, JSValue *val)
   return JSBOOL(0);
 }
 
-JSValue *
-fh_has_property(JSValue *obj, char *prop)
+js_val *
+fh_has_property(js_val *obj, char *prop)
 {
-  JSValue *val = fh_get_proto(obj, prop);
+  js_val *val = fh_get_proto(obj, prop);
   return JSBOOL(!IS_UNDEF(val));
 }
 
-JSValue *
+js_val *
 fh_try_get_proto(char *type)
 {
-  JSValue *global = fh_global();
+  js_val *global = fh_global();
   if (global != NULL) {
-    JSValue *obj = fh_get(global, type);
+    js_val *obj = fh_get(global, type);
     if (!IS_UNDEF(obj))
       return fh_get(obj, "prototype");
   }
   return NULL;
 }
   
-JSValue *
-fh_get_arg(JSArgs *args, int n)
+js_val *
+fh_get_arg(js_args *args, int n)
 {
   int i;
   for (i = 0; i <= n; i++) {
@@ -402,7 +402,7 @@ fh_get_arg(JSArgs *args, int n)
 }
 
 int
-fh_arg_len(JSArgs *args)
+fh_arg_len(js_args *args)
 {
   int i = 0;
   while (true)
@@ -416,7 +416,7 @@ fh_arg_len(JSArgs *args)
 }
 
 void
-fh_set_len(JSValue *val, int len)
+fh_set_len(js_val *val, int len)
 {
   if (IS_STR(val))
     val->string.length = len;

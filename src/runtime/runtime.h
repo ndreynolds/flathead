@@ -27,14 +27,14 @@
 #include "../eval.h"
 #include "../gc.h"
 
-JSValue * global_is_nan(JSValue *, JSArgs *, State *);
-JSValue * global_is_finite(JSValue *, JSArgs *, State *);
-JSValue * global_parse_float(JSValue *, JSArgs *, State *);
-JSValue * glboal_parse_int(JSValue *, JSArgs *, State *);
-JSValue * global_eval(JSValue *, JSArgs *, State *);
-JSValue * global_gc(JSValue *, JSArgs *, State *);
+js_val * global_is_nan(js_val *, js_args *, eval_state *);
+js_val * global_is_finite(js_val *, js_args *, eval_state *);
+js_val * global_parse_float(js_val *, js_args *, eval_state *);
+js_val * glboal_parse_int(js_val *, js_args *, eval_state *);
+js_val * global_eval(js_val *, js_args *, eval_state *);
+js_val * global_gc(js_val *, js_args *, eval_state *);
 
-void fh_connect_prototypes(JSValue *);
-JSValue * fh_bootstrap(void);
+void fh_connect_prototypes(js_val *);
+js_val * fh_bootstrap(void);
 
 #endif

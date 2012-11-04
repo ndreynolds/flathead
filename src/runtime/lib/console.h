@@ -6,13 +6,13 @@
 
 #include "../runtime.h"
 
-JSValue * console_log(JSValue *, JSArgs *, State *);
-JSValue * console_error(JSValue *, JSArgs *, State *);
-JSValue * console_info(JSValue *, JSArgs *, State *);
-JSValue * console_assert(JSValue *, JSArgs *, State *);
-JSValue * console_time(JSValue *, JSArgs *, State *);
+js_val * console_log(js_val *, js_args *, eval_state *);
+js_val * console_error(js_val *, js_args *, eval_state *);
+js_val * console_info(js_val *, js_args *, eval_state *);
+js_val * console_assert(js_val *, js_args *, eval_state *);
+js_val * console_time(js_val *, js_args *, eval_state *);
 
-void log_args(FILE *, JSArgs *);
-JSValue * bootstrap_console(void);
+void log_args(FILE *, js_args *);
+js_val * bootstrap_console(void);
 
 #endif

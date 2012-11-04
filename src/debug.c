@@ -27,7 +27,7 @@
 // ----------------------------------------------------------------------------
 
 void
-fh_debug(FILE *stream, JSValue *val, int indent, bool newline)
+fh_debug(FILE *stream, js_val *val, int indent, bool newline)
 {
   switch(val->type) {
     case T_BOOLEAN:
@@ -60,7 +60,7 @@ fh_debug(FILE *stream, JSValue *val, int indent, bool newline)
 
 // Debug an object with extra verbosity, displaying non-enumerable properties.
 void
-fh_debug_verbose(FILE *stream, JSValue *val, int indent)
+fh_debug_verbose(FILE *stream, js_val *val, int indent)
 {
   switch(val->type) {
     case T_BOOLEAN:
@@ -96,9 +96,9 @@ fh_debug_verbose(FILE *stream, JSValue *val, int indent)
 }
 
 void
-fh_debug_obj(FILE *stream, JSValue *obj, int indent, bool force_enum)
+fh_debug_obj(FILE *stream, js_val *obj, int indent, bool force_enum)
 {
-  JSProp *x;
+  js_prop *x;
   int i;
   bool first = true;
 
@@ -124,14 +124,14 @@ fh_debug_obj(FILE *stream, JSValue *obj, int indent, bool force_enum)
 }
 
 void
-fh_debug_arr(FILE *stream, JSValue *arr, int indent)
+fh_debug_arr(FILE *stream, js_val *arr, int indent)
 {
   if (HASH_COUNT(arr->map) == 0) {
     fprintf(stream, "[]");
     return;
   }
   bool first = true;
-  JSProp *x;
+  js_prop *x;
   fprintf(stream, "[ ");
   OBJ_ITER(arr, x) {
     if (!first) 
@@ -145,7 +145,7 @@ fh_debug_arr(FILE *stream, JSValue *arr, int indent)
 }
 
 void
-fh_debug_num(FILE *stream, JSValue *num)
+fh_debug_num(FILE *stream, js_val *num)
 {
   if (num->number.is_nan)
     cfprintf(stream, ANSI_ORANGE, "NaN");
@@ -163,7 +163,7 @@ fh_debug_num(FILE *stream, JSValue *num)
 }
 
 void
-fh_debug_args(FILE *stream, JSArgs *args)
+fh_debug_args(FILE *stream, js_args *args)
 {
   int i;
   for (i = 0; i < ARGLEN(args); i++)

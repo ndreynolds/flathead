@@ -20,17 +20,17 @@
 #include "gc.h"
 
 
-PoolMetadata *pool;
+gc_arena *arena;
 
-JSValue *
+js_val *
 fh_malloc(bool first_attempt)
 {
-  PoolMetadata *pool = fh_get_pool();
+  gc_arena *arena = fh_get_arena();
   int i;
-  for (i = 0; i < SLOTS_PER_POOL; i++) {
-    if (!pool->freelist[i]) {
-      pool->freelist[i] = true;
-      return &(pool->slots[i]);
+  for (i = 0; i < SLOTS_PER_ARENA; i++) {
+    if (!arena->freelist[i]) {
+      arena->freelist[i] = true;
+      return &(arena->slots[i]);
     }
   }
   if (first_attempt) {
@@ -41,33 +41,33 @@ fh_malloc(bool first_attempt)
   UNREACHABLE();
 }
 
-PoolMetadata *
-fh_new_pool()
+gc_arena *
+fh_new_arena()
 {
-  size_t pool_size = sizeof(JSValue) * SLOTS_PER_POOL;
-  JSValue *slots = malloc(pool_size);
-  PoolMetadata *pool = malloc(sizeof(PoolMetadata));
-  pool->num_slots = SLOTS_PER_POOL;
-  pool->slots = slots;
-  pool->global = NULL;
+  size_t arena_size = sizeof(js_val) * SLOTS_PER_ARENA;
+  js_val *slots = malloc(arena_size);
+  gc_arena *arena = malloc(sizeof(gc_arena));
+  arena->num_slots = SLOTS_PER_ARENA;
+  arena->slots = slots;
+  arena->global = NULL;
   int i;
-  for (i = 0; i < SLOTS_PER_POOL; i++)
-    pool->freelist[i] = false;
-  return pool;
+  for (i = 0; i < SLOTS_PER_ARENA; i++)
+    arena->freelist[i] = false;
+  return arena;
 }
 
-PoolMetadata *
-fh_get_pool()
+gc_arena *
+fh_get_arena()
 {
-  if (!pool) 
-    pool = fh_new_pool();
-  return pool;
+  if (!arena) 
+    arena = fh_new_arena();
+  return arena;
 }
 
-JSValue *
+js_val *
 fh_global()
 {
-  return fh_get_pool()->global;
+  return fh_get_arena()->global;
 }
 
 void
@@ -76,20 +76,20 @@ fh_gc()
 #ifdef fh_gc_profile
   puts("GC running.");
 #endif
-  PoolMetadata *pool = fh_get_pool();
-  fh_gc_mark(pool->global);
-  fh_gc_sweep(pool);
+  gc_arena *arena = fh_get_arena();
+  fh_gc_mark(arena->global);
+  fh_gc_sweep(arena);
 }
 
 void
-fh_gc_register_global(JSValue *global)
+fh_gc_register_global(js_val *global)
 {
-  PoolMetadata *pool = fh_get_pool();
-  pool->global = global;
+  gc_arena *arena = fh_get_arena();
+  arena->global = global;
 }
 
 void
-fh_gc_mark(JSValue *val)
+fh_gc_mark(js_val *val)
 {
   if (!val || val->marked) return;
 
@@ -104,7 +104,7 @@ fh_gc_mark(JSValue *val)
   }
 
   if (val->type == T_OBJECT) {
-    JSProp *prop;
+    js_prop *prop;
     OBJ_ITER(val, prop) {
       if (prop->ptr && !prop->circular) 
         fh_gc_mark(prop->ptr);
@@ -113,14 +113,14 @@ fh_gc_mark(JSValue *val)
 }
 
 void
-fh_gc_sweep(PoolMetadata *pool)
+fh_gc_sweep(gc_arena *arena)
 {
   int i;
-  JSValue val;
-  for (i = 0; i < SLOTS_PER_POOL; i++) {
-    val = pool->slots[i];
+  js_val val;
+  for (i = 0; i < SLOTS_PER_ARENA; i++) {
+    val = arena->slots[i];
     if (!val.marked) {
-      pool->freelist[i] = false;
+      arena->freelist[i] = false;
       fh_gc_free_val(&val);
     }
     val.marked = false;
@@ -128,13 +128,13 @@ fh_gc_sweep(PoolMetadata *pool)
 }
 
 void
-fh_gc_free_val(JSValue *val)
+fh_gc_free_val(js_val *val)
 {
   /*
   // Free the object hashtable 
   // TODO: just objects?
   if (val->type == T_OBJECT) {
-    JSProp *prop, *tmp;
+    js_prop *prop, *tmp;
     HASH_ITER(hh, val->map, prop, tmp) {
       HASH_DEL(val->map, prop);
       if (prop != NULL) free(prop);
@@ -146,5 +146,5 @@ fh_gc_free_val(JSValue *val)
     free(val->string.ptr);
   }
 
-  memset(val, 0, sizeof(JSValue));
+  memset(val, 0, sizeof(js_val));
 }

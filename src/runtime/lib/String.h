@@ -7,32 +7,32 @@
 
 #include "../runtime.h"
 
-JSValue * str_new(JSValue *, JSArgs *, State *);
-JSValue * str_from_char_code(JSValue *, JSArgs *, State *);
+js_val * str_new(js_val *, js_args *, eval_state*);
+js_val * str_from_char_code(js_val *, js_args *, eval_state*);
 
-JSValue * str_proto_char_at(JSValue *, JSArgs *, State *);
-JSValue * str_proto_char_code_at(JSValue *, JSArgs *, State *);
-JSValue * str_proto_concat(JSValue *, JSArgs *, State *);
-JSValue * str_proto_index_of(JSValue *, JSArgs *, State *);
-JSValue * str_proto_last_index_of(JSValue *, JSArgs *, State *);
-JSValue * str_proto_locale_compare(JSValue *, JSArgs *, State *);
-JSValue * str_proto_match(JSValue *, JSArgs *, State *);
-JSValue * str_proto_replace(JSValue *, JSArgs *, State *);
-JSValue * str_proto_search(JSValue *, JSArgs *, State *);
-JSValue * str_proto_slice(JSValue *, JSArgs *, State *);
-JSValue * str_proto_split(JSValue *, JSArgs *, State *);
-JSValue * str_proto_substr(JSValue *, JSArgs *, State *);
-JSValue * str_proto_substring(JSValue *, JSArgs *, State *);
-JSValue * str_proto_to_locale_lower_case(JSValue *, JSArgs *, State *);
-JSValue * str_proto_to_locale_upper_case(JSValue *, JSArgs *, State *);
-JSValue * str_proto_to_lower_case(JSValue *, JSArgs *, State *);
-JSValue * str_proto_to_string(JSValue *, JSArgs *, State *);
-JSValue * str_proto_to_upper_case(JSValue *, JSArgs *, State *);
-JSValue * str_proto_trim(JSValue *, JSArgs *, State *);
-JSValue * str_proto_trim_left(JSValue *, JSArgs *, State *);
-JSValue * str_proto_trim_right(JSValue *, JSArgs *, State *);
-JSValue * str_proto_value_of(JSValue *, JSArgs *, State *);
+js_val * str_proto_char_at(js_val *, js_args *, eval_state*);
+js_val * str_proto_char_code_at(js_val *, js_args *, eval_state*);
+js_val * str_proto_concat(js_val *, js_args *, eval_state*);
+js_val * str_proto_index_of(js_val *, js_args *, eval_state*);
+js_val * str_proto_last_index_of(js_val *, js_args *, eval_state*);
+js_val * str_proto_locale_compare(js_val *, js_args *, eval_state*);
+js_val * str_proto_match(js_val *, js_args *, eval_state*);
+js_val * str_proto_replace(js_val *, js_args *, eval_state*);
+js_val * str_proto_search(js_val *, js_args *, eval_state*);
+js_val * str_proto_slice(js_val *, js_args *, eval_state*);
+js_val * str_proto_split(js_val *, js_args *, eval_state*);
+js_val * str_proto_substr(js_val *, js_args *, eval_state*);
+js_val * str_proto_substring(js_val *, js_args *, eval_state*);
+js_val * str_proto_to_locale_lower_case(js_val *, js_args *, eval_state*);
+js_val * str_proto_to_locale_upper_case(js_val *, js_args *, eval_state*);
+js_val * str_proto_to_lower_case(js_val *, js_args *, eval_state*);
+js_val * str_proto_to_string(js_val *, js_args *, eval_state*);
+js_val * str_proto_to_upper_case(js_val *, js_args *, eval_state*);
+js_val * str_proto_trim(js_val *, js_args *, eval_state*);
+js_val * str_proto_trim_left(js_val *, js_args *, eval_state*);
+js_val * str_proto_trim_right(js_val *, js_args *, eval_state*);
+js_val * str_proto_value_of(js_val *, js_args *, eval_state*);
 
-JSValue * bootstrap_string(void);
+js_val * bootstrap_string(void);
 
 #endif

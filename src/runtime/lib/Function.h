@@ -7,14 +7,14 @@
 
 #include "../runtime.h"
 
-JSValue * func_new(JSValue *, JSArgs *, State *);
+js_val * func_new(js_val *, js_args *, eval_state*);
 
-JSValue * func_proto_apply(JSValue *, JSArgs *, State *);
-JSValue * func_proto_bind(JSValue *, JSArgs *, State *);
-JSValue * func_proto_call(JSValue *, JSArgs *, State *);
-JSValue * func_proto_is_generator(JSValue *, JSArgs *, State *);
-JSValue * func_proto_to_string(JSValue *, JSArgs *, State *);
+js_val * func_proto_apply(js_val *, js_args *, eval_state*);
+js_val * func_proto_bind(js_val *, js_args *, eval_state*);
+js_val * func_proto_call(js_val *, js_args *, eval_state*);
+js_val * func_proto_is_generator(js_val *, js_args *, eval_state*);
+js_val * func_proto_to_string(js_val *, js_args *, eval_state*);
 
-JSValue * bootstrap_function(void);
+js_val * bootstrap_function(void);
 
 #endif

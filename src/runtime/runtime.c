@@ -31,27 +31,27 @@
 
 
 // isNaN(value)
-JSValue *
-global_is_nan(JSValue *instance, JSArgs *args, State *state)
+js_val *
+global_is_nan(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *num = TO_NUM(ARG(args, 0));
+  js_val *num = TO_NUM(ARG(args, 0));
   return JSBOOL(num->number.is_nan);
 }
 
 // isFinite(number)
-JSValue *
-global_is_finite(JSValue *instance, JSArgs *args, State *state)
+js_val *
+global_is_finite(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *num = TO_NUM(ARG(args, 0));
+  js_val *num = TO_NUM(ARG(args, 0));
   return JSBOOL(!(num->number.is_nan || num->number.is_inf));
 }
 
 // parseInt(string[, radix])
-JSValue *
-global_parse_int(JSValue *instance, JSArgs *args, State *state)
+js_val *
+global_parse_int(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *to_parse = TO_STR(ARG(args, 0));
-  JSValue *radix_arg = ARG(args, 1);
+  js_val *to_parse = TO_STR(ARG(args, 0));
+  js_val *radix_arg = ARG(args, 1);
   
   // FIXME: determine radix based on start of string
   int radix = IS_NUM(radix_arg) ? radix_arg->number.val : 10;
@@ -60,7 +60,7 @@ global_parse_int(JSValue *instance, JSArgs *args, State *state)
 
   l = strtol(to_parse->string.ptr, &ep, radix);
   if (*ep != 0) {
-    JSValue *num = TO_NUM(to_parse);
+    js_val *num = TO_NUM(to_parse);
     return IS_NAN(num) ? JSNAN() : JSNUM(floor(num->number.val));
   }
 
@@ -68,23 +68,23 @@ global_parse_int(JSValue *instance, JSArgs *args, State *state)
 }
 
 // parseFloat(string)
-JSValue *
-global_parse_float(JSValue *instance, JSArgs *args, State *state)
+js_val *
+global_parse_float(js_val *instance, js_args *args, eval_state *state)
 {
   return TO_NUM(ARG(args, 0));
 }
 
 // eval(string)
-JSValue *
-global_eval(JSValue *instance, JSArgs *args, State *state)
+js_val *
+global_eval(js_val *instance, js_args *args, eval_state *state)
 {
   // TODO
   return JSUNDEF();
 }
 
 // gc()
-JSValue *
-global_gc(JSValue *instance, JSArgs *args, State *state)
+js_val *
+global_gc(js_val *instance, js_args *args, eval_state *state)
 {
   fh_gc();
   return JSUNDEF();
@@ -94,10 +94,10 @@ global_gc(JSValue *instance, JSArgs *args, State *state)
 //
 // Custom Flathead function. Execute the given file in the 
 // global scope. Parsing and evaluation occur at runtime.
-JSValue *
-global_load(JSValue *instance, JSArgs *args, State *state)
+js_val *
+global_load(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *name = TO_STR(ARG(args, 0));
+  js_val *name = TO_STR(ARG(args, 0));
 
   FILE *file = fopen(name->string.ptr, "r");
   fh_eval_file(file, fh_global(), false);
@@ -106,25 +106,25 @@ global_load(JSValue *instance, JSArgs *args, State *state)
 }
 
 void
-fh_connect_prototypes(JSValue *global)
+fh_connect_prototypes(js_val *global)
 {
   // Hook up the Function.prototype to the Object.prototype methods.
   //
   // Note: this doesn't happen automatically because the Function object
   // does not exist when the Object# methods are defined.
-  JSValue *obj_proto = fh_get(fh_get(global, "Object"), "prototype");
-  JSValue *func_proto = fh_get(fh_get(global, "Function"), "prototype");
-  JSProp *prop;
+  js_val *obj_proto = fh_get(fh_get(global, "Object"), "prototype");
+  js_val *func_proto = fh_get(fh_get(global, "Function"), "prototype");
+  js_prop *prop;
   OBJ_ITER(obj_proto, prop) {
     if (prop->ptr && IS_FUNC(prop->ptr) && prop->ptr->function.is_native)
       prop->ptr->proto = func_proto;
   }
 }
 
-JSValue *
+js_val *
 fh_bootstrap()
 {
-  JSValue *global = JSOBJ();
+  js_val *global = JSOBJ();
 
   fh_gc_register_global(global);
 
@@ -143,17 +143,17 @@ fh_bootstrap()
   fh_set(global, "Math", bootstrap_math());
   fh_set(global, "NaN", JSNAN());
   fh_set(global, "Infinity", JSINF());
-  fh_set(global, "isNaN", JSNFUNC(&global_is_nan));
-  fh_set(global, "isFinite", JSNFUNC(&global_is_finite));
-  fh_set(global, "parseInt", JSNFUNC(&global_parse_int));
-  fh_set(global, "parseFloat", JSNFUNC(&global_parse_float));
-  fh_set(global, "eval", JSNFUNC(&global_eval));
-  fh_set(global, "load", JSNFUNC(&global_load));
+  fh_set(global, "isNaN", JSNFUNC(global_is_nan));
+  fh_set(global, "isFinite", JSNFUNC(global_is_finite));
+  fh_set(global, "parseInt", JSNFUNC(global_parse_int));
+  fh_set(global, "parseFloat", JSNFUNC(global_parse_float));
+  fh_set(global, "eval", JSNFUNC(global_eval));
+  fh_set(global, "load", JSNFUNC(global_load));
   fh_set(global, "undefined", JSUNDEF());
   fh_set(global, "this", global);
 
 #ifdef fh_gc_expose
-  fh_set(global, "gc", JSNFUNC(&global_gc));
+  fh_set(global, "gc", JSNFUNC(global_gc));
 #endif
 
   return global;

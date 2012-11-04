@@ -22,22 +22,22 @@
 
 #include "nodes.h"
 
-Node *
+ast_node *
 alloc_node()
 {
   // Allocate and return a new node
-  struct Node *node = malloc(sizeof(struct Node));
+  struct ast_node *node = malloc(sizeof(struct ast_node));
   node->type = NODE_UNKNOWN;
   node->sub_type = NODE_UNKNOWN;
   node->visited = false;
   return node;
 }
 
-Node *
-new_node(enum NodeType type, Node *e1, Node *e2, Node *e3, 
+ast_node *
+new_node(enum ast_node_type type, ast_node *e1, ast_node *e2, ast_node *e3, 
          double x, char *s, int line, int column)
 {
-  Node *node = alloc_node();
+  ast_node *node = alloc_node();
 
   // Assign expression subtypes
   if (type == NODE_UNARY_POST || type == NODE_UNARY_PRE) {
@@ -67,8 +67,8 @@ new_node(enum NodeType type, Node *e1, Node *e2, Node *e3,
   return node;
 }
 
-Node *
-pop_node(Node *node)
+ast_node *
+pop_node(ast_node *node)
 {
   if (node->e2 != NULL && !node->e2->visited)
     return pop_node(node->e2);
@@ -77,13 +77,13 @@ pop_node(Node *node)
 }
 
 bool
-empty_node(Node *node)
+empty_node(ast_node *node)
 {
   return node->visited;
 }
 
 void
-rewind_node(Node *node)
+rewind_node(ast_node *node)
 {
   // Unset visited on a node linked list.
   if (node->e1 == 0) return;
@@ -99,7 +99,7 @@ print_indent(int indent)
 }
 
 void 
-print_node(Node *node, bool rec, int depth)
+print_node(ast_node *node, bool rec, int depth)
 {
   print_indent(depth); 
   switch(node->type) {
@@ -117,9 +117,9 @@ print_node(Node *node, bool rec, int depth)
     case NODE_DOWHILE:     printf("dowhile"); break;
     case NODE_ELISION:     printf("elision"); break;
     case NODE_EL_LST:      printf("element list"); break;
-    case NODE_EMPT_STMT:   printf("empty statement"); break;
+    case NODE_EMPT_STMT:   printf("empty eval_statement"); break;
     case NODE_EXPGRP:      printf("expression group"); break;
-    case NODE_EXP_STMT:    printf("expression statement"); break;
+    case NODE_EXP_STMT:    printf("expression eval_statement"); break;
     case NODE_FINALLY:     printf("finally"); break;
     case NODE_FOR:         printf("for"); break;
     case NODE_FORIN:       printf("for-in"); break;
@@ -133,17 +133,17 @@ print_node(Node *node, bool rec, int depth)
     case NODE_PROP_LST:    printf("property list"); break;
     case NODE_RETURN:      printf("return"); break;
     case NODE_SRC_LST:     printf("source list"); break;
-    case NODE_STMT_LST:    printf("statement list"); break;
-    case NODE_SWITCH_STMT: printf("switch statement"); break;
+    case NODE_STMT_LST:    printf("eval_statement list"); break;
+    case NODE_SWITCH_STMT: printf("switch eval_statement"); break;
     case NODE_TERN:        printf("conditional expression"); break;
     case NODE_THIS:        printf("this"); break;
     case NODE_THROW:       printf("throw"); break;
-    case NODE_TRY_STMT:    printf("try statement"); break;
+    case NODE_TRY_STMT:    printf("try eval_statement"); break;
     case NODE_VAR_DEC:     printf("variable declaration"); break;
     case NODE_VAR_DEC_LST: printf("variable declaration list"); break;
-    case NODE_VAR_STMT:    printf("variable statement"); break;
+    case NODE_VAR_STMT:    printf("variable eval_statement"); break;
     case NODE_WHILE:       printf("while"); break;
-    case NODE_WITH_STMT:   printf("with statement"); break;
+    case NODE_WITH_STMT:   printf("with eval_statement"); break;
 
     // Literals
     case NODE_BOOL:        printf("bool (%d)\n", (int)node->val); return;

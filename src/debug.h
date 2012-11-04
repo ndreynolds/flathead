@@ -22,11 +22,11 @@
 
 #include "flathead.h"
 
-void fh_debug_obj(FILE *, JSValue *, int, bool);
-void fh_debug_arr(FILE *, JSValue *, int);
-void fh_debug_num(FILE *, JSValue *);
-void fh_debug_args(FILE *, JSArgs *);
-void fh_debug(FILE *, JSValue *, int, bool);
-void fh_debug_verbose(FILE *, JSValue *, int);
+void fh_debug_obj(FILE *, js_val *, int, bool);
+void fh_debug_arr(FILE *, js_val *, int);
+void fh_debug_num(FILE *, js_val *);
+void fh_debug_args(FILE *, js_args *);
+void fh_debug(FILE *, js_val *, int, bool);
+void fh_debug_verbose(FILE *, js_val *, int);
 
 #endif

@@ -6,41 +6,41 @@
 
 #include "../runtime.h"
 
-JSValue * arr_new(JSValue *, JSArgs *, State *);
-JSValue * arr_is_array(JSValue *, JSArgs *, State *);
+js_val * arr_new(js_val *, js_args *, eval_state *);
+js_val * arr_is_array(js_val *, js_args *, eval_state *);
 
-JSValue * arr_proto_pop(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_push(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_reverse(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_shift(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_sort(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_splice(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_unshift(JSValue *, JSArgs *, State *);
+js_val * arr_proto_pop(js_val *, js_args *, eval_state *);
+js_val * arr_proto_push(js_val *, js_args *, eval_state *);
+js_val * arr_proto_reverse(js_val *, js_args *, eval_state *);
+js_val * arr_proto_shift(js_val *, js_args *, eval_state *);
+js_val * arr_proto_sort(js_val *, js_args *, eval_state *);
+js_val * arr_proto_splice(js_val *, js_args *, eval_state *);
+js_val * arr_proto_unshift(js_val *, js_args *, eval_state *);
 
-JSValue * arr_proto_concat(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_join(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_slice(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_to_string(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_index_of(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_last_index_of(JSValue *, JSArgs *, State *);
+js_val * arr_proto_concat(js_val *, js_args *, eval_state *);
+js_val * arr_proto_join(js_val *, js_args *, eval_state *);
+js_val * arr_proto_slice(js_val *, js_args *, eval_state *);
+js_val * arr_proto_to_string(js_val *, js_args *, eval_state *);
+js_val * arr_proto_index_of(js_val *, js_args *, eval_state *);
+js_val * arr_proto_last_index_of(js_val *, js_args *, eval_state *);
 
-JSValue * arr_proto_filter(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_for_each(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_every(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_map(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_some(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_reduce(JSValue *, JSArgs *, State *);
-JSValue * arr_proto_reduce_right(JSValue *, JSArgs *, State *);
+js_val * arr_proto_filter(js_val *, js_args *, eval_state *);
+js_val * arr_proto_for_each(js_val *, js_args *, eval_state *);
+js_val * arr_proto_every(js_val *, js_args *, eval_state *);
+js_val * arr_proto_map(js_val *, js_args *, eval_state *);
+js_val * arr_proto_some(js_val *, js_args *, eval_state *);
+js_val * arr_proto_reduce(js_val *, js_args *, eval_state *);
+js_val * arr_proto_reduce_right(js_val *, js_args *, eval_state *);
 
-void arr_merge_sort(JSProp **, int);
-void arr_merge(JSProp **, JSProp **, int, int, JSProp **);
-void arr_recur(JSProp **, JSProp **, int);
-int arr_cmp(JSProp *, JSProp *);
-int arr_cmp_js(JSProp *, JSProp *);
-int arr_lex_sort(JSProp *, JSProp *);
-int arr_key_sort(JSProp *, JSProp *);
-JSValue * arr_do_join(JSValue *, JSValue *);
+void arr_merge_sort(js_prop **, int);
+void arr_merge(js_prop **, js_prop **, int, int, js_prop **);
+void arr_recur(js_prop **, js_prop **, int);
+int arr_cmp(js_prop *, js_prop *);
+int arr_cmp_js(js_prop *, js_prop *);
+int arr_lex_sort(js_prop *, js_prop *);
+int arr_key_sort(js_prop *, js_prop *);
+js_val * arr_do_join(js_val *, js_val *);
 
-JSValue * bootstrap_array(void);
+js_val * bootstrap_array(void);
 
 #endif

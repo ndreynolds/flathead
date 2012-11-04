@@ -25,36 +25,36 @@
 /**
  * Lookup a property on an object, resolve the value, and return it.
  */
-JSValue *
-fh_get(JSValue *obj, char *name)
+js_val *
+fh_get(js_val *obj, char *name)
 {
   // We can't read properties from undefined.
   if (obj->type == T_UNDEF)
     fh_error(NULL, E_TYPE, "Cannot read property '%s' of undefined", name);
 
   // But we'll happily return undefined if a property doesn't exist.
-  JSProp *prop = fh_get_prop(obj, name);
+  js_prop *prop = fh_get_prop(obj, name);
   return prop ? prop->ptr : JSUNDEF();
 }
 
 /**
  * Same as `fh_get`, but recurse the scope chain.
  */
-JSValue *
-fh_get_rec(JSValue *obj, char *name) 
+js_val *
+fh_get_rec(js_val *obj, char *name) 
 {
-  JSProp *prop = fh_get_prop_rec(obj, name);
+  js_prop *prop = fh_get_prop_rec(obj, name);
   return prop ? prop->ptr : JSUNDEF();
 }
 
 /**
  * Same as `fh_get`, but recurse the prototype chain (if one exists).
  */
-JSValue *
-fh_get_proto(JSValue *obj, char *name)
+js_val *
+fh_get_proto(js_val *obj, char *name)
 {
-  JSProp *prop = fh_get_prop_proto(obj, name);
-  JSValue *val = prop ? prop->ptr : JSUNDEF();
+  js_prop *prop = fh_get_prop_proto(obj, name);
+  js_val *val = prop ? prop->ptr : JSUNDEF();
   // Store a ref to the instance for natively define methods.
   if (val->type == T_FUNCTION) {
     val->function.instance = obj;
@@ -65,28 +65,28 @@ fh_get_proto(JSValue *obj, char *name)
 /**
  * Lookup a property on an object and return it.
  */
-JSProp *
-fh_get_prop(JSValue *obj, char *name)
+js_prop *
+fh_get_prop(js_val *obj, char *name)
 {
-  JSProp *prop = NULL;
+  js_prop *prop = NULL;
   if (obj->map)
     HASH_FIND_STR(obj->map, name, prop);
   return prop;
 }
 
-JSProp *
-fh_get_prop_rec(JSValue *obj, char *name)
+js_prop *
+fh_get_prop_rec(js_val *obj, char *name)
 {
-  JSProp *prop = fh_get_prop(obj, name);
+  js_prop *prop = fh_get_prop(obj, name);
   if (prop == NULL && obj->object.parent != NULL)
     return fh_get_prop_rec(obj->object.parent, name);
   return prop;
 }
 
-JSProp *
-fh_get_prop_proto(JSValue *obj, char *name)
+js_prop *
+fh_get_prop_proto(js_val *obj, char *name)
 {
-  JSProp *prop = fh_get_prop(obj, name);
+  js_prop *prop = fh_get_prop(obj, name);
   if (prop == NULL && obj->proto != NULL)
     return fh_get_prop_proto(obj->proto, name);
   return prop;
@@ -102,7 +102,7 @@ fh_get_prop_proto(JSValue *obj, char *name)
  * default property flags.
  */
 void
-fh_set(JSValue *obj, char *name, JSValue *val)
+fh_set(js_val *obj, char *name, js_val *val)
 {
   fh_set_prop(obj, name, val, P_DEFAULT);
 }
@@ -112,10 +112,10 @@ fh_set(JSValue *obj, char *name, JSValue *val)
  * flags.
  */
 void
-fh_set_prop(JSValue *obj, char *name, JSValue *val, JSPropFlags flags)
+fh_set_prop(js_val *obj, char *name, js_val *val, js_prop_flags flags)
 {
   bool add = false;
-  JSProp *prop = fh_get_prop(obj, name);
+  js_prop *prop = fh_get_prop(obj, name);
   if (prop == NULL) {
     prop = fh_new_prop(P_DEFAULT);
     add = true;
@@ -140,13 +140,13 @@ fh_set_prop(JSValue *obj, char *name, JSValue *val, JSPropFlags flags)
  * parent scope on which the name is already defined.
  */
 void
-fh_set_rec(JSValue *obj, char *name, JSValue *val)
+fh_set_rec(js_val *obj, char *name, js_val *val)
 {
-  JSValue *scope_to_set = obj;
-  JSValue *parent = NULL;
+  js_val *scope_to_set = obj;
+  js_val *parent = NULL;
 
   // Try and find the property in a parent scope.
-  JSProp *prop = fh_get_prop(obj, name);
+  js_prop *prop = fh_get_prop(obj, name);
   while (prop == NULL) {
     if (obj->object.parent == NULL) break;
     parent = obj->object.parent;
@@ -167,9 +167,9 @@ fh_set_rec(JSValue *obj, char *name, JSValue *val)
  * Find and delete a property from an object by name.
  */
 void
-fh_del_prop(JSValue *obj, char *name)
+fh_del_prop(js_val *obj, char *name)
 {
-  JSProp *deletee = fh_get_prop(obj, name);
+  js_prop *deletee = fh_get_prop(obj, name);
   if (deletee != NULL)
     HASH_DEL(obj->map, deletee);
 }

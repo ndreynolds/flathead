@@ -21,15 +21,15 @@
 
 #include "flathead.h"
 
-void fh_set(JSValue *, char *, JSValue *);
-void fh_set_prop(JSValue *, char *, JSValue *, JSPropFlags);
-void fh_set_rec(JSValue *, char *, JSValue *);
-void fh_del_prop(JSValue *, char *);
-JSProp * fh_get_prop(JSValue *, char *);
-JSProp * fh_get_prop_rec(JSValue *, char *);
-JSProp * fh_get_prop_proto(JSValue *, char *);
-JSValue * fh_get(JSValue *, char *);
-JSValue * fh_get_proto(JSValue *, char *);
-JSValue * fh_get_rec(JSValue *, char *);
+void fh_set(js_val *, char *, js_val *);
+void fh_set_prop(js_val *, char *, js_val *, js_prop_flags);
+void fh_set_rec(js_val *, char *, js_val *);
+void fh_del_prop(js_val *, char *);
+js_prop * fh_get_prop(js_val *, char *);
+js_prop * fh_get_prop_rec(js_val *, char *);
+js_prop * fh_get_prop_proto(js_val *, char *);
+js_val * fh_get(js_val *, char *);
+js_val * fh_get_proto(js_val *, char *);
+js_val * fh_get_rec(js_val *, char *);
 
 #endif

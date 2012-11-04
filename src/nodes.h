@@ -21,7 +21,7 @@
 
 #include <stdbool.h>
 
-enum NodeType {
+enum ast_node_type {
   NODE_ARG_LST,
   NODE_ARR,
   NODE_ASGN,
@@ -76,29 +76,27 @@ enum NodeType {
   NODE_WHILE,
 };
 
-struct Node;
-
-typedef struct Node {
-  struct Node *e1;
-  struct Node *e2;
-  struct Node *e3;
+typedef struct ast_node {
+  struct ast_node *e1;
+  struct ast_node *e2;
+  struct ast_node *e3;
   char *sval;
   double val;
-  enum NodeType type;
-  enum NodeType sub_type;
+  enum ast_node_type type;
+  enum ast_node_type sub_type;
   bool visited;
   int line;
   int column;
-} Node;
+} ast_node;
 
-Node * alloc_node(void);
-Node * new_node(enum NodeType, Node *, Node *, Node *, double, 
+ast_node * alloc_node(void);
+ast_node * new_node(enum ast_node_type, ast_node *, ast_node *, ast_node *, double, 
                 char *, int, int);
-Node * pop_node(Node *);
-void rewind_node(Node *);
-bool empty_node(Node *);
+ast_node * pop_node(ast_node *);
+void rewind_node(ast_node *);
+bool empty_node(ast_node *);
 
 void print_indent(int); 
-void print_node(Node *, bool, int);
+void print_node(ast_node *, bool, int);
 
 #endif

@@ -4,13 +4,13 @@
 #include "RegExp.h"
 
 // new RegExp(pattern)
-JSValue *
-regexp_new(JSValue *instance, JSArgs *args, State *state)
+js_val *
+regexp_new(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *pattern = ARG(args, 0);
-  JSValue *flags = ARG(args, 1);
+  js_val *pattern = ARG(args, 0);
+  js_val *flags = ARG(args, 1);
 
-  JSValue *regexp = JSOBJ();
+  js_val *regexp = JSOBJ();
   regexp->object.is_regexp = true;
   regexp->proto = fh_try_get_proto("RegExp");
 
@@ -33,16 +33,16 @@ regexp_new(JSValue *instance, JSArgs *args, State *state)
 }
 
 // RegExp.prototype.exec(str)
-JSValue *
-regexp_proto_exec(JSValue *instance, JSArgs *args, State *state)
+js_val *
+regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
 {
   // TODO
   return JSUNDEF();
 }
 
 // RegExp.prototype.test([str])
-JSValue *
-regexp_proto_test(JSValue *instance, JSArgs *args, State *state)
+js_val *
+regexp_proto_test(js_val *instance, js_args *args, eval_state *state)
 {
   char *str = TO_STR(ARG(args, 0))->string.ptr;
   char *pattern = TO_STR(fh_get(instance, "source"))->string.ptr;
@@ -53,10 +53,10 @@ regexp_proto_test(JSValue *instance, JSArgs *args, State *state)
 }
 
 // RegExp.prototype.toString()
-JSValue *
-regexp_proto_to_string(JSValue *instance, JSArgs *args, State *state)
+js_val *
+regexp_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *pattern = fh_get_proto(instance, "source"),
+  js_val *pattern = fh_get_proto(instance, "source"),
           *g = fh_get_proto(instance, "global"),
           *i = fh_get_proto(instance, "ignoreCase"),
           *m = fh_get_proto(instance, "multiline"),
@@ -75,16 +75,16 @@ regexp_proto_to_string(JSValue *instance, JSArgs *args, State *state)
     y->boolean.val ? "y" : ""
   );
 
-  JSValue *res = JSSTR(new);
+  js_val *res = JSSTR(new);
   free(new);
   return res;
 }
 
-JSValue *
+js_val *
 bootstrap_regexp()
 {
-  JSValue *regexp = JSNFUNC(&regexp_new);
-  JSValue *prototype = JSOBJ();
+  js_val *regexp = JSNFUNC(regexp_new);
+  js_val *prototype = JSOBJ();
 
   // RegExp
   // ------
@@ -97,7 +97,7 @@ bootstrap_regexp()
 
   // Properties
   // FIXME: these properties need to be non-writable.
-  BUILTIN(prototype, "constructor", JSNFUNC(&regexp_new));
+  BUILTIN(prototype, "constructor", JSNFUNC(regexp_new));
   BUILTIN(prototype, "global", JSBOOL(0));
   BUILTIN(prototype, "ignoreCase", JSBOOL(0));
   BUILTIN(prototype, "lastIndex", JSBOOL(0));
@@ -106,9 +106,9 @@ bootstrap_regexp()
   BUILTIN(prototype, "sticky", JSBOOL(0));
 
   // Methods
-  BUILTIN(prototype, "exec", JSNFUNC(&regexp_proto_exec));
-  BUILTIN(prototype, "test", JSNFUNC(&regexp_proto_test));
-  BUILTIN(prototype, "toString", JSNFUNC(&regexp_proto_to_string));
+  BUILTIN(prototype, "exec", JSNFUNC(regexp_proto_exec));
+  BUILTIN(prototype, "test", JSNFUNC(regexp_proto_test));
+  BUILTIN(prototype, "toString", JSNFUNC(regexp_proto_to_string));
 
   return regexp;
 }

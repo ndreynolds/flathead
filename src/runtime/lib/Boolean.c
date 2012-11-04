@@ -5,34 +5,34 @@
 #include "Boolean.h"
 
 // (new) Boolean(value)
-JSValue *
-bool_new(JSValue *instance, JSArgs *args, State *state)
+js_val *
+bool_new(js_val *instance, js_args *args, eval_state *state)
 {
-  JSValue *value = ARG(args, 0);
+  js_val *value = ARG(args, 0);
   if (state->construct)
     state->this->object.wraps = TO_BOOL(value);
   return TO_BOOL(value);
 }
 
 // Boolean.prototype.toString()
-JSValue *
-bool_proto_to_string(JSValue *instance, JSArgs *args, State *state)
+js_val *
+bool_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 {
   return instance->boolean.val ? JSSTR("true") : JSSTR("false");
 }
 
 // Boolean.prototype.valueOf()
-JSValue *
-bool_proto_value_of(JSValue *instance, JSArgs *args, State *state)
+js_val *
+bool_proto_value_of(js_val *instance, js_args *args, eval_state *state)
 {
   return instance;
 }
 
-JSValue *
+js_val *
 bootstrap_boolean()
 {
-  JSValue *boolean = JSNFUNC(&bool_new);
-  JSValue *prototype = JSOBJ();
+  js_val *boolean = JSNFUNC(bool_new);
+  js_val *prototype = JSOBJ();
 
   // Boolean
   // -------
@@ -44,11 +44,11 @@ bootstrap_boolean()
   // -----------------
   
   // Properties
-  BUILTIN(prototype, "constructor", JSNFUNC(&bool_new));
+  BUILTIN(prototype, "constructor", JSNFUNC(bool_new));
   
   // Methods
-  BUILTIN(prototype, "toString", JSNFUNC(&bool_proto_to_string));
-  BUILTIN(prototype, "valueOf", JSNFUNC(&bool_proto_value_of));
+  BUILTIN(prototype, "toString", JSNFUNC(bool_proto_to_string));
+  BUILTIN(prototype, "valueOf", JSNFUNC(bool_proto_value_of));
 
   return boolean;
 }
