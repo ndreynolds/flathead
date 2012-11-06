@@ -23,10 +23,10 @@
 
 #define SLOTS_PER_ARENA 10000
 
-typedef struct {
+typedef struct gc_arena {
   js_val *slots;
-  js_val *global;
   int num_slots;
+  int used_slots;
   bool freelist[SLOTS_PER_ARENA];
 } gc_arena;
 
@@ -34,10 +34,11 @@ gc_arena * fh_new_arena(void);
 gc_arena * fh_get_arena(void);
 js_val * fh_global(void);
 js_val * fh_malloc(bool);
+
 void fh_gc(void);
-void fh_gc_register_global(js_val *);
+void fh_gc_debug(void);
 void fh_gc_mark(js_val *);
-void fh_gc_free_val(js_val *);
 void fh_gc_sweep(gc_arena *);
+void fh_gc_free_val(js_val *);
 
 #endif

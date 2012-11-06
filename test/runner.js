@@ -107,7 +107,7 @@ var testRunner = exports.testRunner = {
     var cmd = [this.options.exec, args].join(' ');
     exec(cmd, {timeout: this.options.timeout}, function(err, stdout, stderr) {
       fileName = fileName.split('/')[fileName.split('/').length - 1];
-      return (err || stdout || stderr) ?
+      return (err || stderr) ?
         onFailure(fileName, err, stderr) :
         onSuccess(fileName);
     });

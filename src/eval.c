@@ -75,7 +75,7 @@ fh_eval(js_val *ctx, ast_node *node)
 
 
 // ----------------------------------------------------------------------------
-// Source & eval_statement Lists
+// Source & Statement Lists
 // ----------------------------------------------------------------------------
 
 js_val *
@@ -461,7 +461,7 @@ fh_function_call(js_val *ctx, js_val *this, eval_state *state,
                  js_val *func, js_args *args)
 {
   if (IS_UNDEF(this) || IS_NULL(this)) 
-    this = fh_global();
+    this = fh->global;
 
   state->ctx = ctx;
   state->this = this;

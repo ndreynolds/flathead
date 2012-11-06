@@ -189,6 +189,29 @@ fh_new_state(int line, int column)
   return state;
 }
 
+fh_state *
+fh_new_global_state()
+{
+  fh_state *state = malloc(sizeof(fh_state));
+
+  state->gc_state = GC_STATE_NONE;
+  memset(state->gc_arenas, 0, sizeof(state->gc_arenas));
+  state->gc_num_arenas = 0;
+  state->gc_runs = 0;
+  state->gc_time = 0;
+  state->gc_last_start = 0;
+
+  state->global = NULL;
+  state->function_proto = NULL;
+  state->object_proto = NULL;
+
+  state->opt_interactive = false;
+  state->opt_print_tokens = false;
+  state->opt_print_ast = false;
+
+  return state;
+}
+
 js_args *
 fh_new_args(js_val *arg1, js_val *arg2, js_val *arg3)
 {
@@ -378,7 +401,7 @@ fh_has_property(js_val *obj, char *prop)
 js_val *
 fh_try_get_proto(char *type)
 {
-  js_val *global = fh_global();
+  js_val *global = fh->global;
   if (global != NULL) {
     js_val *obj = fh_get(global, type);
     if (!IS_UNDEF(obj))

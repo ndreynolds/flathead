@@ -31,6 +31,8 @@
 
 #define VERSION        "0.6.0"
 
+#define MAX_ARENAS     10
+
 #define JSBOOL(x)      fh_new_boolean(x)
 #define JSSTR(x)       fh_new_string(x)
 #define JSNULL()       fh_new_val(T_NULL)
@@ -79,6 +81,31 @@
 struct js_args;
 struct js_val;
 struct ast_node;
+struct gc_arena;
+
+typedef enum {
+  GC_STATE_STARTING,
+  GC_STATE_MARK,
+  GC_STATE_SWEEP,
+  GC_STATE_NONE
+} gc_state;
+
+typedef struct {
+  gc_state gc_state;
+  struct gc_arena *gc_arenas[MAX_ARENAS];
+  int gc_num_arenas;
+  int gc_runs;
+  long gc_last_start;
+  long gc_time;
+
+  bool opt_interactive;
+  bool opt_print_tokens;
+  bool opt_print_ast;
+
+  struct js_val *function_proto;
+  struct js_val *object_proto;
+  struct js_val *global;
+} fh_state;
 
 typedef struct {
   int line;
@@ -136,7 +163,7 @@ typedef enum {
 typedef struct js_args {
   struct js_val *arg;
   struct js_args *next;
-  struct eval_eval_state*eval_state;
+  struct eval_state *eval_state;
 } js_args;
 
 struct js_number {
@@ -171,13 +198,12 @@ struct js_object {
  * applicable), the arguments as values in linked-list format, and the evaluation
  * state, which contains information that may be used for error reporting.
  */
-typedef struct js_val * (js_native_function)(struct js_val *, js_args *, eval_state*); 
+typedef struct js_val * (js_native_function)(struct js_val *, js_args *, eval_state *); 
 
 struct js_function {
   bool is_native;
   bool is_generator;
   struct ast_node *node; 
-  struct js_val *construct;
   struct js_val *closure;
   struct js_val *bound_this;
   struct js_args *bound_args;
@@ -209,10 +235,14 @@ js_val * fh_new_array();
 js_val * fh_new_function(struct ast_node *);
 js_val * fh_new_native_function(js_native_function);
 js_val * fh_new_regexp(char *);
-js_val * fh_get_arg(js_args *, int);
+
 js_args * fh_new_args(js_val *, js_val *, js_val *);
 js_prop * fh_new_prop(js_prop_flags);
+fh_state * fh_new_global_state();
 eval_state * fh_new_state(int, int);
+
+js_val * fh_get_arg(js_args *, int);
+int fh_arg_len(js_args*);
 
 js_val * fh_eval_file(FILE *, js_val *, int);
 js_val * fh_try_get_proto(char *);
@@ -222,10 +252,7 @@ js_val * fh_has_property(js_val *, char *);
 char * fh_typeof(js_val *);
 void fh_set_len(js_val *, int);
 void fh_error(eval_state *, js_error_type, const char *, ...);
-int fh_arg_len(js_args*);
 
-extern int fh_opt_interactive;
-extern int fh_opt_print_ast;
-extern int fh_opt_print_tokens;
+extern fh_state *fh;
 
 #endif

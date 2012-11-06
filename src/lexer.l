@@ -169,13 +169,13 @@ L?\/[^\ \/]+\/([imgy]{0,4})  { /* FIXME: This is very incomplete */
 \n                           { yycolumn = 0; 
                                yytext = NULL;
                                TOKEN("NEWLINE", 0);
-                               if (fh_opt_interactive) return EOF; }
+                               if (fh->opt_interactive) return EOF; }
 
 
     /* END OF FILE */
 
 <<EOF>>                      { yycolumn = 0; 
-                               if (fh_opt_interactive) exit(0);
+                               if (fh->opt_interactive) exit(0);
                                return EOF; }
 
 
@@ -213,7 +213,7 @@ fh_parse_error(char * val)
 int
 fh_token(char *name, int token)
 {
-  if (fh_opt_print_tokens) {
+  if (fh->opt_print_tokens) {
     if (yytext)
       printf("(%s %s)\n", name, yytext);
     else

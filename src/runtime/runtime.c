@@ -100,7 +100,7 @@ global_load(js_val *instance, js_args *args, eval_state *state)
   js_val *name = TO_STR(ARG(args, 0));
 
   FILE *file = fopen(name->string.ptr, "r");
-  fh_eval_file(file, fh_global(), false);
+  fh_eval_file(file, fh->global, false);
 
   return JSUNDEF();
 }
@@ -125,8 +125,6 @@ js_val *
 fh_bootstrap()
 {
   js_val *global = JSOBJ();
-
-  fh_gc_register_global(global);
 
   fh_set(global, "Object", bootstrap_object());
   fh_set(global, "Function", bootstrap_function());

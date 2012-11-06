@@ -17,19 +17,21 @@
  */
 
 #include <stddef.h>
+#include <time.h>
+
 #include "gc.h"
+#include "debug.h"
 
-
-gc_arena *arena;
 
 js_val *
 fh_malloc(bool first_attempt)
 {
   gc_arena *arena = fh_get_arena();
   int i;
-  for (i = 0; i < SLOTS_PER_ARENA; i++) {
+  for (i = 0; i < arena->num_slots; i++) {
     if (!arena->freelist[i]) {
       arena->freelist[i] = true;
+      arena->used_slots++;
       return &(arena->slots[i]);
     }
   }
@@ -47,45 +49,96 @@ fh_new_arena()
   size_t arena_size = sizeof(js_val) * SLOTS_PER_ARENA;
   js_val *slots = malloc(arena_size);
   gc_arena *arena = malloc(sizeof(gc_arena));
+
   arena->num_slots = SLOTS_PER_ARENA;
+  arena->used_slots = 0;
   arena->slots = slots;
-  arena->global = NULL;
-  int i;
-  for (i = 0; i < SLOTS_PER_ARENA; i++)
-    arena->freelist[i] = false;
+
+  memset(arena->freelist, 0, sizeof(arena->freelist));
   return arena;
 }
 
 gc_arena *
 fh_get_arena()
 {
-  if (!arena) 
+  // Currently 1 arena, but room for more.
+  gc_arena *arena = NULL;
+  if (fh->gc_num_arenas == 0) {
     arena = fh_new_arena();
+    fh->gc_arenas[0] = arena;
+    fh->gc_num_arenas++;
+  }
+  else
+    arena = fh->gc_arenas[0];
   return arena;
 }
 
-js_val *
-fh_global()
+void
+fh_gc_debug()
 {
-  return fh_get_arena()->global;
+#ifdef fh_gc_profile
+
+  gc_state state = fh->gc_state;
+  long clockt = clock() / (CLOCKS_PER_SEC / 1000);
+
+  if (state == GC_STATE_STARTING) {
+    puts("GC: starting");
+    fh->gc_last_start = clockt;
+    fh->gc_runs++;
+  }
+  if (state == GC_STATE_MARK) {
+    puts("GC: mark phase");
+  }
+  if (state == GC_STATE_SWEEP) {
+    puts("GC: sweep phase");
+  }
+  if (state == GC_STATE_NONE) {
+    long delta = clockt - fh->gc_last_start;
+    printf("GC: finished|inactive (last run: %ld ms)\n", delta);
+    fh->gc_time += delta;
+  }
+
+  long total_slots = 0, used_slots = 0;
+  int i;
+  for (i = 0; i < fh->gc_num_arenas; i++) {
+    total_slots += fh->gc_arenas[i]->num_slots;
+    used_slots += fh->gc_arenas[i]->used_slots;
+  }
+
+  printf(
+    "  %ld slots | %ld/%ld used slots | %ld/%ld vacant slots | %ld usage (bytes) | %d runs\n",
+    total_slots,
+    used_slots, total_slots,
+    total_slots - used_slots, total_slots,
+    total_slots * sizeof(js_val),
+    fh->gc_runs
+  );
+
+#endif
 }
 
 void
 fh_gc()
 {
-#ifdef fh_gc_profile
-  puts("GC running.");
-#endif
   gc_arena *arena = fh_get_arena();
-  fh_gc_mark(arena->global);
-  fh_gc_sweep(arena);
-}
 
-void
-fh_gc_register_global(js_val *global)
-{
-  gc_arena *arena = fh_get_arena();
-  arena->global = global;
+  // Start
+  fh->gc_state = GC_STATE_STARTING;
+  fh_gc_debug();
+
+  // Mark
+  fh->gc_state = GC_STATE_MARK;
+  fh_gc_mark(fh->global);
+  fh_gc_debug();
+
+  // Sweep
+  fh->gc_state = GC_STATE_SWEEP;
+  fh_gc_sweep(arena);
+  fh_gc_debug();
+
+  // Stop
+  fh->gc_state = GC_STATE_NONE;
+  fh_gc_debug();
 }
 
 void
@@ -97,13 +150,18 @@ fh_gc_mark(js_val *val)
 
   if (val->proto) fh_gc_mark(val->proto);
 
-  if (val->type == T_FUNCTION) {
+  if (IS_FUNC(val)) {
     fh_gc_mark(val->function.closure);
     fh_gc_mark(val->function.bound_this);
     fh_gc_mark(val->function.instance);
   }
 
-  if (val->type == T_OBJECT) {
+  if (IS_OBJ(val)) {
+    fh_gc_mark(val->object.wraps);
+    fh_gc_mark(val->object.parent);
+  }
+
+  if (val->map) {
     js_prop *prop;
     OBJ_ITER(val, prop) {
       if (prop->ptr && !prop->circular) 
@@ -122,6 +180,7 @@ fh_gc_sweep(gc_arena *arena)
     if (!val.marked) {
       arena->freelist[i] = false;
       fh_gc_free_val(&val);
+      arena->used_slots--;
     }
     val.marked = false;
   }

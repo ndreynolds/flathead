@@ -94,18 +94,38 @@ arr_proto_reverse(js_val *instance, js_args *args, eval_state *state)
 {
   int len = instance->object.length;
   int i = 0, j = len - 1;
-  js_val *ikey, *jkey, *tmp;
+  js_val *tmp;
   js_prop *iprop, *jprop;
 
+  // While i & j converge, swap the values they point to.
   while (i < j) {
-    // While i & j converge, swap the values they point to.
-    ikey = JSNUMKEY(i++);
-    jkey = JSNUMKEY(j--);
-    iprop = fh_get_prop(instance, ikey->string.ptr);
-    jprop = fh_get_prop(instance, jkey->string.ptr);
-    tmp = iprop->ptr;
-    iprop->ptr = jprop->ptr;
-    jprop->ptr = tmp;
+    char *ik = JSNUMKEY(i++)->string.ptr;
+    char *jk = JSNUMKEY(j--)->string.ptr;
+
+    iprop = fh_get_prop(instance, ik);
+    jprop = fh_get_prop(instance, jk);
+
+    // Need to do some checks to account for missing properties 
+    // (they may have been deleted or never set)
+    
+    if (jprop)
+      jprop->ptr = jprop->ptr == NULL ? JSUNDEF() : jprop->ptr;
+    if (iprop)
+      iprop->ptr = iprop->ptr == NULL ? JSUNDEF() : iprop->ptr;
+
+    if (!iprop && jprop) {
+      fh_set_prop(instance, ik, jprop->ptr, P_DEFAULT);
+      fh_del_prop(instance, jk);
+    }
+    else if (!jprop && iprop) {
+      fh_set_prop(instance, jk, iprop->ptr, P_DEFAULT);
+      fh_del_prop(instance, ik);
+    }
+    else if (jprop && iprop) {
+      tmp = iprop->ptr;
+      iprop->ptr = jprop->ptr;
+      jprop->ptr = tmp;
+    }
   }
 
   return instance;

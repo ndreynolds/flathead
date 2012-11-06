@@ -104,10 +104,8 @@
   int fh_get_input(char *, int);
   ast_node *root;
   eval_state *state;
+  fh_state *fh;
 
-  int fh_opt_interactive  = 0;
-  int fh_opt_print_tokens = 0;
-  int fh_opt_print_ast    = 0;
 %}
 
 %error-verbose
@@ -894,7 +892,7 @@ int
 fh_get_input(char *buf, int size)
 {
   // For the REPL:
-  if (fh_opt_interactive) {
+  if (fh->opt_interactive) {
 #ifdef fh_no_repl
     fh_error(NULL, E_ERROR, "REPL not available. Build with readline.");
 #else
@@ -929,30 +927,21 @@ fh_get_input(char *buf, int size)
 js_val *
 fh_eval_file(FILE *file, js_val *ctx, int is_repl)
 {
-  // This may be called during evaluation, so we need
-  // to keep track of the globals.
-  ast_node *root_ = root;
-  int interactive_ = fh_opt_interactive;
-  fh_opt_interactive = is_repl;
-
   yyrestart(file);
   yyparse();
 
-  if (fh_opt_print_ast) 
+  if (fh->opt_print_ast) 
     print_node(root, true, 0);
 
   js_val *res = fh_eval(ctx, root);
-
-  // Reset the originals
-  root = root_;
-  fh_opt_interactive = interactive_;
-
   return res;
 }
 
 int
 main(int argc, char **argv)
 {
+  fh = fh_new_global_state();
+
   int c = 0, fakeind = 0, optind = 1;
   static struct option long_options[] = {
     {"version", no_argument, NULL, 'v'},
@@ -968,9 +957,9 @@ main(int argc, char **argv)
       case 0: break;
       case 'v': print_version(); return 0;
       case 'h': print_help(); return 0;
-      case 'i': fh_opt_interactive = true; break;
-      case 'n': fh_opt_print_ast = true; break;
-      case 't': fh_opt_print_tokens = true; break;
+      case 'i': fh->opt_interactive = true; break;
+      case 'n': fh->opt_print_ast = true; break;
+      case 't': fh->opt_print_tokens = true; break;
       default: break;
     }
     optind++;
@@ -979,21 +968,21 @@ main(int argc, char **argv)
   FILE *source;
   if (optind < argc)
     source = fopen(argv[optind], "r");
-  else if (!isatty(fileno(stdin)) && !fh_opt_interactive)
+  else if (!isatty(fileno(stdin)) && !fh->opt_interactive)
     source = stdin;
   else 
-    fh_opt_interactive = true;
+    fh->opt_interactive = true;
 
   // Bootstrap our runtime
-  js_val *global = fh_bootstrap();
+  fh->global = fh_bootstrap();
 
   // We can operate as a REPL or in file/stdin mode.
-  if (fh_opt_interactive) {
+  if (fh->opt_interactive) {
     print_startup();
     while (true)
-      DEBUG(fh_eval_file(source, global, true));
+      DEBUG(fh_eval_file(source, fh->global, true));
   } else {
-    fh_eval_file(source, global, false);
+    fh_eval_file(source, fh->global, false);
   }
 
   return 0;

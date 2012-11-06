@@ -117,9 +117,9 @@ print_node(ast_node *node, bool rec, int depth)
     case NODE_DOWHILE:     printf("dowhile"); break;
     case NODE_ELISION:     printf("elision"); break;
     case NODE_EL_LST:      printf("element list"); break;
-    case NODE_EMPT_STMT:   printf("empty eval_statement"); break;
+    case NODE_EMPT_STMT:   printf("empty statement"); break;
     case NODE_EXPGRP:      printf("expression group"); break;
-    case NODE_EXP_STMT:    printf("expression eval_statement"); break;
+    case NODE_EXP_STMT:    printf("expression statement"); break;
     case NODE_FINALLY:     printf("finally"); break;
     case NODE_FOR:         printf("for"); break;
     case NODE_FORIN:       printf("for-in"); break;
@@ -133,17 +133,17 @@ print_node(ast_node *node, bool rec, int depth)
     case NODE_PROP_LST:    printf("property list"); break;
     case NODE_RETURN:      printf("return"); break;
     case NODE_SRC_LST:     printf("source list"); break;
-    case NODE_STMT_LST:    printf("eval_statement list"); break;
-    case NODE_SWITCH_STMT: printf("switch eval_statement"); break;
+    case NODE_STMT_LST:    printf("statement list"); break;
+    case NODE_SWITCH_STMT: printf("switch statement"); break;
     case NODE_TERN:        printf("conditional expression"); break;
     case NODE_THIS:        printf("this"); break;
     case NODE_THROW:       printf("throw"); break;
-    case NODE_TRY_STMT:    printf("try eval_statement"); break;
+    case NODE_TRY_STMT:    printf("try statement"); break;
     case NODE_VAR_DEC:     printf("variable declaration"); break;
     case NODE_VAR_DEC_LST: printf("variable declaration list"); break;
-    case NODE_VAR_STMT:    printf("variable eval_statement"); break;
+    case NODE_VAR_STMT:    printf("variable statement"); break;
     case NODE_WHILE:       printf("while"); break;
-    case NODE_WITH_STMT:   printf("with eval_statement"); break;
+    case NODE_WITH_STMT:   printf("with statement"); break;
 
     // Literals
     case NODE_BOOL:        printf("bool (%d)\n", (int)node->val); return;

@@ -10,16 +10,32 @@ var assertEquals = function(a, b) {
   assert(a === b);
 };
 
+var once = function(f) {
+  var called = false;
+  return function() {
+    if (!called) f();
+    called = true;
+  };
+};
+
+var timezoneWarn = once(function() {
+  console.log('warning: tz-specific assertion skipped');
+});
+
 var assertEqualsWhen = function(a, b, tzOffset) {
   if ((new Date()).getTimezoneOffset() === tzOffset)
     assertEquals(a, b);
   else
-    console.log('warning: tz-specific assertion skipped');
+    timezoneWarn();
 };
 
 // This assertion will only be made when the timezone is EDT (offset +240 min)
 var assertEqualsWhenEDT = function(a, b) {
   assertEqualsWhen(a, b, 240);
+};
+
+var assertEqualsWhenEST = function(a, b) {
+  assertEqualsWhen(a, b, 300);
 };
 
 var test = function(name, f) {
@@ -125,6 +141,11 @@ test('Date#toDateString()', function() {
   assertEqualsWhenEDT('Mon May 07 1990', d2.toDateString());
   assertEqualsWhenEDT('Wed Jun 28 2000', d3.toDateString());
   assertEqualsWhenEDT('Thu Dec 25 2149', d4.toDateString());
+
+  assertEqualsWhenEST('Thu Jan 01 1970', d1.toDateString());
+  assertEqualsWhenEST('Mon May 07 1990', d2.toDateString());
+  assertEqualsWhenEST('Wed Jun 28 2000', d3.toDateString());
+  assertEqualsWhenEST('Thu Dec 25 2149', d4.toDateString());
 });
 
 test('Date#toISOString()', function() {
