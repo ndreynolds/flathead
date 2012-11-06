@@ -114,11 +114,15 @@ fh_connect_prototypes(js_val *global)
   // does not exist when the Object# methods are defined.
   js_val *obj_proto = fh_get(fh_get(global, "Object"), "prototype");
   js_val *func_proto = fh_get(fh_get(global, "Function"), "prototype");
+
   js_prop *prop;
   OBJ_ITER(obj_proto, prop) {
     if (prop->ptr && IS_FUNC(prop->ptr) && prop->ptr->function.is_native)
       prop->ptr->proto = func_proto;
   }
+
+  fh->object_proto = obj_proto;
+  fh->function_proto = func_proto;
 }
 
 js_val *

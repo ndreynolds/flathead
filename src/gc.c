@@ -191,8 +191,7 @@ fh_gc_free_val(js_val *val)
 {
   /*
   // Free the object hashtable 
-  // TODO: just objects?
-  if (val->type == T_OBJECT) {
+  if (val->map) {
     js_prop *prop, *tmp;
     HASH_ITER(hh, val->map, prop, tmp) {
       HASH_DEL(val->map, prop);
@@ -200,6 +199,7 @@ fh_gc_free_val(js_val *val)
     }
   }
   */
+
   // Free any strings (dynamically alloc-ed outside slots)
   if (IS_STR(val) && val->string.ptr != NULL) {
     free(val->string.ptr);

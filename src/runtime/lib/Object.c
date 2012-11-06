@@ -237,7 +237,8 @@ obj_proto_to_locale_string(js_val *instance, js_args *args, eval_state *state)
 js_val *
 obj_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 {
-  return JSSTR("[object Object]");
+  char *class = TO_OBJ(state->this)->object.class;
+  return JSSTR(fh_str_concat(fh_str_concat("[object ", class), "]"));
 }
 
 // Object.prototype.valueOf()

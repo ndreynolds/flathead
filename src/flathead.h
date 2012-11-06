@@ -189,6 +189,7 @@ struct js_object {
   bool frozen;
   bool sealed;
   bool extensible;
+  char class[10];
   struct js_val *wraps;
   struct js_val *parent;
 };
@@ -246,11 +247,20 @@ int fh_arg_len(js_args*);
 
 js_val * fh_eval_file(FILE *, js_val *, int);
 js_val * fh_try_get_proto(char *);
+
+bool fh_is_callable(js_val *);
+js_val * fh_to_primitive(js_val *, js_type);
+js_val * fh_to_number(js_val *);
+js_val * fh_to_string(js_val *);
+js_val * fh_to_boolean(js_val *);
+js_val * fh_to_object(js_val *);
 js_val * fh_cast(js_val *, js_type);
+
 js_val * fh_has_instance(js_val *, js_val *);
 js_val * fh_has_property(js_val *, char *);
 char * fh_typeof(js_val *);
 void fh_set_len(js_val *, int);
+void fh_set_class(js_val *, char *);
 void fh_error(eval_state *, js_error_type, const char *, ...);
 
 extern fh_state *fh;

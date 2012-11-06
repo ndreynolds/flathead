@@ -143,17 +143,12 @@ fh_new_exp(js_val *ctx, ast_node *exp)
   eval_state *state= fh_new_state(exp->line, exp->column);
   state->construct = true;
 
-  if (!IS_FUNC(ctr)) {
+  if (!IS_FUNC(ctr))
     fh_error(state, E_TYPE, "%s is not a function", fh_typeof(ctr));
-  }
 
-  js_val *res,
-          *obj = JSOBJ(),
-          *proto = fh_get(ctr, "prototype");
+  js_val *res, *obj = JSOBJ(), *proto = fh_get(ctr, "prototype");
 
-  if (IS_OBJ(proto))
-    obj->proto = proto;
-
+  obj->proto = IS_OBJ(proto) || IS_FUNC(proto) ? proto : fh->object_proto;
   res = fh_function_call(ctx, obj, state, ctr, args); 
   return IS_OBJ(res) || IS_FUNC(res) ? res : obj;
 }
@@ -669,36 +664,28 @@ fh_bin_exp(js_val *ctx, ast_node *node)
 js_val *
 fh_add(js_val *a, js_val *b)
 {
-  // Two strings => String
-  if (T_BOTH(a, b, T_STRING))
-    return JSSTR(fh_str_concat(a->string.ptr, b->string.ptr));
+  a = fh_to_primitive(a, T_NUMBER);
+  b = fh_to_primitive(b, T_NUMBER);
 
-  // Two numbers => Number
-  if (T_BOTH(a, b, T_NUMBER)) {
-    if (a->number.is_nan || b->number.is_nan) return JSNAN();
-    return JSNUM(a->number.val + b->number.val);
-  }
+  if (IS_STR(a) || IS_STR(b))
+    return JSSTR(fh_str_concat(TO_STR(a)->string.ptr, TO_STR(b)->string.ptr));
 
-  // String and (null|undefined|Boolean|Number) => String
-  if (T_XOR(a, b, T_NULL, T_STRING) || 
-      T_XOR(a, b, T_BOOLEAN, T_STRING) ||
-      T_XOR(a, b, T_NUMBER, T_STRING) ||
-      T_XOR(a, b, T_UNDEF, T_STRING))
-    return fh_add(TO_STR(a), TO_STR(b));
+  if (!IS_NUM(a) || !IS_NUM(b))
+    return fh_add(TO_NUM(a), TO_NUM(b));
 
-  // Number and undefined => NaN
-  if (T_XOR(a, b, T_NUMBER, T_UNDEF)) 
+  if (IS_NAN(a) || IS_NAN(b))
     return JSNAN();
 
-  // Number and null => Null
-  if (T_XOR(a, b, T_NULL, T_NUMBER))
-    return fh_add(TO_NUM(a), TO_NUM(b));
+  if (IS_INF(a) && IS_INF(b)) {
+    if (a->number.is_neg != b->number.is_neg) return JSNAN();
+    if (a->number.is_neg) return JSNINF();
+    return JSINF();
+  }
 
-  // Number and Boolean => Number
-  if (T_XOR(a, b, T_NUMBER, T_BOOLEAN))
-    return fh_add(TO_NUM(a), TO_NUM(b));
+  if (IS_INF(a)) return a;
+  if (IS_INF(b)) return b;
 
-  UNREACHABLE();
+  return JSNUM(a->number.val + b->number.val);
 }
 
 js_val *
@@ -754,36 +741,39 @@ fh_eq(js_val *a, js_val *b, bool strict)
   // Strict equality on different types is always false
   if (a->type != b->type && strict) return JSBOOL(0);
 
-  // false != null
-  if (T_XOR(a, b, T_NULL, T_BOOLEAN)) return JSBOOL(0);
-  if (T_XOR(a, b, T_NULL, T_OBJECT)) return JSBOOL(0);
-  if (T_XOR(a, b, T_UNDEF, T_NULL)) return JSBOOL(1);
-  if (T_BOTH(a, b, T_NULL) || T_BOTH(a, b, T_UNDEF)) return JSBOOL(1);
-  if (T_BOTH(a, b, T_STRING))
-    return JSBOOL(STREQ(a->string.ptr, b->string.ptr));
-  if (T_BOTH(a, b, T_NUMBER)) {
-    // Nothing equals NaN
-    if (a->number.is_nan || b->number.is_nan) return JSBOOL(0);
-    if (a->number.is_inf || b->number.is_inf) {
-      if (a->number.is_inf && b->number.is_inf && 
-          a->number.is_neg == b->number.is_neg) 
-        return JSBOOL(1);
+  // Same type
+  if (a->type == b->type) {
+    if (IS_UNDEF(a) || IS_NULL(a)) return JSBOOL(1);
+    if (IS_NUM(a)) {
+      if (IS_NAN(a) || IS_NAN(b)) return JSBOOL(0);
+      if (a->number.val == b->number.val) return JSBOOL(1);
       return JSBOOL(0);
     }
-    return JSBOOL(a->number.val == b->number.val);
-  }
-  // Objects are equal if they occupy the same memory address
-  if (T_BOTH(a, b, T_OBJECT) || T_BOTH(a, b, T_FUNCTION))
+    if (IS_STR(a))
+      return JSBOOL(STREQ(a->string.ptr, b->string.ptr));
+    if (IS_BOOL(a))
+      return JSBOOL(a->boolean.val == b->boolean.val);
+    // Functions & Objects (must be same ref)
     return JSBOOL(a == b);
+  }
 
-  // At this point, if one of our arguments is a wrapper object, try
-  // again using the primitive value.
-  if (IS_OBJ(a) && a->object.wraps)
-    return fh_eq(a->object.wraps, b, false);
-  if (IS_OBJ(b) && b->object.wraps)
-    return fh_eq(a, b->object.wraps, false);
+  // null == undefined
+  if ((IS_UNDEF(a) && IS_NULL(b)) || (IS_NULL(a) && IS_UNDEF(b)))
+    return JSBOOL(1);
 
-  return fh_eq(TO_NUM(a), TO_NUM(b), false);
+  // Convert and try again
+  if ((IS_NUM(a) && IS_STR(b)) || (IS_STR(a) && IS_NUM(b)))
+    return fh_eq(TO_NUM(a), TO_NUM(b), strict);
+  if (IS_BOOL(a))
+    return fh_eq(TO_NUM(a), b, strict);
+  if (IS_BOOL(b))
+    return fh_eq(TO_NUM(b), a, strict);
+  if ((IS_STR(a) || IS_NUM(a)) && (IS_OBJ(b) || IS_FUNC(b)))
+    return fh_eq(a, fh_to_primitive(b, T_NUMBER), strict);
+  if ((IS_OBJ(a) || IS_FUNC(a)) && (IS_STR(b) || IS_NUM(b)))
+    return fh_eq(fh_to_primitive(a, T_NUMBER), b, strict);
+
+  return JSBOOL(0);
 }
 
 js_val *

@@ -52,6 +52,7 @@ date_new(js_val *instance, js_args *args, eval_state *state)
     utc = JSNUM(utc_time(ms_from_args(args)));
   }
 
+  fh_set_class(state->this, "Date");
   state->this->object.wraps = utc;
   return state->this;
 }

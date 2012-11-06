@@ -21,6 +21,7 @@
 #include "debug.h"
 #include "str.h"
 #include "gc.h"
+#include "eval.h"
 
 
 // ----------------------------------------------------------------------------
@@ -83,6 +84,7 @@ fh_new_object()
 {
   js_val *val = fh_new_val(T_OBJECT);
 
+  strcpy(val->object.class, "Object");
   val->object.length = 0;
   val->object.is_array = false;
   val->object.frozen = false;
@@ -100,6 +102,7 @@ fh_new_array()
 {
   js_val *val = fh_new_object();
 
+  strcpy(val->object.class, "Array");
   val->object.is_array = true;
   val->proto = fh_try_get_proto("Array");
   fh_set_len(val, 0);
@@ -140,6 +143,7 @@ fh_new_regexp(char *re)
 {
   js_val *val = fh_new_val(T_OBJECT);
 
+  strcpy(val->object.class, "RegExp");
   val->object.is_regexp = true;
   val->proto = fh_try_get_proto("RegExp");
 
@@ -235,94 +239,138 @@ fh_new_args(js_val *arg1, js_val *arg2, js_val *arg3)
 
 
 // ----------------------------------------------------------------------------
-// Value Casting
+// Value Checks & Casting
 // ----------------------------------------------------------------------------
+
+bool
+fh_is_callable(js_val *val)
+{
+  return IS_FUNC(val);
+}
+
+js_val *
+fh_to_primitive(js_val *val, js_type hint)
+{
+  if (!(IS_OBJ(val) || IS_FUNC(val))) return val;
+
+  // This is the [[DefaultValue]] implementation.
+  //
+  // We'll look for the 'valueOf' and 'toString' props, using the hint to
+  // determine that order, and return with the result of calling the first of
+  // them that is callable, or a type error otherwise.
+  //
+  // TODO: handle Date special case
+
+  js_val *maybe_func;
+  char *types[2] = {"valueOf", "toString"};
+  int i, reverse = hint == T_STRING ? 1 : 0;
+
+  for (i = reverse; i <= 1 && i >= 0; reverse ? i-- : i++) {
+    maybe_func = fh_get_proto(val, types[i]);
+    if (fh_is_callable(maybe_func)) {
+      eval_state *state = fh_new_state(0, 0);
+      js_args *args = fh_new_args(0, 0, 0);
+      js_val *res = fh_function_call(fh->global, val, state, maybe_func, args);
+      if (!IS_OBJ(res) && !IS_FUNC(res))
+        return res;
+    }
+  }
+  fh_error(NULL, E_TYPE, "cannot convert to primitive");
+  UNREACHABLE();
+}
+
+js_val *
+fh_to_number(js_val *val)
+{
+  if (IS_UNDEF(val)) return JSNAN();
+  if (IS_NULL(val)) return JSNUM(0);
+  if (IS_BOOL(val)) {
+    if (val->boolean.val == 0) return JSNUM(0);
+    return JSNUM(1);
+  }
+  if (IS_STR(val)) {
+    // TODO: check spec
+    char *err;
+    double d = strtod(val->string.ptr, &err);
+    if (*err != 0) return JSNAN();
+    return JSNUM(d);
+  }
+  if (IS_OBJ(val))
+    return fh_to_number(fh_to_primitive(val, T_NUMBER));
+
+  return val;
+}
+
+js_val *
+fh_to_string(js_val *val)
+{
+  if (IS_UNDEF(val)) return JSSTR("undefined");
+  if (IS_NULL(val)) return JSSTR("null");
+  if (IS_BOOL(val)) {
+    if (val->boolean.val == 1) return JSSTR("true");
+    return JSSTR("false");
+  }
+  if (IS_NUM(val)) {
+    // TODO: check spec
+    if (val->number.is_nan) return JSSTR("NaN");
+    if (val->number.is_inf) return JSSTR("Infinity");
+    int size = snprintf(NULL, 0, "%g", val->number.val) + 1;
+    char *num = malloc(size);
+    snprintf(num, size, "%g", val->number.val);
+    return JSSTR(num);
+  }
+  if (IS_OBJ(val))
+    return fh_to_string(fh_to_primitive(val, T_STRING));
+
+  return val;
+}
+
+js_val *
+fh_to_object(js_val *val)
+{
+  if (IS_UNDEF(val) || IS_NULL(val))
+    fh_error(NULL, E_TYPE, "cannot convert to object");
+  if (IS_OBJ(val) || IS_FUNC(val))
+    return val;
+
+  js_val *obj = JSOBJ();
+  obj->object.wraps = val;
+  if (IS_BOOL(val))
+    strcpy(obj->object.class, "Boolean");
+  if (IS_NUM(val))
+    strcpy(obj->object.class, "Number");
+  if (IS_STR(val))
+    strcpy(obj->object.class, "String");
+  return obj;
+}
+
+js_val *
+fh_to_boolean(js_val *val)
+{
+  if (IS_UNDEF(val) || IS_NULL(val)) 
+    return JSBOOL(0);
+  if (IS_NUM(val))
+    return JSBOOL(!IS_NAN(val) && val->number.val != 0);
+  if (IS_STR(val))
+    return JSBOOL(val->string.length != 0);
+  if (IS_OBJ(val) || IS_FUNC(val))
+    return JSBOOL(1);
+  return val;
+}
 
 js_val *
 fh_cast(js_val *val, js_type type)
 {
   if (val->type == type) return val;
-  if (type == T_NULL) return JSNULL();
-  if (type == T_UNDEF) return JSUNDEF();
 
-  // Number => x
-  if (val->type == T_NUMBER) {
-    if (type == T_STRING) {
-      if (val->number.is_nan) return JSSTR("NaN");
-      if (val->number.is_inf) return JSSTR("Infinity");
-      int size = snprintf(NULL, 0, "%g", val->number.val) + 1;
-      char *num = malloc(size);
-      snprintf(num, size, "%g", val->number.val);
-      return JSSTR(num);
-    }
-    if (type == T_BOOLEAN) {
-      // O is false, x < 0 & x > 0 true
-      if (val->number.val == 0) return JSBOOL(0);
-      return JSBOOL(1);
-    }
+  switch(type) {
+    case T_NULL: return JSNULL();
+    case T_UNDEF: return JSUNDEF();
+    case T_STRING: return fh_to_string(val);
+    case T_NUMBER: return fh_to_number(val);
+    case T_BOOLEAN: return fh_to_boolean(val);
+    default: return fh_to_object(val);
   }
-
-  // String => x
-  if (val->type == T_STRING) {
-    if (type == T_NUMBER) {
-      char *err;
-      double d = strtod(val->string.ptr, &err);
-      if (*err != 0) return JSNAN();
-      return JSNUM(d);
-    }
-    if (type == T_BOOLEAN) {
-      // "" is false, all others true
-      if (val->string.length == 0) return JSBOOL(0);
-      return JSBOOL(1);
-    }
-  }
-
-  // Boolean => x
-  if (val->type == T_BOOLEAN) {
-    if (type == T_STRING) {
-      if (val->boolean.val == 1) return JSSTR("true");
-      return JSSTR("false");
-    }
-    if (type == T_NUMBER) {
-      if (val->boolean.val == 1) return JSNUM(1);
-      return JSNUM(0);
-    }
-  }
-
-  // Object => x
-  if (val->type == T_OBJECT) {
-    if (type == T_BOOLEAN) return JSBOOL(1);
-    if (type == T_NUMBER) {
-      if (val->object.is_array) return JSNUM(0);
-      return JSNAN();
-    }
-    // TODO: Call Object.toString()
-    if (type == T_STRING) return JSSTR("[Object object]");
-  }
-
-  // Function => x
-  if (val->type == T_FUNCTION) {
-    if (type == T_BOOLEAN) return JSBOOL(1);
-    if (type == T_NUMBER) return JSNAN();
-    // TODO: Call Function.toString()
-    if (type == T_STRING) return JSSTR("[Function]");
-  }
-
-  // null => x
-  if (val->type == T_NULL) {
-    if (type == T_STRING) return JSSTR("null");
-    if (type == T_NUMBER) return JSNUM(0);
-    if (type == T_BOOLEAN) return JSBOOL(0);
-  }
-
-  // undefined => x
-  if (val->type == T_UNDEF) {
-    if (type == T_STRING) return JSSTR("undefined");
-    if (type == T_NUMBER) return JSNAN();
-    if (type == T_BOOLEAN) return JSBOOL(0);
-  }
-
-  UNREACHABLE();
 }
 
 
@@ -446,4 +494,10 @@ fh_set_len(js_val *val, int len)
   if (IS_ARR(val))
     val->object.length = len;
   fh_set_prop(val, "length", JSNUM(len), P_BUILTIN);
+}
+
+void
+fh_set_class(js_val *obj, char *class)
+{
+  strcpy(obj->object.class, class);
 }
