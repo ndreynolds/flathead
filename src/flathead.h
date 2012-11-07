@@ -39,8 +39,8 @@
 #define JSUNDEF()      fh_new_val(T_UNDEF)
 #define JSNUM(x)       fh_new_number((x),0,0,0)
 #define JSNAN()        fh_new_number(0,1,0,0)
-#define JSINF(n)       fh_new_number(INT_MAX,0,1,0)
-#define JSNINF(n)      fh_new_number(-INT_MAX,0,1,1)
+#define JSINF(n)       fh_new_number(INFINITY,0,1,0)
+#define JSNINF(n)      fh_new_number(-INFINITY,0,1,1)
 #define JSOBJ()        fh_new_object()
 #define JSARR()        fh_new_array()
 #define JSFUNC(x)      fh_new_function(x)
@@ -259,7 +259,7 @@ js_val * fh_cast(js_val *, js_type);
 js_val * fh_has_instance(js_val *, js_val *);
 js_val * fh_has_property(js_val *, char *);
 char * fh_typeof(js_val *);
-void fh_set_len(js_val *, int);
+void fh_set_len(js_val *, unsigned long);
 void fh_set_class(js_val *, char *);
 void fh_error(eval_state *, js_error_type, const char *, ...);
 

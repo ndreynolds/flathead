@@ -501,6 +501,7 @@ fh_setup_func_env(js_val *ctx, js_val *this, js_val *func, js_args *args)
   int i, arglen = ARGLEN(args);
   for (i = 0; i < arglen; i++)
     fh_set(arguments, JSNUMKEY(i)->string.ptr, ARG(args, i));
+  fh_set_class(arguments, "Arguments");
   fh_set(arguments, "callee", func);
   fh_set(arguments, "length", JSNUM(arglen));
 
@@ -691,29 +692,40 @@ fh_add(js_val *a, js_val *b)
 js_val *
 fh_sub(js_val *a, js_val *b)
 {
-  if (T_BOTH(a, b, T_NUMBER)) {
-    // Subtraction on NaN or Infinity results in NaN
-    if (a->number.is_nan || b->number.is_nan) return JSNAN();
-    if (a->number.is_inf || b->number.is_inf) return JSNAN();
-    return JSNUM(a->number.val - b->number.val);
-  }
-  return fh_sub(TO_NUM(a), TO_NUM(b));
+  // a - b  <==>  a + (-b)
+  return fh_add(TO_NUM(a), JSNUM(-1 * TO_NUM(b)->number.val));
 }
 
 js_val *
 fh_mul(js_val *a, js_val *b)
 {
-  if (T_BOTH(a, b, T_NUMBER)) {
-    if (a->number.is_nan || b->number.is_nan) return JSNAN();
-    if (a->number.is_inf || b->number.is_inf) return JSNAN();
-    return JSNUM(a->number.val * b->number.val);
+  a = TO_NUM(a), b = TO_NUM(b);
+
+  if (IS_NAN(a) || IS_NAN(b)) return JSNAN();
+  if (IS_INF(a) || IS_INF(b)) {
+    if (IS_INF(a) && IS_INF(b))
+      return a->number.is_neg == b->number.is_neg ? JSINF() : JSNINF();
+
+    js_val *fin = IS_INF(a) ? b : a;
+    js_val *inf = IS_INF(a) ? a : b;
+
+    if (fin->number.val == 0) return JSNAN();
+    return (fin->number.val < 0) == inf->number.is_neg ? JSINF() : JSNINF();
   }
-  return fh_mul(TO_NUM(a), TO_NUM(b));
+
+  return JSNUM(a->number.val * b->number.val);
 }
 
 js_val *
 fh_div(js_val *a, js_val *b)
 {
+  a = TO_NUM(a), b = TO_NUM(b);
+
+  if (IS_NAN(a) || IS_NAN(b)) return JSNAN();
+  if (IS_INF(a) && IS_INF(b)) return JSNAN();
+  if (IS_INF(a))
+    return a->number.is_neg ? JSNINF() : JSINF();
+
   if (T_BOTH(a, b, T_NUMBER)) {
     if (a->number.is_nan || b->number.is_nan) return JSNAN();
     if (a->number.is_inf || b->number.is_inf) return JSNAN();

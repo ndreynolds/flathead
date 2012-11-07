@@ -32,9 +32,9 @@ js_val * arr_proto_some(js_val *, js_args *, eval_state *);
 js_val * arr_proto_reduce(js_val *, js_args *, eval_state *);
 js_val * arr_proto_reduce_right(js_val *, js_args *, eval_state *);
 
-void arr_merge_sort(js_prop **, int);
-void arr_merge(js_prop **, js_prop **, int, int, js_prop **);
-void arr_recur(js_prop **, js_prop **, int);
+void arr_merge_sort(js_prop **, unsigned long);
+void arr_merge(js_prop **, js_prop **, unsigned long, unsigned long, js_prop **);
+void arr_recur(js_prop **, js_prop **, unsigned long);
 int arr_cmp(js_prop *, js_prop *);
 int arr_cmp_js(js_prop *, js_prop *);
 int arr_lex_sort(js_prop *, js_prop *);

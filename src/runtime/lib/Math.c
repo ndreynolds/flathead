@@ -230,6 +230,8 @@ bootstrap_math()
 
   js_val *math = JSOBJ();
 
+  fh_set_class(math, "Math");
+
   // Properties
   BUILTIN(math, "E", JSNUM(M_E));
   BUILTIN(math, "LN2", JSNUM(M_LN2));

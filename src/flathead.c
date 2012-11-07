@@ -16,6 +16,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <math.h>
+
 #include "flathead.h"
 #include "props.h"
 #include "debug.h"
@@ -45,6 +47,13 @@ js_val *
 fh_new_number(double x, bool is_nan, bool is_inf, bool is_neg)
 {
   js_val *val = fh_new_val(T_NUMBER);
+
+  if (isnan(x)) 
+    is_nan = true;
+  if (isinf(x)) {
+    is_inf = true;
+    is_neg = x < 0;
+  }
 
   val->number.val = x;
   val->number.is_nan = is_nan;
@@ -84,7 +93,7 @@ fh_new_object()
 {
   js_val *val = fh_new_val(T_OBJECT);
 
-  strcpy(val->object.class, "Object");
+  fh_set_class(val, "Object");
   val->object.length = 0;
   val->object.is_array = false;
   val->object.frozen = false;
@@ -102,7 +111,7 @@ fh_new_array()
 {
   js_val *val = fh_new_object();
 
-  strcpy(val->object.class, "Array");
+  fh_set_class(val, "Array");
   val->object.is_array = true;
   val->proto = fh_try_get_proto("Array");
   fh_set_len(val, 0);
@@ -143,7 +152,7 @@ fh_new_regexp(char *re)
 {
   js_val *val = fh_new_val(T_OBJECT);
 
-  strcpy(val->object.class, "RegExp");
+  fh_set_class(val, "RegExp");
   val->object.is_regexp = true;
   val->proto = fh_try_get_proto("RegExp");
 
@@ -336,11 +345,11 @@ fh_to_object(js_val *val)
   js_val *obj = JSOBJ();
   obj->object.wraps = val;
   if (IS_BOOL(val))
-    strcpy(obj->object.class, "Boolean");
+    fh_set_class(obj, "Boolean");
   if (IS_NUM(val))
-    strcpy(obj->object.class, "Number");
+    fh_set_class(obj, "Number");
   if (IS_STR(val))
-    strcpy(obj->object.class, "String");
+    fh_set_class(obj, "String");
   return obj;
 }
 
@@ -476,18 +485,20 @@ int
 fh_arg_len(js_args *args)
 {
   int i = 0;
-  while (true)
+  while (i < INT_MAX)
   {
     if (args == NULL) return i;
     if (args->arg != NULL) i++;
     if (args->next == NULL) break;
     args = args->next;
   }
+  if (i == INT_MAX)
+    fh_error(NULL, E_RANGE, "too many arguments");
   return i;
 }
 
 void
-fh_set_len(js_val *val, int len)
+fh_set_len(js_val *val, unsigned long len)
 {
   if (IS_STR(val))
     val->string.length = len;

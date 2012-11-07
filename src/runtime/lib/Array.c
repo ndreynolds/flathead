@@ -32,7 +32,7 @@ arr_new(js_val *instance, js_args *args, eval_state *state)
   if (ARGLEN(args) == 1 && IS_NUM(ARG(args, 0))) {
     double len = ARG(args, 0)->number.val;
     // Must be positive integer less than 2^32 - 1
-    if (len < 0 || len > LONG_MAX || fmod(len, 1) != 0) {
+    if (len < 0 || len >= ULONG_MAX || fmod(len, 1) != 0) {
       fh_error(state, E_RANGE, "Invalid array length");
     }
     fh_set_len(arr, len);
@@ -40,6 +40,9 @@ arr_new(js_val *instance, js_args *args, eval_state *state)
   }
 
   // Create array of elements
+
+  // Although arrays can be up to 2^32 - 1 in length, the number of
+  // arguments may not exceed 2^15 - 1 (INT_MAX).
   int i;
   for (i = 0; i < ARGLEN(args); i++) {
     fh_set(arr, JSNUMKEY(i)->string.ptr, ARG(args, i));
@@ -60,7 +63,7 @@ arr_is_array(js_val *instance, js_args *args, eval_state *state)
 js_val *
 arr_proto_pop(js_val *instance, js_args *args, eval_state *state)
 {
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
   if (len == 0) return JSUNDEF();
 
   js_val *key = JSNUMKEY(len-1);
@@ -270,10 +273,9 @@ arr_proto_unshift(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *newarr = JSARR();
   int nargs = ARGLEN(args);
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
 
-  int i = 0;
-  int j = 0;
+  unsigned long i = 0, j = 0;
 
   // Add the args
   for (; i < nargs; i++) {
@@ -300,12 +302,12 @@ js_val *
 arr_proto_concat(js_val *instance, js_args *args, eval_state *state)
 {
   int nargs = ARGLEN(args);
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
   js_val *concat = JSARR();
   js_val *key;
 
-  int i = 0; // newarr index
-  int j = 0; // args index
+  unsigned long i = 0, // newarr index
+                j = 0; // args index
 
   // Add the current array to the new array.
   for (; i < len; i++) {
@@ -320,7 +322,7 @@ arr_proto_concat(js_val *instance, js_args *args, eval_state *state)
     arg = ARG(args, j);
     // Extract array elements one level deep.
     if (IS_ARR(arg)) {
-      int k;
+      unsigned long k;
       js_val *inner_key;
       for (k = 0; k < arg->object.length; k++) {
         key = JSNUMKEY(i);
@@ -353,11 +355,11 @@ arr_proto_slice(js_val *instance, js_args *args, eval_state *state)
   js_val *begin = ARG(args, 0);
   js_val *end = ARG(args, 1);
   js_val *slice = JSARR();
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
 
-  int i = 0;
-  int j = begin->number.val;
-  int k = IS_UNDEF(end) ? len : end->number.val;
+  unsigned long i = 0;
+  unsigned long j = begin->number.val;
+  unsigned long k = IS_UNDEF(end) ? len : end->number.val;
 
   // Handle negative offsets
   if (j < 0) j = len + j;
@@ -391,9 +393,9 @@ arr_proto_index_of(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *search = ARG(args, 0);
   js_val *from = ARG(args, 1);
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
 
-  int i = 0;
+  unsigned long i = 0;
   if (IS_NUM(from)) {
     if (from->number.val < 0)
       i = len + from->number.val;
@@ -419,9 +421,9 @@ arr_proto_last_index_of(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *search = ARG(args, 0);
   js_val *from = ARG(args, 1);
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
 
-  int i = len - 1;
+  double i = len - 1;
   if (IS_NUM(from)) {
     if (from->number.val < 0)
       i = len + from->number.val;
@@ -448,11 +450,11 @@ arr_proto_filter(js_val *instance, js_args *args, eval_state *state)
   js_val *callback = ARG(args, 0);
   js_val *this = ARG(args, 1);
   js_val *filtered = JSARR();
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
 
   js_val *ikey, *jkey, *val, *result;
   js_args *cbargs;
-  int i = 0, j = 0;
+  unsigned long i = 0, j = 0;
   for (; i < len; i++) {
     ikey = JSNUMKEY(i);
     val = fh_get(instance, ikey->string.ptr);
@@ -474,11 +476,11 @@ arr_proto_for_each(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *callback = ARG(args, 0);
   js_val *this = ARG(args, 1);
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
 
   js_val *key, *val;
   js_args *cbargs;
-  int i;
+  unsigned long i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
@@ -495,11 +497,11 @@ arr_proto_every(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *callback = ARG(args, 0);
   js_val *this = ARG(args, 1);
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
 
   js_val *key, *val, *result;
   js_args *cbargs;
-  int i;
+  unsigned long i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
@@ -518,12 +520,12 @@ arr_proto_map(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *callback = ARG(args, 0);
   js_val *this = ARG(args, 1);
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
   js_val *map = JSARR();
 
   js_val *key, *val, *result;
   js_args *cbargs;
-  int i;
+  unsigned long i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
@@ -542,11 +544,11 @@ arr_proto_some(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *callback = ARG(args, 0);
   js_val *this = ARG(args, 1);
-  int len = instance->object.length;
+  unsigned long len = instance->object.length;
 
   js_val *key, *val, *result;
   js_args *cbargs;
-  int i;
+  unsigned long i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
@@ -565,8 +567,7 @@ arr_proto_reduce(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *callback = ARG(args, 0);
   js_val *reduction = ARG(args, 1);
-  int len = instance->object.length;
-  int i = 0;
+  unsigned long i = 0, len = instance->object.length;
 
   if (IS_UNDEF(reduction)) { 
     reduction = fh_get(instance, "0");
@@ -591,8 +592,8 @@ arr_proto_reduce_right(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *callback = ARG(args, 0);
   js_val *reduction = ARG(args, 1);
-  int len = instance->object.length;
-  int i = len - 1;
+  unsigned long len = instance->object.length;
+  unsigned long i = len - 1;
 
   if (IS_UNDEF(reduction)) { 
     reduction = fh_get(instance, JSNUMKEY(len-1)->string.ptr);
@@ -612,9 +613,10 @@ arr_proto_reduce_right(js_val *instance, js_args *args, eval_state *state)
 }
 
 void 
-arr_merge(js_prop **left, js_prop **right, int l_len, int r_len, js_prop **out)
+arr_merge(js_prop **left, js_prop **right, 
+          unsigned long l_len, unsigned long r_len, js_prop **out)
 {
-  int i, j, k;
+  unsigned long i, j, k;
   for (i = j = k = 0; i < l_len && j < r_len; )
     out[k++] = arr_cmp_func(left[i], right[j]) ? left[i++] : right[j++];
 
@@ -623,9 +625,9 @@ arr_merge(js_prop **left, js_prop **right, int l_len, int r_len, js_prop **out)
 }
  
 void 
-arr_recur(js_prop **arr, js_prop **tmp, int len)
+arr_recur(js_prop **arr, js_prop **tmp, unsigned long len)
 {
-  int l = len / 2;
+  long l = len / 2;
   if (len <= 1) return;
 
   arr_recur(tmp, arr, l);
@@ -635,7 +637,7 @@ arr_recur(js_prop **arr, js_prop **tmp, int len)
 }
  
 void 
-arr_merge_sort(js_prop **arr, int len)
+arr_merge_sort(js_prop **arr, unsigned long len)
 {
   js_prop **tmp = malloc(sizeof(js_prop *) * len);
   memcpy(tmp, arr, sizeof(js_prop *) * len);

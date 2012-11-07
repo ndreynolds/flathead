@@ -3,7 +3,14 @@
 
 var assert = console.assert;
 
-var assertObjectEquals = function(a, b) {
+var assertEquals = function(a, b) {
+  if (a !== b)
+    console.log(a + ' !== ' + b);
+  assert(a === b);
+};
+
+var test = function(name, f) {
+  f();
 };
 
 
@@ -14,91 +21,121 @@ var assertObjectEquals = function(a, b) {
 assert(Object);
 assert(typeof Object === 'function');
 
+test('Constructor', function() {
+  // TODO
+});
+
+test('Object.create()', function() {
+  var newObj = Object.create(Object.prototype, {
+    foo: {writable: true, configurable: true, value: 'hello'},
+    bar: {configurable: false, value: 'and'},
+    baz: {enumerable: true, value: 'goodbye'}
+  });
+
+  assert(newObj.foo === 'hello');
+  assert(newObj.bar === 'and');
+  assert(newObj.baz === 'goodbye');
+});
+
 var obj = { a: 1, b: 2, c:3 };
 
+test('Object.defineProperty(obj, descriptor)', function() {
+  // This one isn't enumerable.
+  Object.defineProperty(obj, 'd', { value: 4 });
+  assert(obj.d === 4);
 
-// Object.create()
-
-var newObj = Object.create(Object.prototype, {
-  foo: {writable: true, configurable: true, value: 'hello'},
-  bar: {configurable: false, value: 'and'},
-  baz: {enumerable: true, value: 'goodbye'}
+  // This one is.
+  Object.defineProperty(obj, 'e', { value: 5, enumerable: true });
+  assert(obj.e === 5);
 });
 
-assert(newObj.foo === 'hello');
-assert(newObj.bar === 'and');
-assert(newObj.baz === 'goodbye');
-
-
-// Object.defineProperty(obj, descriptor)
-
-// This one isn't enumerable.
-Object.defineProperty(obj, 'd', { value: 4 });
-assert(obj.d === 4);
-
-// This one is.
-Object.defineProperty(obj, 'e', { value: 5, enumerable: true });
-assert(obj.e === 5);
-
-
-// Object.defineProperties(obj, properties)
-
-Object.defineProperties(obj, {
-  f: { value: 6 },
-  g: { value: 7, enumerable: true }
+test('Object.defineProperties(obj, properties)', function() {
+  Object.defineProperties(obj, {
+    f: { value: 6 },
+    g: { value: 7, enumerable: true }
+  });
+  assert(obj.f === 6);
+  assert(obj.g === 7);
 });
-assert(obj.f === 6);
-assert(obj.g === 7);
 
+test('Object.getOwnPropertyDescriptor(obj, prop)', function() {
+  var desc = Object.getOwnPropertyDescriptor(obj, 'a');
+  assert(desc.value === 1);
+  assert(desc.configurable);
+  assert(desc.writable);
+  assert(desc.enumerable);
+});
 
-// Object.getOwnPropertyDescriptor(obj, prop)
-
-var desc = Object.getOwnPropertyDescriptor(obj, 'a');
-assert(desc.value === 1);
-assert(desc.configurable);
-assert(desc.writable);
-assert(desc.enumerable);
-
-
-// Object.keys(obj)
-
-var keys = Object.keys(obj);
-assert(keys.length === 5);
-// Note that we only expect to see enumerable properties.
-assert(keys[0] === 'a');
-assert(keys[1] === 'b');
-assert(keys[2] === 'c');
-assert(keys[3] === 'e');
-assert(keys[4] === 'g');
+test('Object.keys(obj)', function() {
+  var keys = Object.keys(obj);
+  assert(keys.length === 5);
+  // Note that we only expect to see enumerable properties.
+  assert(keys[0] === 'a');
+  assert(keys[1] === 'b');
+  assert(keys[2] === 'c');
+  assert(keys[3] === 'e');
+  assert(keys[4] === 'g');
+});
 
 
 // -----------------------------------------------------------------------------
 // Object Prototype
 // -----------------------------------------------------------------------------
-// TODO: needs more tests
-
-// Via an object
-
-var x = {a: 42, b: [1,2,3]};
-assert(x.toString() === '[object Object]');
-assert(x.toLocaleString() === '[object Object]');
-assert(x.hasOwnProperty('a'));
-assert(!x.hasOwnProperty('toString'));
-assert(x.propertyIsEnumerable('b'));
-assert(x.valueOf() === x);
 
 
-// Directly via the prototype
+test('Object#toString()', function() {
+  var obj = {a: 42, b: [1,2,3]};
+  assertEquals('[object Object]', obj.toString());
+  assertEquals('[object Object]', Object.prototype.toString());
 
-assert(Object.prototype.toString() === '[object Object]');
-assert(Object.prototype.toLocaleString() === '[object Object]');
-assert(Object.prototype.hasOwnProperty('toString'));
-assert(!Object.prototype.hasOwnProperty('a'));
-assert(!Object.prototype.propertyIsEnumerable('toString'));
-assert(Object.prototype.valueOf() === Object.prototype);
+  var func = function() {};
+  var arr = [1, 2, 3];
 
+  // toString exposes the internal [[Class]] property.
+  assertEquals('[object Arguments]', Object.prototype.toString.call(arguments));
+  assertEquals('[object Number]', Object.prototype.toString.call(42));
+  assertEquals('[object String]', Object.prototype.toString.call('abc'));
+  assertEquals('[object Date]', Object.prototype.toString.call(new Date()));
+  assertEquals('[object Boolean]', Object.prototype.toString.call(true));
+  assertEquals('[object Math]', Object.prototype.toString.call(Math));
+  assertEquals('[object RegExp]', Object.prototype.toString.call(/abc/i));
+  assertEquals('[object Array]', Object.prototype.toString.call(arr));
+  assertEquals('[object Function]', Object.prototype.toString.call(func));
+  // TODO Error
+});
 
-// Object.prototype methods should inherit from Function.prototype
-assert(typeof Object.prototype.toString.call === 'function');
-assert(typeof Object.prototype.hasOwnProperty.apply === 'function');
-assert(typeof Object.prototype.toLocaleString.bind === 'function');
+test('Object#toLocaleString()', function() {
+  // TODO
+  var obj = {a: 42, b: [1,2,3]};
+  assert(obj.toLocaleString() === '[object Object]');
+  assert(Object.prototype.toLocaleString() === '[object Object]');
+});
+
+test('Object#hasOwnProperty(prop)', function() {
+  var obj = {a: 42, b: [1,2,3]};
+  // TODO
+  assert(!obj.hasOwnProperty('toString'));
+  assert(obj.hasOwnProperty('a'));
+  assert(Object.prototype.hasOwnProperty('toString'));
+  assert(!Object.prototype.hasOwnProperty('a'));
+});
+
+test('Object#propertyIsEnumerable(prop)', function() {
+  var obj = {a: 42, b: [1,2,3]};
+  // TODO
+  assert(obj.propertyIsEnumerable('b'));
+  assert(!Object.prototype.propertyIsEnumerable('toString'));
+});
+
+test('Object#valueOf()', function() {
+  var obj = {a: 42, b: [1,2,3]};
+  // TODO
+  assertEquals(obj, obj.valueOf());
+  assertEquals(Object.prototype, Object.prototype.valueOf());
+});
+
+test('these methods inherit from Function.prototype', function() {
+  assertEquals('function', typeof Object.prototype.toString.call);
+  assertEquals('function', typeof Object.prototype.hasOwnProperty.apply);
+  assertEquals('function', typeof Object.prototype.toLocaleString.bind);
+});

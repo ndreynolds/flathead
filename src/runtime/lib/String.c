@@ -112,14 +112,15 @@ str_proto_last_index_of(js_val *instance, js_args *args, eval_state *state)
   char *haystack = instance->string.ptr;
   char *needle = search_str->string.ptr;
 
-  int max = IS_NUM(from) ? from->number.val : strlen(haystack) - 1;
-  int match = strlen(needle) - 1;
-  int i = strlen(haystack) - 1;
+  double max = IS_NUM(from) ? from->number.val : strlen(haystack) - 1;
+  long match = strlen(needle) - 1;
+  long i = strlen(haystack) - 1;
 
-  int needle_len = strlen(needle);
-  int haystack_len = strlen(haystack);
+  long needle_len = strlen(needle);
+  long haystack_len = strlen(haystack);
 
   if (max < 0) max = 0;
+  if (max > haystack_len) max = haystack_len - 1;
 
   if (needle_len == 0)
     return JSNUM(max <= haystack_len ? max : haystack_len);
