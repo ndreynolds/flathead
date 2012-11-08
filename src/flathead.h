@@ -50,12 +50,13 @@
 
 #define IS_STR(x)      ((x)->type == T_STRING)
 #define IS_NUM(x)      ((x)->type == T_NUMBER)
-#define IS_FUNC(x)     ((x)->type == T_FUNCTION)
 #define IS_BOOL(x)     ((x)->type == T_BOOLEAN)
-#define IS_OBJ(x)      ((x)->type == T_OBJECT)
 #define IS_NULL(x)     ((x)->type == T_NULL)
 #define IS_UNDEF(x)    ((x)->type == T_UNDEF)
-#define IS_ARR(x)      ((x)->type == T_OBJECT && (x)->object.is_array)
+#define IS_OBJ(x)      ((x)->type == T_OBJECT)
+#define IS_FUNC(x)     ((x)->type == T_OBJECT && STREQ((x)->object.class, "Function"))
+#define IS_ARR(x)      ((x)->type == T_OBJECT && STREQ((x)->object.class, "Array"))
+#define IS_REGEXP(x)   ((x)->type == T_OBJECT && STREQ((x)->object.class, "RegExp"))
 #define IS_NAN(x)      ((x)->type == T_NUMBER && (x)->number.is_nan)
 #define IS_INF(x)      ((x)->type == T_NUMBER && (x)->number.is_inf)
 
@@ -126,7 +127,6 @@ typedef enum {
   T_STRING,
   T_BOOLEAN,
   T_OBJECT,
-  T_FUNCTION,
   T_NULL,
   T_UNDEF
 } js_type;
@@ -182,18 +182,6 @@ struct js_boolean {
   bool val;
 };
 
-struct js_object {
-  int length;
-  bool is_array;
-  bool is_regexp;
-  bool frozen;
-  bool sealed;
-  bool extensible;
-  char class[10];
-  struct js_val *wraps;
-  struct js_val *parent;
-};
-
 /**
  * The standard API for natively defined functions provides an instance (when
  * applicable), the arguments as values in linked-list format, and the evaluation
@@ -201,15 +189,20 @@ struct js_object {
  */
 typedef struct js_val * (js_native_function)(struct js_val *, js_args *, eval_state *); 
 
-struct js_function {
-  bool is_native;
-  bool is_generator;
-  struct ast_node *node; 
-  struct js_val *closure;
-  struct js_val *bound_this;
-  struct js_args *bound_args;
+struct js_object {
+  bool native;
+  bool generator;
+  bool extensible;            // [[Extensible]]
+  char class[10];             // [[Class]]
+  struct js_val *primitive;   // [[PrimitiveValue]]
+  struct js_val *bound_this;  // [[BoundThis]]
+  struct js_args *bound_args; // [[BoundArguments]]
+  struct js_val *scope;       // [[Scope]]
   struct js_val *instance;
-  js_native_function *native;
+  struct js_val *parent;
+  struct ast_node *node;
+  unsigned long length;
+  js_native_function *nativefn;
 };
 
 typedef struct js_val {
@@ -218,7 +211,6 @@ typedef struct js_val {
     struct js_string string;
     struct js_boolean boolean;
     struct js_object object;
-    struct js_function function;
   };
   js_type type;
   ctl_signal signal;

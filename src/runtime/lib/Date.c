@@ -53,7 +53,7 @@ date_new(js_val *instance, js_args *args, eval_state *state)
   }
 
   fh_set_class(state->this, "Date");
-  state->this->object.wraps = utc;
+  state->this->object.primitive = utc;
   return state->this;
 }
 

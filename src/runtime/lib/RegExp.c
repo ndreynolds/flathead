@@ -11,9 +11,9 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
   js_val *flags = ARG(args, 1);
 
   js_val *regexp = JSOBJ();
-  regexp->object.is_regexp = true;
   regexp->proto = fh_try_get_proto("RegExp");
 
+  fh_set_class(regexp, "RegExp");
   fh_set(regexp, "source", IS_UNDEF(pattern) ? JSSTR("(?:)") : TO_STR(pattern));
 
   if (ARGLEN(args) <= 1)

@@ -151,13 +151,13 @@ fh_gc_mark(js_val *val)
   if (val->proto) fh_gc_mark(val->proto);
 
   if (IS_FUNC(val)) {
-    fh_gc_mark(val->function.closure);
-    fh_gc_mark(val->function.bound_this);
-    fh_gc_mark(val->function.instance);
+    fh_gc_mark(val->object.scope);
+    fh_gc_mark(val->object.bound_this);
+    fh_gc_mark(val->object.instance);
   }
 
   if (IS_OBJ(val)) {
-    fh_gc_mark(val->object.wraps);
+    fh_gc_mark(val->object.primitive);
     fh_gc_mark(val->object.parent);
   }
 

@@ -16,7 +16,7 @@ obj_new(js_val *instance, js_args *args, eval_state *state)
     return obj;
   }
   if (state->construct)
-    obj->object.wraps = value;
+    obj->object.primitive = value;
 
   obj->proto = value->proto;
   return obj;
@@ -165,7 +165,11 @@ js_val *
 obj_seal(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *obj = obj_or_throw(ARG(args, 0), state, "seal");
-  obj->object.sealed = true;  
+  js_prop *prop;
+  OBJ_ITER(obj, prop) {
+    prop->configurable = false;
+  }
+  obj->object.extensible = false;  
   return obj;
 }
 
@@ -174,7 +178,11 @@ js_val *
 obj_is_sealed(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *obj = obj_or_throw(ARG(args, 0), state, "isSealed");
-  return JSBOOL(obj->object.sealed);
+  js_prop *prop;
+  OBJ_ITER(obj, prop) {
+    if (prop->configurable) return JSBOOL(0);
+  }
+  return JSBOOL(!obj->object.extensible);
 }
 
 // Object.freeze(obj)
@@ -182,7 +190,12 @@ js_val *
 obj_freeze(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *obj = obj_or_throw(ARG(args, 0), state, "freeze");
-  obj->object.frozen = true;  
+  js_prop *prop;
+  OBJ_ITER(obj, prop) {
+    prop->configurable = false;
+    prop->writable = false;
+  }
+  obj->object.extensible = false;  
   return obj;
 }
 
@@ -191,7 +204,12 @@ js_val *
 obj_is_frozen(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *obj = obj_or_throw(ARG(args, 0), state, "isFrozen");
-  return JSBOOL(obj->object.frozen);
+  js_prop *prop;
+  OBJ_ITER(obj, prop) {
+    if (prop->configurable) return JSBOOL(0);
+    if (prop->writable) return JSBOOL(0);
+  }
+  return JSBOOL(!obj->object.extensible);
 }
 
 // Object.prototype.hasOwnProperty(prop)

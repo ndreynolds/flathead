@@ -12,7 +12,7 @@ str_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *value = ARGLEN(args) > 0 ? ARG(args, 0) : JSSTR("");
   if (state->construct)
-    state->this->object.wraps = TO_STR(value);
+    state->this->object.primitive = TO_STR(value);
   return TO_STR(value);
 }
 

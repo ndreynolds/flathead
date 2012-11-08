@@ -10,7 +10,7 @@ bool_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *value = ARG(args, 0);
   if (state->construct)
-    state->this->object.wraps = TO_BOOL(value);
+    state->this->object.primitive = TO_BOOL(value);
   return TO_BOOL(value);
 }
 

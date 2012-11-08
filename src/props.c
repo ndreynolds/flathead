@@ -56,8 +56,8 @@ fh_get_proto(js_val *obj, char *name)
   js_prop *prop = fh_get_prop_proto(obj, name);
   js_val *val = prop ? prop->ptr : JSUNDEF();
   // Store a ref to the instance for natively define methods.
-  if (val->type == T_FUNCTION) {
-    val->function.instance = obj;
+  if (IS_FUNC(val)) {
+    val->object.instance = obj;
   }
   return val;
 }

@@ -14,7 +14,7 @@ number_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *value = ARG(args, 0);
   if (state->construct)
-    state->this->object.wraps = TO_NUM(value);
+    state->this->object.primitive = TO_NUM(value);
   return TO_NUM(value);
 }
 

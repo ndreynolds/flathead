@@ -42,15 +42,14 @@ fh_debug(FILE *stream, js_val *val, int indent, bool newline)
     case T_NULL:
       cfprintf(stream, ANSI_GRAY, "null");
       break;
-    case T_FUNCTION:
-      cfprintf(stream, ANSI_BLUE, "[Function]");
-      break;
     case T_UNDEF:
       cfprintf(stream, ANSI_GRAY, "undefined");
       break;
     case T_OBJECT:
-      if (val->object.is_array)
+      if (IS_ARR(val))
         fh_debug_arr(stream, val, indent);
+      else if (IS_FUNC(val))
+        cfprintf(stream, ANSI_BLUE, "[Function]");
       else
         fh_debug_obj(stream, val, indent, false);
       break;
@@ -75,21 +74,20 @@ fh_debug_verbose(FILE *stream, js_val *val, int indent)
     case T_NULL:
       cfprintf(stream, ANSI_GRAY, "null");
       break;
-    case T_FUNCTION:
-      cfprintf(stream, ANSI_BLUE, "Function: ");
-      break;
     case T_UNDEF:
       cfprintf(stream, ANSI_GRAY, "undefined");
       break;
     case T_OBJECT:
-      if (val->object.is_array)
+      if (IS_ARR(val))
         fprintf(stream, "Array: ");
+      else if (IS_FUNC(val))
+        cfprintf(stream, ANSI_BLUE, "Function: ");
       else
         fprintf(stream, "Object: ");
       break;
   }
 
-  if (IS_FUNC(val) || IS_OBJ(val))
+  if (IS_OBJ(val))
     fh_debug_obj(stream, val, indent, true);
 
   fprintf(stream, "\n");

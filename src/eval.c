@@ -39,7 +39,7 @@ fh_eval(js_val *ctx, ast_node *node)
     case NODE_FUNC: return JSFUNC(node);
     case NODE_OBJ: return fh_obj(ctx, node);
     case NODE_ARR: return fh_arr(ctx, node);
-    case NODE_CALL: return fh_call(ctx, node);
+    case NODE_CALL: return fh_call_exp(ctx, node);
     case NODE_NEW: return fh_new_exp(ctx, node);
     case NODE_MEMBER: return fh_member(ctx, node);
     case NODE_IDENT: return fh_get_rec(ctx, node->sval);
@@ -148,9 +148,9 @@ fh_new_exp(js_val *ctx, ast_node *exp)
 
   js_val *res, *obj = JSOBJ(), *proto = fh_get(ctr, "prototype");
 
-  obj->proto = IS_OBJ(proto) || IS_FUNC(proto) ? proto : fh->object_proto;
-  res = fh_function_call(ctx, obj, state, ctr, args); 
-  return IS_OBJ(res) || IS_FUNC(res) ? res : obj;
+  obj->proto = IS_OBJ(proto) ? proto : fh->object_proto;
+  res = fh_call(ctx, obj, state, ctr, args); 
+  return IS_OBJ(res) ? res : obj;
 }
 
 
@@ -243,7 +243,7 @@ fh_assign(js_val *ctx, ast_node *node)
     key = fh_str_from_node(old_ctx, member->e1)->string.ptr;
   }
 
-  if (IS_OBJ(ctx) || IS_FUNC(ctx))
+  if (IS_OBJ(ctx))
     fh_do_assign(ctx, key, val, node->sval);
   return val;
 }
@@ -340,8 +340,8 @@ js_val *
 fh_return(js_val *ctx, ast_node *node)
 {
   js_val *result = node->e1 ? fh_eval(ctx, node->e1) : JSUNDEF();
-  if (result->type == T_FUNCTION) 
-    result->function.closure = ctx;
+  if (IS_FUNC(result)) 
+    result->object.scope = ctx;
   result->signal = S_BREAK;
   return result;
 }
@@ -418,20 +418,20 @@ fh_switch(js_val *ctx, ast_node *node)
 // ----------------------------------------------------------------------------
 
 js_val *
-fh_call(js_val *ctx, ast_node *call)
+fh_call_exp(js_val *ctx, ast_node *call)
 {
   js_val *maybe_func = fh_eval(ctx, call->e1);
   eval_state *state= fh_new_state(call->line, call->column);
   state->ctx = ctx;
-  if (maybe_func->type != T_FUNCTION)
+  if (!IS_FUNC(maybe_func))
     fh_error(state, E_TYPE, "%s is not a function", fh_typeof(maybe_func));
   js_args *args = fh_build_args(ctx, call->e2);
 
   // Check for a bound this (see Function#bind)
-  js_val *this = maybe_func->function.bound_this ? 
-    maybe_func->function.bound_this : fh_get(ctx, "this");
+  js_val *this = maybe_func->object.bound_this ? 
+    maybe_func->object.bound_this : fh_get(ctx, "this");
 
-  return fh_function_call(ctx, this, state, maybe_func, args);
+  return fh_call(ctx, this, state, maybe_func, args);
 }
 
 js_args *
@@ -452,8 +452,7 @@ fh_build_args(js_val *ctx, ast_node *args_node)
 }
 
 js_val *
-fh_function_call(js_val *ctx, js_val *this, eval_state *state, 
-                 js_val *func, js_args *args)
+fh_call(js_val *ctx, js_val *this, eval_state *state, js_val *func, js_args *args)
 {
   if (IS_UNDEF(this) || IS_NULL(this)) 
     this = fh->global;
@@ -461,30 +460,30 @@ fh_function_call(js_val *ctx, js_val *this, eval_state *state,
   state->ctx = ctx;
   state->this = this;
 
-  if (func->function.is_native) {
+  if (func->object.native) {
     // Native functions are C functions referenced by pointer.
-    js_native_function *native = func->function.native;
-    js_val *instance = func->function.instance;
+    js_native_function *native = func->object.nativefn;
+    js_val *instance = func->object.instance;
 
     // new Number, new Boolean, etc. return wrapper objects. 
     // Here we resolve the wrapper to the value it wraps.
-    if (instance && IS_OBJ(instance) && instance->object.wraps)
-      instance = instance->object.wraps;
+    if (instance && IS_OBJ(instance) && instance->object.primitive)
+      instance = instance->object.primitive;
 
     return native(instance, args, state);
   }
 
-  rewind_node(func->function.node);
-  js_val *func_scope = fh_setup_func_env(ctx, this, func, args);
-  return fh_eval(func_scope, func->function.node->e2);
+  rewind_node(func->object.node);
+  js_val *func_scope = fh_setup_call_env(ctx, this, func, args);
+  return fh_eval(func_scope, func->object.node->e2);
 }
 
 js_val *
-fh_setup_func_env(js_val *ctx, js_val *this, js_val *func, js_args *args)
+fh_setup_call_env(js_val *ctx, js_val *this, js_val *func, js_args *args)
 {
   js_val *arguments = JSOBJ();
-  ast_node *func_node = func->function.node;
-  js_val *scope = func->function.closure ? func->function.closure : JSOBJ();
+  ast_node *func_node = func->object.node;
+  js_val *scope = func->object.scope ? func->object.scope : JSOBJ();
 
   scope->object.parent = ctx;
 
@@ -650,12 +649,12 @@ fh_bin_exp(js_val *ctx, ast_node *node)
   if (STREQ(op, ">="))
     return JSBOOL(fh_gt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val);
   if (STREQ(op, "instanceof")) {
-    if (b->type != T_FUNCTION)
+    if (!IS_FUNC(b))
       fh_error(NULL, E_TYPE, "Expecting a function in 'instanceof' check");
     return fh_has_instance(b, a);
   }
   if (STREQ(op, "in"))
-    if (b->type != T_OBJECT)
+    if (!IS_OBJ(b))
       fh_error(NULL, E_TYPE, "Expecting an object with 'in' operator");
     return fh_has_property(b, TO_STR(a)->string.ptr);
 
@@ -780,9 +779,9 @@ fh_eq(js_val *a, js_val *b, bool strict)
     return fh_eq(TO_NUM(a), b, strict);
   if (IS_BOOL(b))
     return fh_eq(TO_NUM(b), a, strict);
-  if ((IS_STR(a) || IS_NUM(a)) && (IS_OBJ(b) || IS_FUNC(b)))
+  if ((IS_STR(a) || IS_NUM(a)) && IS_OBJ(b))
     return fh_eq(a, fh_to_primitive(b, T_NUMBER), strict);
-  if ((IS_OBJ(a) || IS_FUNC(a)) && (IS_STR(b) || IS_NUM(b)))
+  if (IS_OBJ(a) && (IS_STR(b) || IS_NUM(b)))
     return fh_eq(fh_to_primitive(a, T_NUMBER), b, strict);
 
   return JSBOOL(0);

@@ -35,7 +35,7 @@ func_proto_apply(js_val *instance, js_args *args, eval_state *state)
     }
   }
 
-  return fh_function_call(state->ctx, this, state, instance, func_args_head);
+  return fh_call(state->ctx, this, state, instance, func_args_head);
 }
 
 // Function.prototype.apply(thisValue[, arg1[, arg2[, ...]]])
@@ -49,9 +49,9 @@ func_proto_bind(js_val *instance, js_args *args, eval_state *state)
   if (args->next) 
     args = args->next;
 
-  js_val *func = JSFUNC(instance->function.node);
-  func->function.bound_this = this;
-  func->function.bound_args = args;
+  js_val *func = JSFUNC(instance->object.node);
+  func->object.bound_this = this;
+  func->object.bound_args = args;
   return func;
 }
 
@@ -63,14 +63,14 @@ func_proto_call(js_val *instance, js_args *args, eval_state *state)
   args->arg = NULL;
   if (args->next)
     args = args->next;
-  return fh_function_call(state->ctx, this, state, instance, args);
+  return fh_call(state->ctx, this, state, instance, args);
 }
 
 // Function.prototype.isGenerator()
 js_val *
 func_proto_is_generator(js_val *instance, js_args *args, eval_state *state)
 {
-  return JSBOOL(instance->function.is_generator);
+  return JSBOOL(instance->object.generator);
 }
 
 js_val *

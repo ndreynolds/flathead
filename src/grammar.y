@@ -965,6 +965,7 @@ main(int argc, char **argv)
     optind++;
   }
 
+  printf("%d %d\n", sizeof(double), sizeof(js_val));
   FILE *source;
   if (optind < argc)
     source = fopen(argv[optind], "r");

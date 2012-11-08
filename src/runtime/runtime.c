@@ -117,7 +117,7 @@ fh_connect_prototypes(js_val *global)
 
   js_prop *prop;
   OBJ_ITER(obj_proto, prop) {
-    if (prop->ptr && IS_FUNC(prop->ptr) && prop->ptr->function.is_native)
+    if (prop->ptr && IS_FUNC(prop->ptr) && prop->ptr->object.native)
       prop->ptr->proto = func_proto;
   }
 

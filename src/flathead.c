@@ -95,12 +95,9 @@ fh_new_object()
 
   fh_set_class(val, "Object");
   val->object.length = 0;
-  val->object.is_array = false;
-  val->object.frozen = false;
-  val->object.sealed = false;
   val->object.extensible = false;
   val->object.parent = NULL;
-  val->object.wraps = NULL;
+  val->object.primitive = NULL;
   val->proto = fh_try_get_proto("Object");
 
   return val;
@@ -112,9 +109,9 @@ fh_new_array()
   js_val *val = fh_new_object();
 
   fh_set_class(val, "Array");
-  val->object.is_array = true;
-  val->proto = fh_try_get_proto("Array");
   fh_set_len(val, 0);
+
+  val->proto = fh_try_get_proto("Array");
 
   return val;
 }
@@ -122,15 +119,17 @@ fh_new_array()
 js_val *
 fh_new_function(struct ast_node *node)
 {
-  js_val *val = fh_new_val(T_FUNCTION);
+  js_val *val = fh_new_object();
 
-  val->function.is_native = false;
-  val->function.is_generator = false;
-  val->function.node = node;
-  val->function.closure = NULL;
-  val->function.instance = NULL;
-  val->function.bound_this = NULL;
-  val->function.bound_args = NULL;
+  fh_set_class(val, "Function");
+
+  val->object.native = false;
+  val->object.generator = false;
+  val->object.node = node;
+  val->object.scope = NULL;
+  val->object.instance = NULL;
+  val->object.bound_this = NULL;
+  val->object.bound_args = NULL;
   val->proto = fh_try_get_proto("Function");
 
   return val;
@@ -141,8 +140,8 @@ fh_new_native_function(js_native_function func)
 {
   js_val *val = fh_new_function(NULL);
 
-  val->function.is_native = true;
-  val->function.native = func;
+  val->object.native = true;
+  val->object.nativefn = func;
 
   return val;
 }
@@ -152,8 +151,6 @@ fh_new_regexp(char *re)
 {
   js_val *val = fh_new_val(T_OBJECT);
 
-  fh_set_class(val, "RegExp");
-  val->object.is_regexp = true;
   val->proto = fh_try_get_proto("RegExp");
 
   // Process the trailing options: re = /pattern/[imgy]{0,4}
@@ -170,6 +167,7 @@ fh_new_regexp(char *re)
 
   // Store the inner pattern 
   fh_set(val, "source", JSSTR(fh_str_slice(re, 1, i)));
+  fh_set_class(val, "RegExp");
 
   return val;
 }
@@ -260,7 +258,7 @@ fh_is_callable(js_val *val)
 js_val *
 fh_to_primitive(js_val *val, js_type hint)
 {
-  if (!(IS_OBJ(val) || IS_FUNC(val))) return val;
+  if (!IS_OBJ(val)) return val;
 
   // This is the [[DefaultValue]] implementation.
   //
@@ -279,9 +277,8 @@ fh_to_primitive(js_val *val, js_type hint)
     if (fh_is_callable(maybe_func)) {
       eval_state *state = fh_new_state(0, 0);
       js_args *args = fh_new_args(0, 0, 0);
-      js_val *res = fh_function_call(fh->global, val, state, maybe_func, args);
-      if (!IS_OBJ(res) && !IS_FUNC(res))
-        return res;
+      js_val *res = fh_call(fh->global, val, state, maybe_func, args);
+      if (!IS_OBJ(res)) return res;
     }
   }
   fh_error(NULL, E_TYPE, "cannot convert to primitive");
@@ -339,11 +336,11 @@ fh_to_object(js_val *val)
 {
   if (IS_UNDEF(val) || IS_NULL(val))
     fh_error(NULL, E_TYPE, "cannot convert to object");
-  if (IS_OBJ(val) || IS_FUNC(val))
+  if (IS_OBJ(val)) 
     return val;
 
   js_val *obj = JSOBJ();
-  obj->object.wraps = val;
+  obj->object.primitive = val;
   if (IS_BOOL(val))
     fh_set_class(obj, "Boolean");
   if (IS_NUM(val))
@@ -362,7 +359,7 @@ fh_to_boolean(js_val *val)
     return JSBOOL(!IS_NAN(val) && val->number.val != 0);
   if (IS_STR(val))
     return JSBOOL(val->string.length != 0);
-  if (IS_OBJ(val) || IS_FUNC(val))
+  if (IS_OBJ(val))
     return JSBOOL(1);
   return val;
 }
@@ -424,9 +421,7 @@ fh_typeof(js_val *value)
   switch(value->type) {
     case T_OBJECT:
     case T_NULL:
-      return "object";
-    case T_FUNCTION:
-      return "function";
+      return IS_FUNC(value) ? "function" : "object";
     case T_BOOLEAN:
       return "boolean";
     case T_NUMBER:
