@@ -101,7 +101,7 @@ test('Object#toString()', function() {
   assertEquals('[object RegExp]', Object.prototype.toString.call(/abc/i));
   assertEquals('[object Array]', Object.prototype.toString.call(arr));
   assertEquals('[object Function]', Object.prototype.toString.call(func));
-  // TODO Error
+  assertEquals('[object Error]', Object.prototype.toString.call(new Error()));
 });
 
 test('Object#toLocaleString()', function() {

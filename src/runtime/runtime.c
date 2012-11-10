@@ -28,6 +28,7 @@
 #include "lib/Boolean.h"
 #include "lib/Date.h"
 #include "lib/RegExp.h"
+#include "lib/Error.h"
 
 
 // isNaN(value)
@@ -138,6 +139,7 @@ fh_bootstrap()
   fh_set(global, "Boolean", bootstrap_boolean());
   fh_set(global, "Date", bootstrap_date());
   fh_set(global, "RegExp", bootstrap_regexp());
+  fh_set(global, "Error", bootstrap_error());
 
   fh_connect_prototypes(global);
 

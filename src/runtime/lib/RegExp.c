@@ -3,7 +3,7 @@
 
 #include "RegExp.h"
 
-// new RegExp(pattern)
+// [new] RegExp(pattern)
 js_val *
 regexp_new(js_val *instance, js_args *args, eval_state *state)
 {
@@ -11,7 +11,6 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
   js_val *flags = ARG(args, 1);
 
   js_val *regexp = JSOBJ();
-  regexp->proto = fh_try_get_proto("RegExp");
 
   fh_set_class(regexp, "RegExp");
   fh_set(regexp, "source", IS_UNDEF(pattern) ? JSSTR("(?:)") : TO_STR(pattern));
@@ -29,6 +28,8 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
       case 'y': fh_set(regexp, "sticky", JSBOOL(1)); break;
     }
   }
+
+  regexp->proto = fh_try_get_proto("RegExp");
   return regexp;
 }
 
