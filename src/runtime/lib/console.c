@@ -2,8 +2,12 @@
 // ---------
 // Native implementations for the `console` property of the global object.
 
-#include "console.h"
+#include <time.h>
 
+#include "console.h"
+#include "Date.h"
+
+// console.log(obj1[, obj2, ..., objN])
 js_val *
 console_log(js_val *instance, js_args *args, eval_state *state)
 {
@@ -13,6 +17,7 @@ console_log(js_val *instance, js_args *args, eval_state *state)
   return JSUNDEF();
 }
 
+// console.error(obj1[, obj2, ..., objN])
 js_val *
 console_error(js_val *instance, js_args *args, eval_state *state)
 {
@@ -22,15 +27,17 @@ console_error(js_val *instance, js_args *args, eval_state *state)
   return JSUNDEF();
 }
 
+// console.info(obj1[, obj2, ..., objN])
 js_val *
 console_info(js_val *instance, js_args *args, eval_state *state)
 {
   int i;
   for (i = 0; i < ARGLEN(args); i++)
-    fh_debug_verbose(stderr, ARG(args, i), 0);
+    fh_debug_verbose(stdout, ARG(args, i), 0);
   return JSUNDEF();
 }
 
+// console.assert(expression)
 js_val *
 console_assert(js_val *instance, js_args *args, eval_state *state)
 {
@@ -41,11 +48,35 @@ console_assert(js_val *instance, js_args *args, eval_state *state)
   UNREACHABLE();
 }
 
+// console.time(name)
 js_val *
 console_time(js_val *instance, js_args *args, eval_state *state)
 {
-  // https://developer.mozilla.org/en/DOM/console.time
-  // TODO
+  js_val *name = TO_STR(ARG(args, 0));
+  js_val *timers = fh_get(instance, "__timers__");
+  if (IS_UNDEF(timers)) {
+    timers = JSOBJ();
+    fh_set(instance, "__timers__", timers);
+  }
+  fh_set(timers, name->string.ptr, JSNUM(utc_now()));
+  return JSUNDEF();
+}
+
+// console.timeEnd(name)
+js_val *
+console_time_end(js_val *instance, js_args *args, eval_state *state)
+{
+  js_val *name = TO_STR(ARG(args, 0));
+  js_val *timers = fh_get(instance, "__timers__");
+  if (IS_OBJ(timers)) {
+    js_val *timer = fh_get(timers, name->string.ptr);
+    if (IS_NUM(timer)) {
+      long old = timer->number.val;
+      long cur = utc_now();
+      fprintf(stdout, "%s: %ldms\n", name->string.ptr, cur - old);
+    }
+    fh_del_prop(timers, name->string.ptr);
+  }
   return JSUNDEF();
 }
 
@@ -59,6 +90,7 @@ bootstrap_console()
   BUILTIN(console, "info", JSNFUNC(console_info));
   BUILTIN(console, "assert", JSNFUNC(console_assert));
   BUILTIN(console, "time", JSNFUNC(console_time));
+  BUILTIN(console, "timeEnd", JSNFUNC(console_time_end));
 
   fh_attach_prototype(console, fh->function_proto);
 
