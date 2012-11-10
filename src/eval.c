@@ -148,9 +148,11 @@ fh_new_exp(js_val *ctx, ast_node *exp)
 
   js_val *res, *obj = JSOBJ(), *proto = fh_get(ctr, "prototype");
 
-  obj->proto = IS_OBJ(proto) ? proto : fh->object_proto;
   res = fh_call(ctx, obj, state, ctr, args); 
-  return IS_OBJ(res) ? res : obj;
+  res = IS_OBJ(res) ? res : obj;
+  res->proto = IS_OBJ(proto) ? proto : fh->object_proto;
+
+  return res;
 }
 
 
@@ -642,12 +644,10 @@ fh_bin_exp(js_val *ctx, ast_node *node)
   if (STREQ(op, "!==")) return fh_neq(a, b, true);
 
   // Relational 
-  if (STREQ(op, "<")) return fh_lt(a, b);
-  if (STREQ(op, ">")) return fh_gt(a, b);
-  if (STREQ(op, "<=")) 
-    return JSBOOL(fh_lt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val);
-  if (STREQ(op, ">="))
-    return JSBOOL(fh_gt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val);
+  if (STREQ(op, "<")) return fh_lt(a, b, false);
+  if (STREQ(op, ">")) return fh_gt(a, b, false);
+  if (STREQ(op, "<=")) return fh_lt(a, b, true);
+  if (STREQ(op, ">=")) return fh_gt(a, b, true);
   if (STREQ(op, "instanceof")) {
     if (!IS_FUNC(b))
       fh_error(NULL, E_TYPE, "Expecting a function in 'instanceof' check");
@@ -795,30 +795,58 @@ fh_neq(js_val *a, js_val *b, bool strict)
 }
 
 js_val *
-fh_gt(js_val *a, js_val *b)
+fh_abstr_rel_comp(js_val *a, js_val *b, bool left_first)
 {
-  if (T_BOTH(a, b, T_NUMBER)) {
-    // _ > NaN == false, NaN > _ == false
-    if (a->number.is_nan || b->number.is_nan) return JSBOOL(0);
-    if (a->number.is_inf) return JSBOOL(1);
-    if (b->number.is_inf) return JSBOOL(0);
-    return JSBOOL(a->number.val > b->number.val);
+  // Abstract Relational Comparison Algorithm (ECMA 11.5.8)
+
+  // These conversions may have side effects. It's important that
+  // left-to-right evaluation is preserved.
+  if (left_first) {
+    a = fh_to_primitive(a, T_NUMBER);
+    b = fh_to_primitive(b, T_NUMBER);
   }
-  if (T_BOTH(a, b, T_STRING)) 
-    return JSBOOL(strcmp(a->string.ptr, b->string.ptr) > 0);
+  else {
+    b = fh_to_primitive(b, T_NUMBER);
+    a = fh_to_primitive(a, T_NUMBER);
+  }
 
-  // TODO: handle object wrappers?
+  if (IS_STR(a) && IS_STR(b)) {
+    return JSBOOL(strcmp(a->string.ptr, b->string.ptr) < 0);
+  }
 
-  if (a->type == T_UNDEF|| b->type == T_UNDEF) return JSBOOL(0);
+  a = TO_NUM(a), b = TO_NUM(b);
 
-  UNREACHABLE();
+  if (IS_NAN(a) || IS_NAN(b)) return JSUNDEF();
+  if (a->number.val == b->number.val) return JSBOOL(0);
+  if (IS_INF(a) && !a->number.is_neg) return JSBOOL(0);
+  if (IS_INF(b) && !b->number.is_neg) return JSBOOL(1);
+  if (IS_INF(b) && b->number.is_neg) return JSBOOL(0);
+  if (IS_INF(a) && a->number.is_neg) return JSBOOL(1);
+  return JSBOOL(a->number.val < b->number.val);
 }
 
 js_val *
-fh_lt(js_val *a, js_val *b)
+fh_lt(js_val *a, js_val *b, bool or_equal)
 {
-  // !(a > b || a == b)
-  return JSBOOL(!(fh_gt(a, b)->boolean.val || fh_eq(a, b, false)->boolean.val));
+  js_val *res;
+  if (or_equal) {
+    res = fh_abstr_rel_comp(b, a, false);
+    return JSBOOL(!(IS_UNDEF(res) || res->boolean.val));
+  }
+  res = fh_abstr_rel_comp(a, b, true);
+  return IS_UNDEF(res) ? JSBOOL(0): res;
+}
+
+js_val *
+fh_gt(js_val *a, js_val *b, bool or_equal)
+{
+  js_val *res;
+  if (or_equal) {
+    res = fh_abstr_rel_comp(a, b, true);
+    return JSBOOL(!(IS_UNDEF(res) || res->boolean.val));
+  }
+  res = fh_abstr_rel_comp(b, a, false);
+  return IS_UNDEF(res) ? JSBOOL(0): res;
 }
 
 js_val *

@@ -60,8 +60,9 @@ js_val * fh_div(js_val *, js_val *);
 js_val * fh_mod(js_val *, js_val *);
 js_val * fh_eq(js_val *, js_val *, bool);
 js_val * fh_neq(js_val *, js_val *, bool);
-js_val * fh_gt(js_val *, js_val *);
-js_val * fh_lt(js_val *, js_val *);
+js_val * fh_abstr_rel_comp(js_val *, js_val *, bool);
+js_val * fh_lt(js_val *, js_val *, bool);
+js_val * fh_gt(js_val *, js_val *, bool);
 js_val * fh_and(js_val *, ast_node *, ast_node *);
 js_val * fh_or(js_val *, ast_node *, ast_node *);
 

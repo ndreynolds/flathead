@@ -91,31 +91,6 @@ typedef enum {
   GC_STATE_NONE
 } gc_state;
 
-typedef struct {
-  gc_state gc_state;
-  struct gc_arena *gc_arenas[MAX_ARENAS];
-  int gc_num_arenas;
-  int gc_runs;
-  long gc_last_start;
-  long gc_time;
-
-  bool opt_interactive;
-  bool opt_print_tokens;
-  bool opt_print_ast;
-
-  struct js_val *function_proto;
-  struct js_val *object_proto;
-  struct js_val *global;
-} fh_state;
-
-typedef struct {
-  int line;
-  int column;
-  bool construct;
-  struct js_val *ctx;
-  struct js_val *this;
-} eval_state;
-
 typedef enum {
   S_BREAK = 1,
   S_NOOP,
@@ -142,6 +117,39 @@ typedef enum {
   E_ERROR
 } js_error_type;
 
+typedef enum {
+  P_WRITE   = 0x01,
+  P_ENUM    = 0x02,
+  P_CONF    = 0x04,
+  P_BUILTIN = P_WRITE | P_CONF,
+  P_DEFAULT = P_WRITE | P_ENUM | P_CONF
+} js_prop_flags;
+
+typedef struct {
+  gc_state gc_state;
+  struct gc_arena *gc_arenas[MAX_ARENAS];
+  int gc_num_arenas;
+  int gc_runs;
+  long gc_last_start;
+  long gc_time;
+
+  bool opt_interactive;
+  bool opt_print_tokens;
+  bool opt_print_ast;
+
+  struct js_val *function_proto;
+  struct js_val *object_proto;
+  struct js_val *global;
+} fh_state;
+
+typedef struct {
+  int line;
+  int column;
+  bool construct;
+  struct js_val *ctx;
+  struct js_val *this;
+} eval_state;
+
 typedef struct {
   char *name;
   bool writable;
@@ -152,35 +160,27 @@ typedef struct {
   UT_hash_handle hh;
 } js_prop;
 
-typedef enum {
-  P_WRITE   = 0x01,
-  P_ENUM    = 0x02,
-  P_CONF    = 0x04,
-  P_BUILTIN = P_WRITE | P_CONF,
-  P_DEFAULT = P_WRITE | P_ENUM | P_CONF
-} js_prop_flags;
-
 typedef struct js_args {
   struct js_val *arg;
   struct js_args *next;
   struct eval_state *eval_state;
 } js_args;
 
-struct js_number {
+typedef struct {
   double val;
   bool is_nan;
   bool is_inf;
   bool is_neg;
-};
+} js_number;
 
-struct js_string {
+typedef struct {
   long length;
   char *ptr;
-};
+} js_string;
 
-struct js_boolean {
+typedef struct {
   bool val;
-};
+} js_boolean;
 
 /**
  * The standard API for natively defined functions provides an instance (when
@@ -189,7 +189,7 @@ struct js_boolean {
  */
 typedef struct js_val * (js_native_function)(struct js_val *, js_args *, eval_state *); 
 
-struct js_object {
+typedef struct {
   bool native;
   bool generator;
   bool extensible;            // [[Extensible]]
@@ -203,14 +203,14 @@ struct js_object {
   struct ast_node *node;
   unsigned long length;
   js_native_function *nativefn;
-};
+} js_object;
 
 typedef struct js_val {
   union {
-    struct js_number number;
-    struct js_string string;
-    struct js_boolean boolean;
-    struct js_object object;
+    js_number number;
+    js_string string;
+    js_boolean boolean;
+    js_object object;   // TODO: make this a pointer (too big as is)
   };
   js_type type;
   ctl_signal signal;
