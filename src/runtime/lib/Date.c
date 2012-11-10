@@ -1120,5 +1120,7 @@ bootstrap_date()
   BUILTIN(proto, "toUTCString", JSNFUNC(date_proto_to_utc_string));
   BUILTIN(proto, "valueOf", JSNFUNC(date_proto_value_of));
 
+  fh_attach_prototype(proto, fh->function_proto);
+
   return date;
 }

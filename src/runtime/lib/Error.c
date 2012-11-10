@@ -59,5 +59,7 @@ bootstrap_error()
   // Methods
   BUILTIN(prototype, "toString", JSNFUNC(error_proto_to_string));
 
+  fh_attach_prototype(prototype, fh->function_proto);
+
   return error;
 }

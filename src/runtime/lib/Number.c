@@ -139,5 +139,7 @@ bootstrap_number()
   BUILTIN(prototype, "toString", JSNFUNC(number_proto_to_string));
   BUILTIN(prototype, "valueOf", JSNFUNC(number_proto_value_of));
 
+  fh_attach_prototype(prototype, fh->function_proto);
+
   return number;
 }

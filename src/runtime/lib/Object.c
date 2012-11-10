@@ -12,13 +12,12 @@ obj_new(js_val *instance, js_args *args, eval_state *state)
   js_val *value = ARG(args, 0);
   js_val *obj = state->construct ? state->this : JSOBJ();
 
-  if (IS_UNDEF(value) || IS_NULL(value)) {
-    return obj;
+  if (IS_OBJ(value)) return value;
+  if (IS_STR(value) || IS_BOOL(value) || IS_NUM(value)) {
+    js_val *res = TO_OBJ(value);
+    res->proto = value->proto;
+    return res;
   }
-  if (state->construct)
-    obj->object.primitive = value;
-
-  obj->proto = value->proto;
   return obj;
 }
 
@@ -330,6 +329,8 @@ bootstrap_object()
   BUILTIN(prototype, "toLocaleString", JSNFUNC(obj_proto_to_locale_string));
   BUILTIN(prototype, "toString", JSNFUNC(obj_proto_to_string));
   BUILTIN(prototype, "valueOf", JSNFUNC(obj_proto_value_of));
+
+  fh->object_proto = prototype;
 
   return object;
 }

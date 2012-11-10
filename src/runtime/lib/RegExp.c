@@ -111,5 +111,7 @@ bootstrap_regexp()
   BUILTIN(prototype, "test", JSNFUNC(regexp_proto_test));
   BUILTIN(prototype, "toString", JSNFUNC(regexp_proto_to_string));
 
+  fh_attach_prototype(prototype, fh->function_proto);
+
   return regexp;
 }

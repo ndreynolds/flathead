@@ -732,5 +732,7 @@ bootstrap_array()
   BUILTIN(proto, "reduce", JSNFUNC(arr_proto_reduce));
   BUILTIN(proto, "reduceRight", JSNFUNC(arr_proto_reduce_right));
 
+  fh_attach_prototype(proto, fh->function_proto);
+
   return array;
 }

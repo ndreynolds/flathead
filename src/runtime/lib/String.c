@@ -449,5 +449,7 @@ bootstrap_string()
   BUILTIN(prototype, "trimRight", JSNFUNC(str_proto_trim_right));
   BUILTIN(prototype, "valueOf", JSNFUNC(str_proto_value_of));
 
+  fh_attach_prototype(prototype, fh->function_proto);
+
   return string;
 }

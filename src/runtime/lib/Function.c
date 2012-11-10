@@ -106,5 +106,7 @@ bootstrap_function()
   BUILTIN(prototype, "isGenerator", JSNFUNC(func_proto_is_generator));
   BUILTIN(prototype, "toString", JSNFUNC(func_proto_to_string));
 
+  fh->function_proto = prototype;
+
   return function;
 }

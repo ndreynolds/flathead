@@ -50,5 +50,7 @@ bootstrap_boolean()
   BUILTIN(prototype, "toString", JSNFUNC(bool_proto_to_string));
   BUILTIN(prototype, "valueOf", JSNFUNC(bool_proto_value_of));
 
+  fh_attach_prototype(prototype, fh->function_proto);
+
   return boolean;
 }

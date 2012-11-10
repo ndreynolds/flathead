@@ -106,24 +106,16 @@ global_load(js_val *instance, js_args *args, eval_state *state)
   return JSUNDEF();
 }
 
+// Helper function that attaches a given prototype to all properties of the
+// given object that are native functions.
 void
-fh_connect_prototypes(js_val *global)
+fh_attach_prototype(js_val *obj, js_val *proto)
 {
-  // Hook up the Function.prototype to the Object.prototype methods.
-  //
-  // Note: this doesn't happen automatically because the Function object
-  // does not exist when the Object# methods are defined.
-  js_val *obj_proto = fh_get(fh_get(global, "Object"), "prototype");
-  js_val *func_proto = fh_get(fh_get(global, "Function"), "prototype");
-
   js_prop *prop;
-  OBJ_ITER(obj_proto, prop) {
+  OBJ_ITER(obj, prop) {
     if (prop->ptr && IS_FUNC(prop->ptr) && prop->ptr->object.native)
-      prop->ptr->proto = func_proto;
+      prop->ptr->proto = proto;
   }
-
-  fh->object_proto = obj_proto;
-  fh->function_proto = func_proto;
 }
 
 js_val *
@@ -141,7 +133,8 @@ fh_bootstrap()
   fh_set(global, "RegExp", bootstrap_regexp());
   fh_set(global, "Error", bootstrap_error());
 
-  fh_connect_prototypes(global);
+  fh_attach_prototype(fh->object_proto, fh->function_proto);
+  fh_attach_prototype(fh->function_proto, fh->function_proto);
 
   fh_set(global, "console", bootstrap_console());
   fh_set(global, "Math", bootstrap_math());

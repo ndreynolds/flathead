@@ -22,7 +22,20 @@ assert(Object);
 assert(typeof Object === 'function');
 
 test('Constructor', function() {
-  // TODO
+  assertEquals('object', typeof new Object);
+  assertEquals('object', typeof (new Object));
+  assertEquals('object', typeof (new Object()));
+  assertEquals('object', typeof (new Object(42)));
+  assertEquals('object', typeof (new Object('abc')));
+  assertEquals('object', typeof (new Object([1, 2, 3])));
+
+  var o1 = new Object('abc');
+  var o2 = new Object(42);
+  var o3 = new Object(null);
+
+  assertEquals(String.prototype.toString, o1.toString);
+  assertEquals(Number.prototype.toString, o2.toString);
+  assertEquals(Object.prototype.toString, o3.toString);
 });
 
 test('Object.create()', function() {
@@ -105,7 +118,6 @@ test('Object#toString()', function() {
 });
 
 test('Object#toLocaleString()', function() {
-  // TODO
   var obj = {a: 42, b: [1,2,3]};
   assert(obj.toLocaleString() === '[object Object]');
   assert(Object.prototype.toLocaleString() === '[object Object]');

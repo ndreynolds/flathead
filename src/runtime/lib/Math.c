@@ -262,5 +262,7 @@ bootstrap_math()
   BUILTIN(math, "sqrt", JSNFUNC(math_sqrt));
   BUILTIN(math, "tan", JSNFUNC(math_tan));
 
+  fh_attach_prototype(math, fh->function_proto);
+
   return math;
 }

@@ -268,16 +268,18 @@ fh_to_primitive(js_val *val, js_type hint)
   //
   // TODO: handle Date special case
 
-  js_val *maybe_func;
+  js_val *maybe_func, *res;
+  js_args *args;
+  eval_state *state;
   char *types[2] = {"valueOf", "toString"};
   int i, reverse = hint == T_STRING ? 1 : 0;
 
   for (i = reverse; i <= 1 && i >= 0; reverse ? i-- : i++) {
     maybe_func = fh_get_proto(val, types[i]);
     if (fh_is_callable(maybe_func)) {
-      eval_state *state = fh_new_state(0, 0);
-      js_args *args = fh_new_args(0, 0, 0);
-      js_val *res = fh_call(fh->global, val, state, maybe_func, args);
+      state = fh_new_state(0, 0);
+      args = fh_new_args(0, 0, 0);
+      res = fh_call(fh->global, val, state, maybe_func, args);
       if (!IS_OBJ(res)) return res;
     }
   }

@@ -60,5 +60,7 @@ bootstrap_console()
   BUILTIN(console, "assert", JSNFUNC(console_assert));
   BUILTIN(console, "time", JSNFUNC(console_time));
 
+  fh_attach_prototype(console, fh->function_proto);
+
   return console;
 }

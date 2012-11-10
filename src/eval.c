@@ -150,7 +150,11 @@ fh_new_exp(js_val *ctx, ast_node *exp)
 
   res = fh_call(ctx, obj, state, ctr, args); 
   res = IS_OBJ(res) ? res : obj;
-  res->proto = IS_OBJ(proto) ? proto : fh->object_proto;
+
+  // Automatically set the prototype to use the constructor's "prototype"
+  // property if valid and the result's proto member appears to be unmodified.
+  if (IS_OBJ(proto) && res->proto == fh->object_proto)
+    res->proto = IS_OBJ(proto) ? proto : fh->object_proto;
 
   return res;
 }
