@@ -37,7 +37,10 @@ fh_debug(FILE *stream, js_val *val, int indent, bool newline)
       fh_debug_num(stream, val);
       break;
     case T_STRING:
-      cfprintf(stream, ANSI_YELLOW, "'%s'", val->string.ptr);
+      if (fh->opt_interactive)
+        cfprintf(stream, ANSI_YELLOW, "'%s'", val->string.ptr);
+      else
+        fprintf(stream, "%s", val->string.ptr);
       break;
     case T_NULL:
       cfprintf(stream, ANSI_GRAY, "null");

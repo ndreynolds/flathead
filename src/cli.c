@@ -56,12 +56,12 @@ print_version()
 void
 cfprintf(FILE *stream, const char *color, const char *tpl, ...)
 {
-  if (isatty(fileno(stream))) fputs(color, stream);
+  if (fh->opt_interactive) fputs(color, stream);
 
   va_list ap;
   va_start(ap, tpl);
   vfprintf(stream, tpl, ap);
   va_end(ap);
 
-  if (isatty(fileno(stream))) fputs(ANSI_RESET, stream);
+  if (fh->opt_interactive) fputs(ANSI_RESET, stream);
 }
