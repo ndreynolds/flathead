@@ -24,7 +24,7 @@
 void fh_set(js_val *, char *, js_val *);
 void fh_set_prop(js_val *, char *, js_val *, js_prop_flags);
 void fh_set_rec(js_val *, char *, js_val *);
-void fh_del_prop(js_val *, char *);
+bool fh_del_prop(js_val *, char *);
 js_prop * fh_get_prop(js_val *, char *);
 js_prop * fh_get_prop_rec(js_val *, char *);
 js_prop * fh_get_prop_proto(js_val *, char *);

@@ -166,10 +166,11 @@ fh_set_rec(js_val *obj, char *name, js_val *val)
 /**
  * Find and delete a property from an object by name.
  */
-void
+bool
 fh_del_prop(js_val *obj, char *name)
 {
   js_prop *deletee = fh_get_prop(obj, name);
-  if (deletee != NULL)
-    HASH_DEL(obj->map, deletee);
+  if (!deletee) return false;
+  HASH_DEL(obj->map, deletee);
+  return true;
 }

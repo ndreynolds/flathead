@@ -81,17 +81,32 @@ fh_eval(js_val *ctx, ast_node *node)
 js_val *
 fh_src_lst(js_val *ctx, ast_node *node)
 {
+  fh_func_decl_scan(ctx, node);
+  fh_var_decl_scan(ctx, node);
+
+  return fh_stmt_lst(ctx, node);
+}
+
+void
+fh_func_decl_scan(js_val *ctx, ast_node *node)
+{
   // First sweep for function declarations
   ast_node *child;
   while (!node->visited) {
     child = pop_node(node);
     if (child->type == NODE_FUNC) {
-      fh_set(ctx, fh_str_from_node(ctx, child->e3)->string.ptr, JSFUNC(child));
+      char *name = fh_str_from_node(ctx, child->e3)->string.ptr;
+      fh_set_prop(ctx, name, JSFUNC(child), P_WRITE | P_ENUM);
     }
   }
   rewind_node(node);
+}
 
-  return fh_stmt_lst(ctx, node);
+void
+fh_var_decl_scan(js_val *ctx, ast_node *node)
+{
+  // Sweep for variable declarations
+  // TODO
 }
 
 js_val *
@@ -195,17 +210,8 @@ fh_arr(js_val *ctx, ast_node *node)
 js_val *
 fh_member(js_val *ctx, ast_node *member)
 {
-  js_val *child_name, *parent;
-
-  // In `x.foo` we'll take 'foo' literally, in `x[foo]` we need to eval 'foo'.
-  // This distinction is stored as 0/1 in the val slot.
-  child_name = member->val ? 
-    TO_STR(fh_eval(ctx, member->e1)) :
-    fh_str_from_node(ctx, member->e1);
-
-  parent = member->e2->type == NODE_MEMBER ? 
-    fh_member(ctx, member->e2) :
-    fh_eval(ctx, member->e2);
+  js_val *parent = fh_member_parent(ctx, member);
+  js_val *child_name = fh_member_child(ctx, member);
 
   // Handle array-like string character access.
   if (IS_STR(parent) && member->e1->type == NODE_NUM) {
@@ -219,6 +225,24 @@ fh_member(js_val *ctx, ast_node *member)
   }
 
   return fh_get_proto(parent, child_name->string.ptr);
+}
+
+js_val *
+fh_member_parent(js_val *ctx, ast_node *member)
+{
+  return member->e2->type == NODE_MEMBER ? 
+    fh_member(ctx, member->e2) :
+    fh_eval(ctx, member->e2);
+}
+
+js_val *
+fh_member_child(js_val *ctx, ast_node *member)
+{
+  // In `x.foo` we'll take 'foo' literally, in `x[foo]` we need to eval 'foo'.
+  // This distinction is stored as 0/1 in the val slot.
+  return member->val ? 
+    TO_STR(fh_eval(ctx, member->e1)) :
+    fh_str_from_node(ctx, member->e1);
 }
 
 
@@ -271,9 +295,9 @@ js_val *
 fh_var_dec(js_val *ctx, ast_node *node)
 {
   if (node->e2 != NULL)
-    fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2));
+    fh_set_prop(ctx, node->e1->sval, fh_eval(ctx, node->e2), P_WRITE | P_ENUM);
   else
-    fh_set(ctx, node->e1->sval, JSUNDEF());
+    fh_set_prop(ctx, node->e1->sval, JSUNDEF(), P_WRITE | P_ENUM);
   return JSUNDEF();
 }
 
@@ -576,11 +600,8 @@ fh_prefix_exp(js_val *ctx, ast_node *node)
 {
   char *op = node->sval;
 
-  if (STREQ(op, "delete")) {
-    // TODO: get a hold of the evaluation's parent object, if any
-    // and unset the property on the object.
-    return JSBOOL(1);
-  }
+  if (STREQ(op, "delete"))
+    return fh_delete(ctx, node);
   if (STREQ(op, "typeof"))
     return JSSTR(fh_typeof(fh_eval(ctx, node->e1)));
   if (STREQ(op, "void")) {
@@ -614,6 +635,26 @@ fh_prefix_exp(js_val *ctx, ast_node *node)
   }
 
   UNREACHABLE();
+}
+
+js_val *
+fh_delete(js_val *ctx, ast_node *node)
+{
+  js_val *name = fh_str_from_node(ctx, node->e1), 
+         *env = ctx;
+
+  if (node->e1->type == NODE_MEMBER) {
+    env = fh_member_parent(ctx, node->e1);
+    name = fh_member_child(ctx, node->e1);
+  }
+  else {
+    name = fh_str_from_node(ctx, node->e1);
+  }
+
+  js_prop *prop = fh_get_prop(env, name->string.ptr);
+  if (!prop->configurable)
+    return JSBOOL(0);
+  return JSBOOL(fh_del_prop(env, name->string.ptr));
 }
 
 

@@ -82,7 +82,10 @@ test('unary prefix operators', function() {
   });
 
   test('delete', function() {
-    // TODO
+    // Also see test_delete.js
+    var obj = {a: 42};
+    delete obj.a;
+    assertEquals(undefined, obj.a);
   });
 
 });
