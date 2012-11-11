@@ -31,38 +31,41 @@ fh_eval(js_val *ctx, ast_node *node)
   if (!node) return JSUNDEF();
 
   switch(node->type) {
-    case NODE_BOOL: return JSBOOL(node->val);
-    case NODE_STR: return JSSTR(node->sval);
-    case NODE_REGEXP: return JSREGEXP(node->sval);
-    case NODE_NUM: return JSNUM(node->val);
-    case NODE_NULL: return JSNULL();
-    case NODE_FUNC: return JSFUNC(node);
-    case NODE_OBJ: return fh_obj(ctx, node);
-    case NODE_ARR: return fh_arr(ctx, node);
-    case NODE_CALL: return fh_call_exp(ctx, node);
-    case NODE_NEW: return fh_new_exp(ctx, node);
-    case NODE_MEMBER: return fh_member(ctx, node);
-    case NODE_IDENT: return fh_get_rec(ctx, node->sval);
-    case NODE_BLOCK: return fh_eval(ctx, node->e1);
-    case NODE_STMT_LST: return fh_stmt_lst(ctx, node);
-    case NODE_SRC_LST: return fh_src_lst(ctx, node);
-    case NODE_EXP_STMT: return fh_eval(ctx, node->e1);
-    case NODE_EXP: return fh_exp(ctx, node);
-    case NODE_IF: return fh_if(ctx, node);
-    case NODE_TERN: return fh_if(ctx, node);
+    case NODE_BOOL:        return JSBOOL(node->val);
+    case NODE_STR:         return JSSTR(node->sval);
+    case NODE_REGEXP:      return JSREGEXP(node->sval);
+    case NODE_NUM:         return JSNUM(node->val);
+    case NODE_NULL:        return JSNULL();
+    case NODE_FUNC:        return JSFUNC(node);
+
+    case NODE_OBJ:         return fh_obj(ctx, node);
+    case NODE_ARR:         return fh_arr(ctx, node);
+    case NODE_CALL:        return fh_call_exp(ctx, node);
+    case NODE_NEW:         return fh_new_exp(ctx, node);
+    case NODE_MEMBER:      return fh_member(ctx, node);
+    case NODE_IDENT:       return fh_ident(ctx, node);
+    case NODE_BLOCK:       return fh_eval(ctx, node->e1);
+    case NODE_STMT_LST:    return fh_stmt_lst(ctx, node);
+    case NODE_SRC_LST:     return fh_src_lst(ctx, node);
+    case NODE_EXP_STMT:    return fh_eval(ctx, node->e1);
+    case NODE_EXP:         return fh_exp(ctx, node);
+    case NODE_IF:          return fh_if(ctx, node);
+    case NODE_TERN:        return fh_if(ctx, node);
     case NODE_SWITCH_STMT: return fh_switch(ctx, node);
-    case NODE_ASGN: return fh_assign(ctx, node);
-    case NODE_RETURN: return fh_return(ctx, node);
-    case NODE_VAR_STMT: return fh_eval(ctx, node->e1);
+    case NODE_ASGN:        return fh_assign(ctx, node);
+    case NODE_RETURN:      return fh_return(ctx, node);
+    case NODE_VAR_STMT:    return fh_eval(ctx, node->e1);
     case NODE_VAR_DEC_LST: return fh_eval_each(ctx, node);
-    case NODE_VAR_DEC: return fh_var_dec(ctx, node);
-    case NODE_BREAK: return fh_break();
-    case NODE_PROP_LST: return fh_eval_each(ctx, node);
-    case NODE_PROP: fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2)); break;
-    case NODE_WHILE: fh_while(ctx, node->e1, node->e2); break;
-    case NODE_FOR: fh_for(ctx, node->e1, node->e2); break;
-    case NODE_FORIN: fh_forin(ctx, node); break;
-    case NODE_EMPT_STMT: break;
+    case NODE_VAR_DEC:     return fh_var_dec(ctx, node, false);
+    case NODE_BREAK:       return fh_break();
+    case NODE_PROP_LST:    return fh_eval_each(ctx, node);
+
+    case NODE_PROP:        fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2)); break;
+    case NODE_WHILE:       fh_while(ctx, node->e1, node->e2); break;
+    case NODE_FOR:         fh_for(ctx, node->e1, node->e2); break;
+    case NODE_FORIN:       fh_forin(ctx, node); break;
+    case NODE_EMPT_STMT:   break;
+
     default:
       fh_error(
         fh_new_state(node->line, node->column), E_SYNTAX,
@@ -81,16 +84,16 @@ fh_eval(js_val *ctx, ast_node *node)
 js_val *
 fh_src_lst(js_val *ctx, ast_node *node)
 {
-  fh_func_decl_scan(ctx, node);
-  fh_var_decl_scan(ctx, node);
+  fh_func_dec_scan(ctx, node);
+  fh_var_dec_scan(ctx, node);
 
   return fh_stmt_lst(ctx, node);
 }
 
 void
-fh_func_decl_scan(js_val *ctx, ast_node *node)
+fh_func_dec_scan(js_val *ctx, ast_node *node)
 {
-  // First sweep for function declarations
+  // Sweep for function declarations
   ast_node *child;
   while (!node->visited) {
     child = pop_node(node);
@@ -103,10 +106,25 @@ fh_func_decl_scan(js_val *ctx, ast_node *node)
 }
 
 void
-fh_var_decl_scan(js_val *ctx, ast_node *node)
+fh_var_dec_scan(js_val *ctx, ast_node *node)
 {
   // Sweep for variable declarations
-  // TODO
+  ast_node *child;
+  while (!node->visited) {
+    child = pop_node(node);
+    if (child->type == NODE_VAR_DEC) {
+      // Do the variable declaration, ignoring the rval.
+      fh_var_dec(ctx, child, true);
+      // Now change it to an assignment.
+      child->type = NODE_ASGN;
+      child->sval = "=";
+    }
+    if (child->type == NODE_VAR_DEC_LST) {
+      while (!child->visited) fh_var_dec_scan(ctx, pop_node(child));
+      rewind_node(child);
+    }
+  }
+  rewind_node(node);
 }
 
 js_val *
@@ -204,8 +222,19 @@ fh_arr(js_val *ctx, ast_node *node)
 
 
 // ----------------------------------------------------------------------------
-// Membership
+// Lookups & Member Expressions
 // ----------------------------------------------------------------------------
+
+js_val *
+fh_ident(js_val *ctx, ast_node *id)
+{
+  js_prop *prop = fh_get_prop_rec(ctx, id->sval);
+  if (!prop) {
+    eval_state *state = fh_new_state(id->line, id->column);
+    fh_error(state, E_REFERENCE, "%s is not defined", id->sval);
+  }
+  return prop->ptr;
+}
 
 js_val *
 fh_member(js_val *ctx, ast_node *member)
@@ -292,12 +321,12 @@ fh_do_assign(js_val *obj, char *name, js_val *val, char *op)
 }
 
 js_val *
-fh_var_dec(js_val *ctx, ast_node *node)
+fh_var_dec(js_val *ctx, ast_node *node, bool ignore_rval)
 {
-  if (node->e2 != NULL)
-    fh_set_prop(ctx, node->e1->sval, fh_eval(ctx, node->e2), P_WRITE | P_ENUM);
-  else
+  if (node->e2 == NULL || ignore_rval)
     fh_set_prop(ctx, node->e1->sval, JSUNDEF(), P_WRITE | P_ENUM);
+  else
+    fh_set_prop(ctx, node->e1->sval, fh_eval(ctx, node->e2), P_WRITE | P_ENUM);
   return JSUNDEF();
 }
 
@@ -550,7 +579,7 @@ fh_setup_call_env(js_val *ctx, js_val *this, js_val *func, js_args *args)
       else {
         fh_set(scope, pop_node(params)->sval, JSUNDEF());
       }
-    } 
+    }
   }
 
   return scope;
