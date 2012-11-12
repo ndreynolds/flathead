@@ -22,9 +22,7 @@
 // Get a property
 // ----------------------------------------------------------------------------
 
-/**
- * Lookup a property on an object, resolve the value, and return it.
- */
+/* Lookup a property on an object, resolve the value, and return it. */
 js_val *
 fh_get(js_val *obj, char *name)
 {
@@ -37,9 +35,7 @@ fh_get(js_val *obj, char *name)
   return prop ? prop->ptr : JSUNDEF();
 }
 
-/**
- * Same as `fh_get`, but recurse the scope chain.
- */
+/* Same as `fh_get`, but recurse the scope chain. */
 js_val *
 fh_get_rec(js_val *obj, char *name) 
 {
@@ -47,9 +43,7 @@ fh_get_rec(js_val *obj, char *name)
   return prop ? prop->ptr : JSUNDEF();
 }
 
-/**
- * Same as `fh_get`, but recurse the prototype chain (if one exists).
- */
+/* Same as `fh_get`, but recurse the prototype chain (if one exists). */
 js_val *
 fh_get_proto(js_val *obj, char *name)
 {
@@ -62,9 +56,7 @@ fh_get_proto(js_val *obj, char *name)
   return val;
 }
 
-/**
- * Lookup a property on an object and return it.
- */
+/* Lookup a property on an object and return it. */
 js_prop *
 fh_get_prop(js_val *obj, char *name)
 {
@@ -97,46 +89,49 @@ fh_get_prop_proto(js_val *obj, char *name)
 // Set a property
 // ----------------------------------------------------------------------------
 
-/**
- * Set a property on an object using the provided name and value, and the 
+/* Set a property on an object using the provided name and value, and the 
  * default property flags.
  */
 void
 fh_set(js_val *obj, char *name, js_val *val)
 {
-  fh_set_prop(obj, name, val, P_DEFAULT);
+  fh_set_prop(obj, name, val, P_NONE);
 }
 
-/**
- * Set a property on an object using the provided name, value, and property
- * flags.
+/* Set a property on an object using the provided name, value, and property
+ * flags. 
  */
 void
 fh_set_prop(js_val *obj, char *name, js_val *val, js_prop_flags flags)
 {
-  bool add = false;
+  // Get the existing prop or create a new one.
+  bool new = false;
   js_prop *prop = fh_get_prop(obj, name);
   if (prop == NULL) {
     prop = fh_new_prop(P_DEFAULT);
-    add = true;
+    new = true;
   }
 
-  prop->writable = flags & P_WRITE;
-  prop->configurable = flags & P_CONF;
-  prop->enumerable = flags & P_ENUM;
+  // Update the prop flags.
+  // The P_NONE value is used to convey that the flags should not be changed.
+  if (flags != P_NONE) {
+    prop->writable = flags & P_WRITE;
+    prop->configurable = flags & P_CONF;
+    prop->enumerable = flags & P_ENUM;
+  }
 
-  prop->name = malloc((strlen(name) + 1) * sizeof(char));
-  strcpy(prop->name, name);
   prop->ptr = val;
   prop->circular = prop->ptr == obj ? 1 : 0; // Do we have a circular reference?
 
-  // Don't add if it already exists (bad things happen).
-  if (add)
+  // Add the prop if new
+  if (new) {
+    prop->name = malloc((strlen(name) + 1) * sizeof(char));
+    strcpy(prop->name, name);
     HASH_ADD_KEYPTR(hh, obj->map, prop->name, strlen(prop->name), prop);
+  }
 }
 
-/*
- * Set a property on the given object, or -- if not defined -- the closest
+/* Set a property on the given object, or -- if not defined -- the closest
  * parent scope on which the name is already defined.
  */
 void
@@ -163,9 +158,7 @@ fh_set_rec(js_val *obj, char *name, js_val *val)
 // Delete a property
 // ----------------------------------------------------------------------------
 
-/**
- * Find and delete a property from an object by name.
- */
+/* Find and delete a property from an object by name. */
 bool
 fh_del_prop(js_val *obj, char *name)
 {

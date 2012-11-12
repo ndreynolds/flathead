@@ -121,6 +121,7 @@ typedef enum {
   P_WRITE   = 0x01,
   P_ENUM    = 0x02,
   P_CONF    = 0x04,
+  P_NONE    = 0x08,
   P_BUILTIN = P_WRITE | P_CONF,
   P_DEFAULT = P_WRITE | P_ENUM | P_CONF
 } js_prop_flags;

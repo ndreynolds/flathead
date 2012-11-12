@@ -43,3 +43,9 @@ var assert = console.assert;
   assert(arguments[1] === 2);
   assert(arguments[2] === 3);
 })(1, 2, 3);
+
+
+// Parameter named 'arguments' overwrites the arguments object.
+(function(arguments) {
+  assert(typeof arguments == 'number');
+})(42);

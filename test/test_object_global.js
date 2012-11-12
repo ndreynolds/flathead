@@ -50,7 +50,7 @@ test('Object.create()', function() {
   assert(newObj.baz === 'goodbye');
 });
 
-var obj = { a: 1, b: 2, c:3 };
+var obj = { a: 1, b: 2, c: 3 };
 
 test('Object.defineProperty(obj, descriptor)', function() {
   // This one isn't enumerable.

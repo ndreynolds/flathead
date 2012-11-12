@@ -17,3 +17,8 @@ assert(s1[6] === 'W');
 assert(s1[11] === '!');
 assert(s1[12] === undefined);
 assert(s1[1000] === undefined);
+
+// Direct operations on strings
+
+assert('abc'[1] === 'b');
+assert('abc'.toString() === 'abc');

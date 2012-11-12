@@ -109,22 +109,26 @@ void
 fh_var_dec_scan(js_val *ctx, ast_node *node)
 {
   // Sweep for variable declarations
-  ast_node *child;
-  while (!node->visited) {
-    child = pop_node(node);
-    if (child->type == NODE_VAR_DEC) {
-      // Do the variable declaration, ignoring the rval.
-      fh_var_dec(ctx, child, true);
-      // Now change it to an assignment.
-      child->type = NODE_ASGN;
-      child->sval = "=";
+
+  // Don't touch functions (stay within our current scope)
+  if (node->type == NODE_FUNC) return;
+
+  // Declare the variable and possibly convert it to an assignment
+  if (node->type == NODE_VAR_DEC) {
+    fh_var_dec(ctx, node, true); // true to ignore rhs
+    if (node->e2) {
+      node->type = NODE_ASGN;
+      node->sval = "=";
     }
-    if (child->type == NODE_VAR_DEC_LST) {
-      while (!child->visited) fh_var_dec_scan(ctx, pop_node(child));
-      rewind_node(child);
+    else {
+      node->type = NODE_EMPT_STMT;
     }
   }
-  rewind_node(node);
+
+  // Recurse sub nodes, will hit the whole tree.
+  if (node->e1) fh_var_dec_scan(ctx, node->e1);
+  if (node->e2) fh_var_dec_scan(ctx, node->e2);
+  if (node->e3) fh_var_dec_scan(ctx, node->e3);
 }
 
 js_val *
@@ -370,12 +374,10 @@ fh_forin(js_val *ctx, ast_node *node)
           *proto = fh_eval(ctx, node->e2),
           *name = fh_str_from_node(ctx, node->e1);
 
-  // If variable declaration:
-  if (node->e1->type == NODE_VAR_DEC) {
-    fh_eval(ctx, node->e1);
-    name = JSSTR(node->e1->e1->sval);
-  }
-
+  // FIXME:
+  // - Doesn't get name out of hoisted variable declaration.
+  // - Doesn't properly handle member expressions and other permitted lhs hijinks
+  
   // Note that during the first iteration, the prototype is the object.
   while (proto != NULL) {
     OBJ_ITER(proto, p) {
@@ -631,8 +633,11 @@ fh_prefix_exp(js_val *ctx, ast_node *node)
 
   if (STREQ(op, "delete"))
     return fh_delete(ctx, node);
-  if (STREQ(op, "typeof"))
+  if (STREQ(op, "typeof")) {
+    if (node->e1->type == NODE_IDENT)
+      return JSSTR(fh_typeof(fh_get_rec(ctx, node->e1->sval)));
     return JSSTR(fh_typeof(fh_eval(ctx, node->e1)));
+  }
   if (STREQ(op, "void")) {
     fh_eval(ctx, node->e1);
     return JSUNDEF();
