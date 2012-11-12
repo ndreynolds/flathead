@@ -16,13 +16,20 @@ var x = 1;
     var z = 3;
 
     (function() {
+
+      // Does not throw a ReferenceError because it is hoisted.
+      assert(toBeHoisted == undefined);
+      // And a sanity check that it would fail otherwise.
+      assert(typeof notARealVariable == 'undefined');
+
       // Nested scopes can access outer scope vars
       assert(x == 1);
       assert(y == 2);
       assert(z == 3);
+
       // Nested scopes can set outer scope vars
       x = 5;
-      // TODO: add var decl lifts
+      var toBeHoisted = 42;
 
       (function() {
         // Variable shadowing

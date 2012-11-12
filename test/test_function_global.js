@@ -32,7 +32,7 @@ test('Constructor', function() {
 // ----------------------------------------------------------------------------
 
 assert(Function.prototype);
-//assertEquals('function', typeof Function.prototype);
+assertEquals('function', typeof Function.prototype);
 
 
 x = 42;
