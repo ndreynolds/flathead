@@ -46,6 +46,8 @@
 %option nounput
 %option noinput
 
+%x ML_COMMENT
+
 D                            [0-9]
 H                            [a-fA-F0-9]
 E                            [Ee][+-]?{D}+
@@ -119,7 +121,20 @@ L?\/[^\ \/]+\/([imgy]{0,4})  { /* FIXME: This is very incomplete */
 
     /* COMMENTS */
 
+    /* single-line */
 [/][/].*                     ; /* ignore comments */
+
+
+    /* multi-line (taken from the Flex manual) */
+<INITIAL>{
+"/*"                         BEGIN(ML_COMMENT);
+}
+<ML_COMMENT>{
+"*/"                         BEGIN(INITIAL);
+[^*\n]+                      // eat comment in chunks
+"*"                          // eat the lone star
+\n                           yylineno++;
+}
 
 
     /* MULTI-CHARACTER PUNCTUATORS & OPERATORS */
