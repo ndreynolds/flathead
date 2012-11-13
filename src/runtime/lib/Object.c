@@ -238,7 +238,6 @@ js_val *
 obj_proto_property_is_enumerable(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *prop_name = ARG(args, 0);
-  // TODO: restricted to own properties?
   js_prop *prop = fh_get_prop(instance, prop_name->string.ptr);
   return JSBOOL(prop != NULL && prop->enumerable);
 }

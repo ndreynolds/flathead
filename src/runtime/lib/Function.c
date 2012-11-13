@@ -85,6 +85,7 @@ bootstrap_function()
 {
   js_val *function = JSNFUNC(func_new);
   js_val *prototype = JSFUNC(NULL);
+  prototype->proto = fh->object_proto;
 
   // Function
   // --------

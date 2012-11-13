@@ -86,6 +86,7 @@ bootstrap_regexp()
 {
   js_val *regexp = JSNFUNC(regexp_new);
   js_val *prototype = JSOBJ();
+  prototype->proto = fh->object_proto;
 
   // RegExp
   // ------

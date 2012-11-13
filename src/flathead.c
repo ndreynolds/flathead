@@ -98,7 +98,7 @@ fh_new_object()
   val->object.extensible = false;
   val->object.parent = NULL;
   val->object.primitive = NULL;
-  val->proto = fh_try_get_proto("Object");
+  val->proto = fh->object_proto;
 
   return val;
 }
@@ -110,8 +110,7 @@ fh_new_array()
 
   fh_set_class(val, "Array");
   fh_set_len(val, 0);
-
-  val->proto = fh_try_get_proto("Array");
+  val->proto = fh->array_proto;
 
   return val;
 }
@@ -122,6 +121,7 @@ fh_new_function(struct ast_node *node)
   js_val *val = fh_new_object();
 
   fh_set_class(val, "Function");
+  fh_set_prop(val, "prototype", JSOBJ(), P_WRITE);
 
   val->object.native = false;
   val->object.generator = false;
@@ -130,7 +130,7 @@ fh_new_function(struct ast_node *node)
   val->object.instance = NULL;
   val->object.bound_this = NULL;
   val->object.bound_args = NULL;
-  val->proto = fh_try_get_proto("Function");
+  val->proto = fh->function_proto;
 
   return val;
 }
@@ -440,8 +440,15 @@ fh_has_instance(js_val *func, js_val *val)
 {
   if (!IS_FUNC(func))
     fh_error(NULL, E_TYPE, "");
-  // TODO: implement
-  (void)val;
+  js_val *fproto = fh_get(func, "prototype");
+  if (!IS_UNDEF(fproto) && IS_OBJ(val)) {
+    js_val *proto = val->proto;
+    while(proto) {
+      if (proto == fproto)
+        return JSBOOL(1);
+      proto = proto->proto;
+    }
+  }
   return JSBOOL(0);
 }
 
@@ -501,7 +508,7 @@ fh_set_len(js_val *val, unsigned long len)
     val->string.length = len;
   if (IS_ARR(val))
     val->object.length = len;
-  fh_set_prop(val, "length", JSNUM(len), P_BUILTIN);
+  fh_set_prop(val, "length", JSNUM(len), 0);
 }
 
 void

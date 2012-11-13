@@ -243,7 +243,8 @@ test('binary', function() {
   });
 
   test('instanceof', function() {
-    // TODO
+    // Also see test_instanceof.js
+    assert({} instanceof Object);
   });
 
 });

@@ -138,8 +138,9 @@ typedef struct {
   bool opt_print_tokens;
   bool opt_print_ast;
 
-  struct js_val *function_proto;
+  struct js_val *function_proto;    // cache prototype pointers
   struct js_val *object_proto;
+  struct js_val *array_proto;
   struct js_val *global;
 } fh_state;
 
@@ -183,8 +184,7 @@ typedef struct {
   bool val;
 } js_boolean;
 
-/**
- * The standard API for natively defined functions provides an instance (when
+/* The standard API for natively defined functions provides an instance (when
  * applicable), the arguments as values in linked-list format, and the evaluation
  * state, which contains information that may be used for error reporting.
  */

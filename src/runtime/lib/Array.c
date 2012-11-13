@@ -691,6 +691,7 @@ bootstrap_array()
 {
   js_val *array = JSNFUNC(arr_new);
   js_val *proto = JSARR();
+  proto->proto = fh->object_proto;
 
   // Array
   // -----
@@ -733,6 +734,7 @@ bootstrap_array()
   BUILTIN(proto, "reduceRight", JSNFUNC(arr_proto_reduce_right));
 
   fh_attach_prototype(proto, fh->function_proto);
+  fh->array_proto = proto;
 
   return array;
 }

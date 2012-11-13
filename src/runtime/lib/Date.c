@@ -1051,6 +1051,7 @@ bootstrap_date()
 {
   js_val *date = JSNFUNC(date_new);
   js_val *proto = JSOBJ();
+  proto->proto = fh->object_proto;
 
   // Date
   // ----
