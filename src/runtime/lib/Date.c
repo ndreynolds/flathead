@@ -1049,7 +1049,7 @@ time_clip(double t)
 js_val *
 bootstrap_date()
 {
-  js_val *date = JSNFUNC(date_new);
+  js_val *date = JSNFUNC(date_new, 7);
   js_val *proto = JSOBJ();
   proto->proto = fh->object_proto;
 
@@ -1057,69 +1057,69 @@ bootstrap_date()
   // ----
 
   // Properties
-  BUILTIN(date, "prototype", proto);
+  DEF(date, "prototype", proto);
 
   // Methods
-  BUILTIN(date, "now", JSNFUNC(date_now));
-  BUILTIN(date, "parse", JSNFUNC(date_parse));
-  BUILTIN(date, "UTC", JSNFUNC(date_utc));
-  BUILTIN(date, "isDST", JSNFUNC(date_is_dst));
+  DEF(date, "now", JSNFUNC(date_now, 0));
+  DEF(date, "parse", JSNFUNC(date_parse, 1));
+  DEF(date, "UTC", JSNFUNC(date_utc, 7));
+  DEF(date, "isDST", JSNFUNC(date_is_dst, 0));
 
   // Date.prototype
   // --------------
   
   // Properties
-  BUILTIN(proto, "constructor", JSNFUNC(date_new));
+  DEF(proto, "constructor", JSNFUNC(date_new, 7));
   
   // Methods
-  BUILTIN(proto, "getDate", JSNFUNC(date_proto_get_date));
-  BUILTIN(proto, "getDay", JSNFUNC(date_proto_get_day));
-  BUILTIN(proto, "getHours", JSNFUNC(date_proto_get_hours));
-  BUILTIN(proto, "getFullYear", JSNFUNC(date_proto_get_full_year));
-  BUILTIN(proto, "getMilliseconds", JSNFUNC(date_proto_get_milliseconds));
-  BUILTIN(proto, "getMinutes", JSNFUNC(date_proto_get_minutes));
-  BUILTIN(proto, "getMonth", JSNFUNC(date_proto_get_month));
-  BUILTIN(proto, "getSeconds", JSNFUNC(date_proto_get_seconds));
-  BUILTIN(proto, "getTime", JSNFUNC(date_proto_get_time));
-  BUILTIN(proto, "getTimezoneOffset", JSNFUNC(date_proto_get_timezone_offset));
-  BUILTIN(proto, "getUTCDate", JSNFUNC(date_proto_get_utc_date));
-  BUILTIN(proto, "getUTCDay", JSNFUNC(date_proto_get_utc_day));
-  BUILTIN(proto, "getUTCHours", JSNFUNC(date_proto_get_utc_hours));
-  BUILTIN(proto, "getUTCFullYear", JSNFUNC(date_proto_get_utc_full_year));
-  BUILTIN(proto, "getUTCMilliseconds", JSNFUNC(date_proto_get_utc_milliseconds));
-  BUILTIN(proto, "getUTCMinutes", JSNFUNC(date_proto_get_utc_minutes));
-  BUILTIN(proto, "getUTCMonth", JSNFUNC(date_proto_get_utc_month));
-  BUILTIN(proto, "getUTCSeconds", JSNFUNC(date_proto_get_utc_seconds));
-  BUILTIN(proto, "getYear", JSNFUNC(date_proto_get_year));
+  DEF(proto, "getDate", JSNFUNC(date_proto_get_date, 0));
+  DEF(proto, "getDay", JSNFUNC(date_proto_get_day, 0));
+  DEF(proto, "getHours", JSNFUNC(date_proto_get_hours, 0));
+  DEF(proto, "getFullYear", JSNFUNC(date_proto_get_full_year, 0));
+  DEF(proto, "getMilliseconds", JSNFUNC(date_proto_get_milliseconds, 0));
+  DEF(proto, "getMinutes", JSNFUNC(date_proto_get_minutes, 0));
+  DEF(proto, "getMonth", JSNFUNC(date_proto_get_month, 0));
+  DEF(proto, "getSeconds", JSNFUNC(date_proto_get_seconds, 0));
+  DEF(proto, "getTime", JSNFUNC(date_proto_get_time, 0));
+  DEF(proto, "getTimezoneOffset", JSNFUNC(date_proto_get_timezone_offset, 0));
+  DEF(proto, "getUTCDate", JSNFUNC(date_proto_get_utc_date, 0));
+  DEF(proto, "getUTCDay", JSNFUNC(date_proto_get_utc_day, 0));
+  DEF(proto, "getUTCHours", JSNFUNC(date_proto_get_utc_hours, 0));
+  DEF(proto, "getUTCFullYear", JSNFUNC(date_proto_get_utc_full_year, 0));
+  DEF(proto, "getUTCMilliseconds", JSNFUNC(date_proto_get_utc_milliseconds, 0));
+  DEF(proto, "getUTCMinutes", JSNFUNC(date_proto_get_utc_minutes, 0));
+  DEF(proto, "getUTCMonth", JSNFUNC(date_proto_get_utc_month, 0));
+  DEF(proto, "getUTCSeconds", JSNFUNC(date_proto_get_utc_seconds, 0));
+  DEF(proto, "getYear", JSNFUNC(date_proto_get_year, 0));
 
-  BUILTIN(proto, "setDate", JSNFUNC(date_proto_set_date));
-  BUILTIN(proto, "setFullYear", JSNFUNC(date_proto_set_full_year));
-  BUILTIN(proto, "setHours", JSNFUNC(date_proto_set_hours));
-  BUILTIN(proto, "setMilliseconds", JSNFUNC(date_proto_set_milliseconds));
-  BUILTIN(proto, "setMinutes", JSNFUNC(date_proto_set_minutes));
-  BUILTIN(proto, "setMonth", JSNFUNC(date_proto_set_month));
-  BUILTIN(proto, "setSeconds", JSNFUNC(date_proto_set_seconds));
-  BUILTIN(proto, "setTime", JSNFUNC(date_proto_set_time));
-  BUILTIN(proto, "setUTCDate", JSNFUNC(date_proto_set_utc_date));
-  BUILTIN(proto, "setUTCFullYear", JSNFUNC(date_proto_set_utc_full_year));
-  BUILTIN(proto, "setUTCHours", JSNFUNC(date_proto_set_utc_hours));
-  BUILTIN(proto, "setUTCMilliseconds", JSNFUNC(date_proto_set_utc_milliseconds));
-  BUILTIN(proto, "setUTCMinutes", JSNFUNC(date_proto_set_utc_minutes));
-  BUILTIN(proto, "setUTCMonth", JSNFUNC(date_proto_set_utc_month));
-  BUILTIN(proto, "setUTCSeconds", JSNFUNC(date_proto_set_utc_seconds));
-  BUILTIN(proto, "setYear", JSNFUNC(date_proto_set_year));
+  DEF(proto, "setDate", JSNFUNC(date_proto_set_date, 1));
+  DEF(proto, "setFullYear", JSNFUNC(date_proto_set_full_year, 3));
+  DEF(proto, "setHours", JSNFUNC(date_proto_set_hours, 4));
+  DEF(proto, "setMilliseconds", JSNFUNC(date_proto_set_milliseconds, 1));
+  DEF(proto, "setMinutes", JSNFUNC(date_proto_set_minutes, 3));
+  DEF(proto, "setMonth", JSNFUNC(date_proto_set_month, 2));
+  DEF(proto, "setSeconds", JSNFUNC(date_proto_set_seconds, 2));
+  DEF(proto, "setTime", JSNFUNC(date_proto_set_time, 1));
+  DEF(proto, "setUTCDate", JSNFUNC(date_proto_set_utc_date, 1));
+  DEF(proto, "setUTCFullYear", JSNFUNC(date_proto_set_utc_full_year, 3));
+  DEF(proto, "setUTCHours", JSNFUNC(date_proto_set_utc_hours, 4));
+  DEF(proto, "setUTCMilliseconds", JSNFUNC(date_proto_set_utc_milliseconds, 1));
+  DEF(proto, "setUTCMinutes", JSNFUNC(date_proto_set_utc_minutes, 3));
+  DEF(proto, "setUTCMonth", JSNFUNC(date_proto_set_utc_month, 2));
+  DEF(proto, "setUTCSeconds", JSNFUNC(date_proto_set_utc_seconds, 2));
+  DEF(proto, "setYear", JSNFUNC(date_proto_set_year, 1));
 
-  BUILTIN(proto, "toDateString", JSNFUNC(date_proto_to_date_string));
-  BUILTIN(proto, "toGMTString", JSNFUNC(date_proto_to_utc_string));
-  BUILTIN(proto, "toISOString", JSNFUNC(date_proto_to_iso_string));
-  BUILTIN(proto, "toJSON", JSNFUNC(date_proto_to_iso_string));
-  BUILTIN(proto, "toLocaleDateString", JSNFUNC(date_proto_to_locale_date_string));
-  BUILTIN(proto, "toLocaleString", JSNFUNC(date_proto_to_locale_string));
-  BUILTIN(proto, "toLocaleTimeString", JSNFUNC(date_proto_to_locale_time_string));
-  BUILTIN(proto, "toString", JSNFUNC(date_proto_to_string));
-  BUILTIN(proto, "toTimeString", JSNFUNC(date_proto_to_time_string));
-  BUILTIN(proto, "toUTCString", JSNFUNC(date_proto_to_utc_string));
-  BUILTIN(proto, "valueOf", JSNFUNC(date_proto_value_of));
+  DEF(proto, "toDateString", JSNFUNC(date_proto_to_date_string, 0));
+  DEF(proto, "toGMTString", JSNFUNC(date_proto_to_utc_string, 0));
+  DEF(proto, "toISOString", JSNFUNC(date_proto_to_iso_string, 0));
+  DEF(proto, "toJSON", JSNFUNC(date_proto_to_iso_string, 1));
+  DEF(proto, "toLocaleDateString", JSNFUNC(date_proto_to_locale_date_string, 0));
+  DEF(proto, "toLocaleString", JSNFUNC(date_proto_to_locale_string, 0));
+  DEF(proto, "toLocaleTimeString", JSNFUNC(date_proto_to_locale_time_string, 0));
+  DEF(proto, "toString", JSNFUNC(date_proto_to_string, 0));
+  DEF(proto, "toTimeString", JSNFUNC(date_proto_to_time_string, 0));
+  DEF(proto, "toUTCString", JSNFUNC(date_proto_to_utc_string, 0));
+  DEF(proto, "valueOf", JSNFUNC(date_proto_value_of, 0));
 
   fh_attach_prototype(proto, fh->function_proto);
 

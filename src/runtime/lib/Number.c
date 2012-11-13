@@ -111,33 +111,33 @@ number_proto_value_of(js_val *instance, js_args *args, eval_state *state)
 js_val *
 bootstrap_number()
 {
-  js_val *number = JSNFUNC(number_new);
+  js_val *number = JSNFUNC(number_new, 1);
   js_val *prototype = JSOBJ();
 
   // Number
   // ------
 
   // Properties
-  BUILTIN(number, "prototype", prototype);
-  BUILTIN(number, "MAX_VALUE", JSNUM(DBL_MAX));
-  BUILTIN(number, "MIN_VALUE", JSNUM(DBL_MIN));
-  BUILTIN(number, "NEGATIVE_INFINITY", JSNINF());
-  BUILTIN(number, "POSITIVE_INFINITY", JSINF());
-  BUILTIN(number, "NaN", JSNAN());
+  DEF(number, "prototype", prototype);
+  DEF(number, "MAX_VALUE", JSNUM(DBL_MAX));
+  DEF(number, "MIN_VALUE", JSNUM(DBL_MIN));
+  DEF(number, "NEGATIVE_INFINITY", JSNINF());
+  DEF(number, "POSITIVE_INFINITY", JSINF());
+  DEF(number, "NaN", JSNAN());
 
   // Number.prototype
   // ----------------
   
   // Properties
-  BUILTIN(prototype, "constructor", JSNFUNC(number_new));
+  DEF(prototype, "constructor", JSNFUNC(number_new, 1));
 
   // Methods
-  BUILTIN(prototype, "toExponential", JSNFUNC(number_proto_to_exponential));
-  BUILTIN(prototype, "toFixed", JSNFUNC(number_proto_to_fixed));
-  BUILTIN(prototype, "toLocaleString", JSNFUNC(number_proto_to_locale_string));
-  BUILTIN(prototype, "toPrecision", JSNFUNC(number_proto_to_precision));
-  BUILTIN(prototype, "toString", JSNFUNC(number_proto_to_string));
-  BUILTIN(prototype, "valueOf", JSNFUNC(number_proto_value_of));
+  DEF(prototype, "toExponential", JSNFUNC(number_proto_to_exponential, 1));
+  DEF(prototype, "toFixed", JSNFUNC(number_proto_to_fixed, 1));
+  DEF(prototype, "toLocaleString", JSNFUNC(number_proto_to_locale_string, 0));
+  DEF(prototype, "toPrecision", JSNFUNC(number_proto_to_precision, 1));
+  DEF(prototype, "toString", JSNFUNC(number_proto_to_string, 1));
+  DEF(prototype, "valueOf", JSNFUNC(number_proto_value_of, 0));
 
   fh_attach_prototype(prototype, fh->function_proto);
 

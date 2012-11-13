@@ -407,47 +407,47 @@ str_proto_value_of(js_val *instance, js_args *args, eval_state *state)
 js_val *
 bootstrap_string()
 {
-  js_val *string = JSNFUNC(str_new);
+  js_val *string = JSNFUNC(str_new, 1);
   js_val *prototype = JSOBJ();
 
   // String
   // ------
 
-  BUILTIN(string, "prototype", prototype);
-  BUILTIN(string, "fromCharCode", JSNFUNC(str_from_char_code));
+  DEF(string, "prototype", prototype);
+  DEF(string, "fromCharCode", JSNFUNC(str_from_char_code, 1));
 
   // String.prototype
   // ----------------
 
   // Properties
 
-  BUILTIN(prototype, "constructor", JSNFUNC(str_new)); 
-  BUILTIN(prototype, "length", JSNUM(0));
+  DEF(prototype, "constructor", JSNFUNC(str_new, 1)); 
+  DEF(prototype, "length", JSNUM(0));
 
   // Methods
   
-  BUILTIN(prototype, "charAt", JSNFUNC(str_proto_char_at));
-  BUILTIN(prototype, "charCodeAt", JSNFUNC(str_proto_char_code_at));
-  BUILTIN(prototype, "concat", JSNFUNC(str_proto_concat));
-  BUILTIN(prototype, "indexOf", JSNFUNC(str_proto_index_of));
-  BUILTIN(prototype, "lastIndexOf", JSNFUNC(str_proto_last_index_of));
-  BUILTIN(prototype, "localeCompare", JSNFUNC(str_proto_locale_compare));
-  BUILTIN(prototype, "match", JSNFUNC(str_proto_match));
-  BUILTIN(prototype, "replace", JSNFUNC(str_proto_replace));
-  BUILTIN(prototype, "search", JSNFUNC(str_proto_search));
-  BUILTIN(prototype, "slice", JSNFUNC(str_proto_slice));
-  BUILTIN(prototype, "split", JSNFUNC(str_proto_split));
-  BUILTIN(prototype, "substr", JSNFUNC(str_proto_substr));
-  BUILTIN(prototype, "substring", JSNFUNC(str_proto_substring));
-  BUILTIN(prototype, "toLocaleLowerCase", JSNFUNC(str_proto_to_locale_lower_case));
-  BUILTIN(prototype, "toLocaleUpperCase", JSNFUNC(str_proto_to_locale_upper_case));
-  BUILTIN(prototype, "toLowerCase", JSNFUNC(str_proto_to_lower_case));
-  BUILTIN(prototype, "toString", JSNFUNC(str_proto_to_string));
-  BUILTIN(prototype, "toUpperCase", JSNFUNC(str_proto_to_upper_case));
-  BUILTIN(prototype, "trim", JSNFUNC(str_proto_trim));
-  BUILTIN(prototype, "trimLeft", JSNFUNC(str_proto_trim_left));
-  BUILTIN(prototype, "trimRight", JSNFUNC(str_proto_trim_right));
-  BUILTIN(prototype, "valueOf", JSNFUNC(str_proto_value_of));
+  DEF(prototype, "charAt", JSNFUNC(str_proto_char_at, 1));
+  DEF(prototype, "charCodeAt", JSNFUNC(str_proto_char_code_at, 1));
+  DEF(prototype, "concat", JSNFUNC(str_proto_concat, 1));
+  DEF(prototype, "indexOf", JSNFUNC(str_proto_index_of, 1));
+  DEF(prototype, "lastIndexOf", JSNFUNC(str_proto_last_index_of, 1));
+  DEF(prototype, "localeCompare", JSNFUNC(str_proto_locale_compare, 1));
+  DEF(prototype, "match", JSNFUNC(str_proto_match, 1));
+  DEF(prototype, "replace", JSNFUNC(str_proto_replace, 2));
+  DEF(prototype, "search", JSNFUNC(str_proto_search, 1));
+  DEF(prototype, "slice", JSNFUNC(str_proto_slice, 2));
+  DEF(prototype, "split", JSNFUNC(str_proto_split, 2));
+  DEF(prototype, "substr", JSNFUNC(str_proto_substr, 2));
+  DEF(prototype, "substring", JSNFUNC(str_proto_substring, 2));
+  DEF(prototype, "toLocaleLowerCase", JSNFUNC(str_proto_to_locale_lower_case, 0));
+  DEF(prototype, "toLocaleUpperCase", JSNFUNC(str_proto_to_locale_upper_case, 0));
+  DEF(prototype, "toLowerCase", JSNFUNC(str_proto_to_lower_case, 0));
+  DEF(prototype, "toString", JSNFUNC(str_proto_to_string, 0));
+  DEF(prototype, "toUpperCase", JSNFUNC(str_proto_to_upper_case, 0));
+  DEF(prototype, "trim", JSNFUNC(str_proto_trim, 0));
+  DEF(prototype, "trimLeft", JSNFUNC(str_proto_trim_left, 0));
+  DEF(prototype, "trimRight", JSNFUNC(str_proto_trim_right, 0));
+  DEF(prototype, "valueOf", JSNFUNC(str_proto_value_of, 0));
 
   fh_attach_prototype(prototype, fh->function_proto);
 

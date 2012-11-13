@@ -233,34 +233,34 @@ bootstrap_math()
   fh_set_class(math, "Math");
 
   // Properties
-  BUILTIN(math, "E", JSNUM(M_E));
-  BUILTIN(math, "LN2", JSNUM(M_LN2));
-  BUILTIN(math, "LN10", JSNUM(M_LN10));
-  BUILTIN(math, "LOG2E", JSNUM(M_LOG2E));
-  BUILTIN(math, "LOG10E", JSNUM(M_LOG10E));
-  BUILTIN(math, "PI", JSNUM(M_PI));
-  BUILTIN(math, "SQRT1_2", JSNUM(M_SQRT1_2));
-  BUILTIN(math, "SQRT2", JSNUM(M_SQRT2));
+  DEF(math, "E", JSNUM(M_E));
+  DEF(math, "LN2", JSNUM(M_LN2));
+  DEF(math, "LN10", JSNUM(M_LN10));
+  DEF(math, "LOG2E", JSNUM(M_LOG2E));
+  DEF(math, "LOG10E", JSNUM(M_LOG10E));
+  DEF(math, "PI", JSNUM(M_PI));
+  DEF(math, "SQRT1_2", JSNUM(M_SQRT1_2));
+  DEF(math, "SQRT2", JSNUM(M_SQRT2));
 
   // Methods
-  BUILTIN(math, "abs", JSNFUNC(math_abs));
-  BUILTIN(math, "acos", JSNFUNC(math_acos));
-  BUILTIN(math, "asin", JSNFUNC(math_asin));
-  BUILTIN(math, "atan", JSNFUNC(math_atan));
-  BUILTIN(math, "atan2", JSNFUNC(math_atan2));
-  BUILTIN(math, "ceil", JSNFUNC(math_ceil));
-  BUILTIN(math, "cos", JSNFUNC(math_cos));
-  BUILTIN(math, "exp", JSNFUNC(math_exp));
-  BUILTIN(math, "floor", JSNFUNC(math_floor));
-  BUILTIN(math, "log", JSNFUNC(math_log));
-  BUILTIN(math, "max", JSNFUNC(math_max));
-  BUILTIN(math, "min", JSNFUNC(math_min));
-  BUILTIN(math, "pow", JSNFUNC(math_pow));
-  BUILTIN(math, "random", JSNFUNC(math_random));
-  BUILTIN(math, "round", JSNFUNC(math_round));
-  BUILTIN(math, "sin", JSNFUNC(math_sin));
-  BUILTIN(math, "sqrt", JSNFUNC(math_sqrt));
-  BUILTIN(math, "tan", JSNFUNC(math_tan));
+  DEF(math, "abs", JSNFUNC(math_abs, 1));
+  DEF(math, "acos", JSNFUNC(math_acos, 1));
+  DEF(math, "asin", JSNFUNC(math_asin, 1));
+  DEF(math, "atan", JSNFUNC(math_atan, 1));
+  DEF(math, "atan2", JSNFUNC(math_atan2, 2));
+  DEF(math, "ceil", JSNFUNC(math_ceil, 1));
+  DEF(math, "cos", JSNFUNC(math_cos, 1));
+  DEF(math, "exp", JSNFUNC(math_exp, 1));
+  DEF(math, "floor", JSNFUNC(math_floor, 1));
+  DEF(math, "log", JSNFUNC(math_log, 1));
+  DEF(math, "max", JSNFUNC(math_max, 2));
+  DEF(math, "min", JSNFUNC(math_min, 2));
+  DEF(math, "pow", JSNFUNC(math_pow, 2));
+  DEF(math, "random", JSNFUNC(math_random, 0));
+  DEF(math, "round", JSNFUNC(math_round, 1));
+  DEF(math, "sin", JSNFUNC(math_sin, 1));
+  DEF(math, "sqrt", JSNFUNC(math_sqrt, 1));
+  DEF(math, "tan", JSNFUNC(math_tan, 1));
 
   fh_attach_prototype(math, fh->function_proto);
 

@@ -85,12 +85,12 @@ bootstrap_console()
 {
   js_val *console = JSOBJ();
 
-  BUILTIN(console, "log", JSNFUNC(console_log));
-  BUILTIN(console, "error", JSNFUNC(console_error));
-  BUILTIN(console, "info", JSNFUNC(console_info));
-  BUILTIN(console, "assert", JSNFUNC(console_assert));
-  BUILTIN(console, "time", JSNFUNC(console_time));
-  BUILTIN(console, "timeEnd", JSNFUNC(console_time_end));
+  DEF(console, "log", JSNFUNC(console_log, 1));
+  DEF(console, "error", JSNFUNC(console_error, 1));
+  DEF(console, "info", JSNFUNC(console_info, 1));
+  DEF(console, "assert", JSNFUNC(console_assert, 1));
+  DEF(console, "time", JSNFUNC(console_time, 1));
+  DEF(console, "timeEnd", JSNFUNC(console_time_end, 1));
 
   fh_attach_prototype(console, fh->function_proto);
 

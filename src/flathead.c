@@ -136,12 +136,13 @@ fh_new_function(struct ast_node *node)
 }
 
 js_val *
-fh_new_native_function(js_native_function func)
+fh_new_native_function(js_native_function func, int length)
 {
   js_val *val = fh_new_function(NULL);
 
   val->object.native = true;
   val->object.nativefn = func;
+  fh_set_len(val, length);
 
   return val;
 }

@@ -39,25 +39,26 @@ error_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 js_val *
 bootstrap_error()
 {
-  js_val *error = JSNFUNC(error_new);
+  js_val *error = JSNFUNC(error_new, 1);
   js_val *prototype = JSOBJ();
+  prototype->proto = fh->object_proto;
 
   // Error
   // -----
 
   // Properties
-  BUILTIN(error, "prototype", prototype);
+  DEF(error, "prototype", prototype);
 
   // Error.prototype
   // ---------------
   
   // Properties
-  BUILTIN(prototype, "constructor", JSNFUNC(error_new));
-  BUILTIN(prototype, "name", JSSTR("Error"));
-  BUILTIN(prototype, "message", JSSTR(""));
+  DEF(prototype, "constructor", JSNFUNC(error_new, 1));
+  DEF(prototype, "name", JSSTR("Error"));
+  DEF(prototype, "message", JSSTR(""));
 
   // Methods
-  BUILTIN(prototype, "toString", JSNFUNC(error_proto_to_string));
+  DEF(prototype, "toString", JSNFUNC(error_proto_to_string, 0));
 
   fh_attach_prototype(prototype, fh->function_proto);
 

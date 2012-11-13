@@ -83,28 +83,28 @@ func_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 js_val *
 bootstrap_function()
 {
-  js_val *function = JSNFUNC(func_new);
+  js_val *function = JSNFUNC(func_new, 1);
   js_val *prototype = JSFUNC(NULL);
   prototype->proto = fh->object_proto;
 
   // Function
   // --------
 
-  BUILTIN(function, "prototype", prototype);
+  DEF(function, "prototype", prototype);
 
   // Function.prototype
   // ------------------
 
   // Properties
-  BUILTIN(prototype, "length", JSNUM(0));
-  BUILTIN(prototype, "constructor", JSNFUNC(func_new));
+  DEF(prototype, "length", JSNUM(0));
+  DEF(prototype, "constructor", JSNFUNC(func_new, 1));
 
   // Methods
-  BUILTIN(prototype, "apply", JSNFUNC(func_proto_apply));
-  BUILTIN(prototype, "bind", JSNFUNC(func_proto_bind));
-  BUILTIN(prototype, "call", JSNFUNC(func_proto_call));
-  BUILTIN(prototype, "isGenerator", JSNFUNC(func_proto_is_generator));
-  BUILTIN(prototype, "toString", JSNFUNC(func_proto_to_string));
+  DEF(prototype, "apply", JSNFUNC(func_proto_apply, 2));
+  DEF(prototype, "bind", JSNFUNC(func_proto_bind, 1));
+  DEF(prototype, "call", JSNFUNC(func_proto_call, 1));
+  DEF(prototype, "isGenerator", JSNFUNC(func_proto_is_generator, 0));
+  DEF(prototype, "toString", JSNFUNC(func_proto_to_string, 0));
 
   fh->function_proto = prototype;
 

@@ -84,7 +84,7 @@ regexp_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 js_val *
 bootstrap_regexp()
 {
-  js_val *regexp = JSNFUNC(regexp_new);
+  js_val *regexp = JSNFUNC(regexp_new, 2);
   js_val *prototype = JSOBJ();
   prototype->proto = fh->object_proto;
 
@@ -92,25 +92,25 @@ bootstrap_regexp()
   // ------
 
   // Properties
-  BUILTIN(regexp, "prototype", prototype);
+  DEF(regexp, "prototype", prototype);
 
   // RegExp.prototype
   // ----------------
 
   // Properties
   // FIXME: these properties need to be non-writable.
-  BUILTIN(prototype, "constructor", JSNFUNC(regexp_new));
-  BUILTIN(prototype, "global", JSBOOL(0));
-  BUILTIN(prototype, "ignoreCase", JSBOOL(0));
-  BUILTIN(prototype, "lastIndex", JSBOOL(0));
-  BUILTIN(prototype, "multiline", JSBOOL(0));
-  BUILTIN(prototype, "source", JSSTR(""));
-  BUILTIN(prototype, "sticky", JSBOOL(0));
+  DEF(prototype, "constructor", JSNFUNC(regexp_new, 2));
+  DEF(prototype, "global", JSBOOL(0));
+  DEF(prototype, "ignoreCase", JSBOOL(0));
+  DEF(prototype, "lastIndex", JSBOOL(0));
+  DEF(prototype, "multiline", JSBOOL(0));
+  DEF(prototype, "source", JSSTR(""));
+  DEF(prototype, "sticky", JSBOOL(0));
 
   // Methods
-  BUILTIN(prototype, "exec", JSNFUNC(regexp_proto_exec));
-  BUILTIN(prototype, "test", JSNFUNC(regexp_proto_test));
-  BUILTIN(prototype, "toString", JSNFUNC(regexp_proto_to_string));
+  DEF(prototype, "exec", JSNFUNC(regexp_proto_exec, 1));
+  DEF(prototype, "test", JSNFUNC(regexp_proto_test, 1));
+  DEF(prototype, "toString", JSNFUNC(regexp_proto_to_string, 0));
 
   fh_attach_prototype(prototype, fh->function_proto);
 

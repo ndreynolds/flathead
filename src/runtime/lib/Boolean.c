@@ -31,24 +31,24 @@ bool_proto_value_of(js_val *instance, js_args *args, eval_state *state)
 js_val *
 bootstrap_boolean()
 {
-  js_val *boolean = JSNFUNC(bool_new);
+  js_val *boolean = JSNFUNC(bool_new, 1);
   js_val *prototype = JSOBJ();
 
   // Boolean
   // -------
 
   // Properties
-  BUILTIN(boolean, "prototype", prototype);
+  DEF(boolean, "prototype", prototype);
 
   // Boolean.prototype
   // -----------------
   
   // Properties
-  BUILTIN(prototype, "constructor", JSNFUNC(bool_new));
+  DEF(prototype, "constructor", JSNFUNC(bool_new, 1));
   
   // Methods
-  BUILTIN(prototype, "toString", JSNFUNC(bool_proto_to_string));
-  BUILTIN(prototype, "valueOf", JSNFUNC(bool_proto_value_of));
+  DEF(prototype, "toString", JSNFUNC(bool_proto_to_string, 0));
+  DEF(prototype, "valueOf", JSNFUNC(bool_proto_value_of, 0));
 
   fh_attach_prototype(prototype, fh->function_proto);
 

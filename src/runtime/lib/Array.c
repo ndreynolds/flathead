@@ -689,7 +689,7 @@ arr_do_join(js_val *arr, js_val *sep)
 js_val *
 bootstrap_array()
 {
-  js_val *array = JSNFUNC(arr_new);
+  js_val *array = JSNFUNC(arr_new, 1);
   js_val *proto = JSARR();
   proto->proto = fh->object_proto;
 
@@ -697,41 +697,41 @@ bootstrap_array()
   // -----
 
   // Properties
-  BUILTIN(array, "prototype", proto);
+  DEF(array, "prototype", proto);
 
   // Methods
-  BUILTIN(array, "isArray", JSNFUNC(arr_is_array));
+  DEF(array, "isArray", JSNFUNC(arr_is_array, 0));
 
   // Array.prototype
   // ---------------
 
   // Properties
-  BUILTIN(proto, "constructor", JSNFUNC(arr_new));
-  BUILTIN(proto, "length", JSNUM(0));
+  DEF(proto, "constructor", JSNFUNC(arr_new, 1));
+  DEF(proto, "length", JSNUM(0));
 
   // Methods
-  BUILTIN(proto, "pop", JSNFUNC(arr_proto_pop));
-  BUILTIN(proto, "push", JSNFUNC(arr_proto_push));
-  BUILTIN(proto, "reverse", JSNFUNC(arr_proto_reverse));
-  BUILTIN(proto, "shift", JSNFUNC(arr_proto_shift));
-  BUILTIN(proto, "sort", JSNFUNC(arr_proto_sort));
-  BUILTIN(proto, "splice", JSNFUNC(arr_proto_splice));
-  BUILTIN(proto, "unshift", JSNFUNC(arr_proto_unshift));
+  DEF(proto, "pop", JSNFUNC(arr_proto_pop, 0));
+  DEF(proto, "push", JSNFUNC(arr_proto_push, 1));
+  DEF(proto, "reverse", JSNFUNC(arr_proto_reverse, 0));
+  DEF(proto, "shift", JSNFUNC(arr_proto_shift, 0));
+  DEF(proto, "sort", JSNFUNC(arr_proto_sort, 1));
+  DEF(proto, "splice", JSNFUNC(arr_proto_splice, 2));
+  DEF(proto, "unshift", JSNFUNC(arr_proto_unshift, 1));
 
-  BUILTIN(proto, "concat", JSNFUNC(arr_proto_concat));
-  BUILTIN(proto, "join", JSNFUNC(arr_proto_join));
-  BUILTIN(proto, "slice", JSNFUNC(arr_proto_slice));
-  BUILTIN(proto, "toString", JSNFUNC(arr_proto_to_string));
-  BUILTIN(proto, "indexOf", JSNFUNC(arr_proto_index_of));
-  BUILTIN(proto, "lastIndexOf", JSNFUNC(arr_proto_last_index_of));
+  DEF(proto, "concat", JSNFUNC(arr_proto_concat, 1));
+  DEF(proto, "join", JSNFUNC(arr_proto_join, 1));
+  DEF(proto, "slice", JSNFUNC(arr_proto_slice, 2));
+  DEF(proto, "toString", JSNFUNC(arr_proto_to_string, 0));
+  DEF(proto, "indexOf", JSNFUNC(arr_proto_index_of, 1));
+  DEF(proto, "lastIndexOf", JSNFUNC(arr_proto_last_index_of, 1));
 
-  BUILTIN(proto, "filter", JSNFUNC(arr_proto_filter));
-  BUILTIN(proto, "forEach", JSNFUNC(arr_proto_for_each));
-  BUILTIN(proto, "every", JSNFUNC(arr_proto_every));
-  BUILTIN(proto, "map", JSNFUNC(arr_proto_map));
-  BUILTIN(proto, "some", JSNFUNC(arr_proto_some));
-  BUILTIN(proto, "reduce", JSNFUNC(arr_proto_reduce));
-  BUILTIN(proto, "reduceRight", JSNFUNC(arr_proto_reduce_right));
+  DEF(proto, "filter", JSNFUNC(arr_proto_filter, 1));
+  DEF(proto, "forEach", JSNFUNC(arr_proto_for_each, 1));
+  DEF(proto, "every", JSNFUNC(arr_proto_every, 1));
+  DEF(proto, "map", JSNFUNC(arr_proto_map, 1));
+  DEF(proto, "some", JSNFUNC(arr_proto_some, 1));
+  DEF(proto, "reduce", JSNFUNC(arr_proto_reduce, 1));
+  DEF(proto, "reduceRight", JSNFUNC(arr_proto_reduce_right, 1));
 
   fh_attach_prototype(proto, fh->function_proto);
   fh->array_proto = proto;

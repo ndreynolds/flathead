@@ -44,7 +44,7 @@
 #define JSOBJ()        fh_new_object()
 #define JSARR()        fh_new_array()
 #define JSFUNC(x)      fh_new_function(x)
-#define JSNFUNC(x)     fh_new_native_function(x)
+#define JSNFUNC(x,n)   fh_new_native_function(x,n)
 #define JSREGEXP(x)    fh_new_regexp(x)
 #define JSNUMKEY(x)    fh_cast(JSNUM((x)), T_STRING)
 
@@ -70,7 +70,8 @@
 
 #define STREQ(a,b)     (strcmp((a),(b)) == 0)
 #define OBJ_ITER(o,p)  js_prop *_tmp; HASH_ITER(hh,(o)->map,p,_tmp)
-#define BUILTIN(o,k,v) fh_set_prop((o),(k),(v),P_BUILTIN)
+
+#define DEF(o,k,v)     fh_set_prop((o),(k),(v),P_BUILTIN)
 
 #define DEBUG(x)       fh_debug(stdout,(x),0,1)
 #define UNREACHABLE()  assert(0)
@@ -227,7 +228,7 @@ js_val * fh_new_boolean(bool);
 js_val * fh_new_object();
 js_val * fh_new_array();
 js_val * fh_new_function(struct ast_node *);
-js_val * fh_new_native_function(js_native_function);
+js_val * fh_new_native_function(js_native_function, int);
 js_val * fh_new_regexp(char *);
 
 js_args * fh_new_args(js_val *, js_val *, js_val *);

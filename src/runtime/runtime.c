@@ -123,34 +123,35 @@ fh_bootstrap()
 {
   js_val *global = JSOBJ();
 
-  fh_set(global, "Object", bootstrap_object());
-  fh_set(global, "Function", bootstrap_function());
-  fh_set(global, "Array", bootstrap_array());
-  fh_set(global, "String", bootstrap_string());
-  fh_set(global, "Number", bootstrap_number());
-  fh_set(global, "Boolean", bootstrap_boolean());
-  fh_set(global, "Date", bootstrap_date());
-  fh_set(global, "RegExp", bootstrap_regexp());
-  fh_set(global, "Error", bootstrap_error());
+  DEF(global, "Object", bootstrap_object());
+  DEF(global, "Function", bootstrap_function());
+  DEF(global, "Array", bootstrap_array());
+  DEF(global, "String", bootstrap_string());
+  DEF(global, "Number", bootstrap_number());
+  DEF(global, "Boolean", bootstrap_boolean());
+  DEF(global, "Date", bootstrap_date());
+  DEF(global, "RegExp", bootstrap_regexp());
+  DEF(global, "Error", bootstrap_error());
+  DEF(global, "Math", bootstrap_math());
+  DEF(global, "console", bootstrap_console());
 
   fh_attach_prototype(fh->object_proto, fh->function_proto);
   fh_attach_prototype(fh->function_proto, fh->function_proto);
 
-  fh_set(global, "console", bootstrap_console());
-  fh_set(global, "Math", bootstrap_math());
-  fh_set(global, "NaN", JSNAN());
-  fh_set(global, "Infinity", JSINF());
-  fh_set(global, "isNaN", JSNFUNC(global_is_nan));
-  fh_set(global, "isFinite", JSNFUNC(global_is_finite));
-  fh_set(global, "parseInt", JSNFUNC(global_parse_int));
-  fh_set(global, "parseFloat", JSNFUNC(global_parse_float));
-  fh_set(global, "eval", JSNFUNC(global_eval));
-  fh_set(global, "load", JSNFUNC(global_load));
-  fh_set(global, "undefined", JSUNDEF());
-  fh_set(global, "this", global);
+  DEF(global, "NaN", JSNAN());
+  DEF(global, "Infinity", JSINF());
+  DEF(global, "undefined", JSUNDEF());
+  DEF(global, "this", global);
+
+  DEF(global, "isNaN", JSNFUNC(global_is_nan, 1));
+  DEF(global, "isFinite", JSNFUNC(global_is_finite, 1));
+  DEF(global, "parseInt", JSNFUNC(global_parse_int, 2));
+  DEF(global, "parseFloat", JSNFUNC(global_parse_float, 1));
+  DEF(global, "eval", JSNFUNC(global_eval, 1));
+  DEF(global, "load", JSNFUNC(global_load, 1));
 
 #ifdef fh_gc_expose
-  fh_set(global, "gc", JSNFUNC(global_gc));
+  DEF(global, "gc", JSNFUNC(global_gc, 0));
 #endif
 
   return global;

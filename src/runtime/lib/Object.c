@@ -291,43 +291,43 @@ flags_from_descriptor(js_val *desc)
 js_val *
 bootstrap_object()
 {
-  js_val *object = JSNFUNC(obj_new);
+  js_val *object = JSNFUNC(obj_new, 1);
   js_val *prototype = JSOBJ();
 
   // Object
   // ------
 
   // Properties
-  BUILTIN(object, "prototype", prototype);
+  DEF(object, "prototype", prototype);
 
   // Methods
-  BUILTIN(object, "create", JSNFUNC(obj_create));
-  BUILTIN(object, "defineProperty", JSNFUNC(obj_define_property));
-  BUILTIN(object, "defineProperties", JSNFUNC(obj_define_properties));
-  BUILTIN(object, "getOwnPropertyDescriptor", JSNFUNC(obj_get_own_property_descriptor));
-  BUILTIN(object, "keys", JSNFUNC(obj_keys));
-  BUILTIN(object, "getOwnPropertyName", JSNFUNC(obj_get_own_property_names));
-  BUILTIN(object, "getPrototypeOf", JSNFUNC(obj_get_prototype_of));
-  BUILTIN(object, "preventExtensions", JSNFUNC(obj_prevent_extensions));
-  BUILTIN(object, "isExtensible", JSNFUNC(obj_is_extensible));
-  BUILTIN(object, "seal", JSNFUNC(obj_seal));
-  BUILTIN(object, "isSealed", JSNFUNC(obj_is_sealed));
-  BUILTIN(object, "freeze", JSNFUNC(obj_freeze));
-  BUILTIN(object, "isFrozen", JSNFUNC(obj_is_frozen));
+  DEF(object, "create", JSNFUNC(obj_create, 2));
+  DEF(object, "defineProperty", JSNFUNC(obj_define_property, 3));
+  DEF(object, "defineProperties", JSNFUNC(obj_define_properties, 2));
+  DEF(object, "getOwnPropertyDescriptor", JSNFUNC(obj_get_own_property_descriptor, 2));
+  DEF(object, "keys", JSNFUNC(obj_keys, 1));
+  DEF(object, "getOwnPropertyName", JSNFUNC(obj_get_own_property_names, 1));
+  DEF(object, "getPrototypeOf", JSNFUNC(obj_get_prototype_of, 1));
+  DEF(object, "preventExtensions", JSNFUNC(obj_prevent_extensions, 1));
+  DEF(object, "isExtensible", JSNFUNC(obj_is_extensible, 1));
+  DEF(object, "seal", JSNFUNC(obj_seal, 1));
+  DEF(object, "isSealed", JSNFUNC(obj_is_sealed, 1));
+  DEF(object, "freeze", JSNFUNC(obj_freeze, 1));
+  DEF(object, "isFrozen", JSNFUNC(obj_is_frozen, 1));
 
   // Object.prototype
   // ----------------
 
   // Properties
-  BUILTIN(prototype, "constructor", JSNFUNC(obj_new));
+  DEF(prototype, "constructor", JSNFUNC(obj_new, 1));
 
   // Methods
-  BUILTIN(prototype, "hasOwnProperty", JSNFUNC(obj_proto_has_own_property));
-  BUILTIN(prototype, "isPrototypeOf", JSNFUNC(obj_proto_is_prototype_of));
-  BUILTIN(prototype, "propertyIsEnumerable", JSNFUNC(obj_proto_property_is_enumerable));
-  BUILTIN(prototype, "toLocaleString", JSNFUNC(obj_proto_to_locale_string));
-  BUILTIN(prototype, "toString", JSNFUNC(obj_proto_to_string));
-  BUILTIN(prototype, "valueOf", JSNFUNC(obj_proto_value_of));
+  DEF(prototype, "hasOwnProperty", JSNFUNC(obj_proto_has_own_property, 1));
+  DEF(prototype, "isPrototypeOf", JSNFUNC(obj_proto_is_prototype_of, 1));
+  DEF(prototype, "propertyIsEnumerable", JSNFUNC(obj_proto_property_is_enumerable, 1));
+  DEF(prototype, "toLocaleString", JSNFUNC(obj_proto_to_locale_string, 0));
+  DEF(prototype, "toString", JSNFUNC(obj_proto_to_string, 0));
+  DEF(prototype, "valueOf", JSNFUNC(obj_proto_value_of, 0));
 
   fh->object_proto = prototype;
 
