@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall -O3
 YACC = bison -y -d -t -v
 LEX = flex
 
@@ -90,8 +90,11 @@ test:
 test-node:
 	node test/runner.js --exec node
 
+test-v8:
+	node test/runner.js --exec v8 --args "test/harness.js [test]"
+
 test-sm:
-	node test/runner.js --exec js --args "-f test/rhino-harness.js -f [test]"
+	node test/runner.js --exec js --args "-f test/harness.js -f [test]"
 
 test-rhino:
-	node test/runner.js --exec rhino --timeout 10000 --args "-f test/rhino-harness.js -f [test]"
+	node test/runner.js --exec rhino --timeout 10000 --args "-f test/harness.js -f [test]"

@@ -6,69 +6,72 @@ var assertEquals = function(a, b) {
   assert(a === b);
 };
 
-
-// ----------------------------------------------------------------------------
-// Literals & Indexing
-// ----------------------------------------------------------------------------
-
-// Simple homogenous array
-var a1 = [1, 2, 3];
-assertEquals(1, a1[0]);
-assertEquals(2, a1[1]);
-assertEquals(3, a1[2]);
-
-// Mixed types
-var a2 = [1, 'Dog', false, null, undefined, [1, 2, 3], {a: 12}];
-assertEquals(1, a2[0]);
-assertEquals('Dog', a2[1]);
-assertEquals(false, a2[2]);
-assertEquals(null, a2[3]);
-assertEquals(undefined, a2[4]);
-assertEquals(1, a2[5][0]);
-assertEquals(2, a2[5][1]);
-assertEquals(3, a2[5][2]);
-assertEquals(12, a2[6].a);
-
-// Nested arrays
-var a3 = [[[[[[1, 2]]]]]];
-assertEquals(1, a3[0][0][0][0][0][0]);
-assertEquals(2, a3[0][0][0][0][0][1]);
-
-// Calculated index
-var getIndex = function() {
-  return 1;
+var test = function(name, f) {
+  f();
 };
-var a4 = ['a', 'b', 'c', 'd'];
-assertEquals('c', a4[4 - 2]);
-assertEquals('b', a4[getIndex()]);
 
 
-// ----------------------------------------------------------------------------
-// Bracket Assignment
-// ----------------------------------------------------------------------------
+test('simple homogenous arrays', function() {
+  var arr = [1, 2, 3];
+  assertEquals(1, arr[0]);
+  assertEquals(2, arr[1]);
+  assertEquals(3, arr[2]);
+});
 
-// Easy stuff
+test('heterogeneous arrays', function() {
+  var arr = [1, 'Dog', false, null, undefined, [1, 2, 3], {a: 12}];
+  assertEquals(1, arr[0]);
+  assertEquals('Dog', arr[1]);
+  assertEquals(false, arr[2]);
+  assertEquals(null, arr[3]);
+  assertEquals(undefined, arr[4]);
+  assertEquals(1, arr[5][0]);
+  assertEquals(2, arr[5][1]);
+  assertEquals(3, arr[5][2]);
+  assertEquals(12, arr[6].a);
+});
 
-var a5 = [];
+test('nested arrays', function() {
+  var arr = [[[[[[1, 2]]]]]];
+  assertEquals(1, arr[0][0][0][0][0][0]);
+  assertEquals(2, arr[0][0][0][0][0][1]);
+});
 
-a5[0] = 10;
-a5[1] = 20;
-a5[2] = 30;
-a5[3] = 40;
+test('expression index', function() {
+  var getIndex = function() { return 1; };
+  var a4 = ['a', 'b', 'c', 'd'];
+  assertEquals('c', a4[4 - 2]);
+  assertEquals('b', a4[getIndex()]);
+});
 
-assert(a5.length === 4);
-assert(a5[0] === 10);
-assert(a5[1] === 20);
-assert(a5[2] === 30);
-assert(a5[3] === 40);
+test('bracket assignment', function() {
+  var arr = [];
 
-// Indices do not need to be assigned in order (or at all)
+  arr[0] = 10;
+  arr[1] = 20;
+  arr[2] = 30;
+  arr[3] = 40;
 
-var a6 = [];
+  assertEquals(4, arr.length);
+  assertEquals(10, arr[0]);
+  assertEquals(20, arr[1]);
+  assertEquals(30, arr[2]);
+  assertEquals(40, arr[3]);
+});
 
-a6[12] = 42;
-a6[10002] = 'hello';
+test('indices do not need to be assigned in order (or at all)', function() {
+  var arr = [];
 
-assert(a6.length === 10003);
-assert(a6[12] === 42);
-assert(a6[10002] === 'hello');
+  arr[12] = 42;
+  arr[10002] = 'hello';
+
+  assertEquals(10003, arr.length);
+  assertEquals(42, arr[12]);
+  assertEquals('hello', arr[10002]);
+});
+
+test('big arrays', function() {
+  var arr = [];
+  arr[Math.pow(2, 31) - 1] = 42;
+  assertEquals(Math.pow(2, 31), arr.length);
+});

@@ -156,9 +156,8 @@ fh_debug_num(FILE *stream, js_val *num)
     char *fmt = "%f";
     if (fmod(num->number.val, 1) == 0) 
       fmt = "%.0f";
-    if (fabs(num->number.val) > 1e21) {
+    if (fabs(num->number.val) > 1e21)
       fmt = "%g";
-    }
     cfprintf(stream, ANSI_ORANGE, fmt, num->number.val);
   }
 }

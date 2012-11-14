@@ -56,6 +56,7 @@ new_node(enum ast_node_type type, ast_node *e1, ast_node *e2, ast_node *e3,
   node->line = line;
   node->column = column;
 
+  node->val = 0;
   if (type == NODE_NUM || type == NODE_BOOL || type == NODE_MEMBER) 
     node->val = x;
 

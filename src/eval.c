@@ -121,7 +121,8 @@ fh_var_dec_scan(js_val *ctx, ast_node *node)
       node->sval = "=";
     }
     else {
-      node->type = NODE_EMPT_STMT;
+      // Signals that it has been hoisted
+      node->val = 1; 
     }
   }
 
@@ -297,13 +298,15 @@ fh_assign(js_val *ctx, ast_node *node)
       fh_member(ctx, member->e2) :
       fh_get_rec(ctx, fh_str_from_node(ctx, member->e2)->string.ptr);
 
-    // Set the array length.
-    if (IS_ARR(ctx) && member->e1->type == NODE_NUM) {
-      int val = member->e1->val;
-      if (val >= ctx->object.length)
-        fh_set_len(ctx, val + 1);
-    }
     key = fh_str_from_node(old_ctx, member->e1)->string.ptr;
+
+    // Set the array length.
+    if (IS_ARR(ctx)) {
+      char *err;
+      unsigned long val = strtod(key, &err);
+      if (*err == 0 && val >= ctx->object.length)
+          fh_set_len(ctx, val + 1);
+    }
   }
 
   if (IS_OBJ(ctx))
@@ -327,10 +330,14 @@ fh_do_assign(js_val *obj, char *name, js_val *val, char *op)
 js_val *
 fh_var_dec(js_val *ctx, ast_node *node, bool ignore_rval)
 {
-  if (node->e2 == NULL || ignore_rval)
-    fh_set_prop(ctx, node->e1->sval, JSUNDEF(), P_WRITE | P_ENUM);
-  else
-    fh_set_prop(ctx, node->e1->sval, fh_eval(ctx, node->e2), P_WRITE | P_ENUM);
+  // If node->val is set, the variable declaration has already been hoisted and
+  // should not be touched.
+  if (!node->val) {
+    if (node->e2 == NULL || ignore_rval)
+      fh_set_prop(ctx, node->e1->sval, JSUNDEF(), P_WRITE | P_ENUM);
+    else
+      fh_set_prop(ctx, node->e1->sval, fh_eval(ctx, node->e2), P_WRITE | P_ENUM);
+  }
   return JSUNDEF();
 }
 
@@ -369,26 +376,29 @@ fh_for(js_val *ctx, ast_node *exp_grp, ast_node *stmt)
 void
 fh_forin(js_val *ctx, ast_node *node)
 {
-  js_prop *p;
-  js_val *result,
-          *proto = fh_eval(ctx, node->e2),
-          *name = fh_str_from_node(ctx, node->e1);
+  js_val *result, *obj, *env, *name;
 
-  // FIXME:
-  // - Doesn't get name out of hoisted variable declaration.
-  // - Doesn't properly handle member expressions and other permitted lhs hijinks
-  
-  // Note that during the first iteration, the prototype is the object.
-  while (proto != NULL) {
-    OBJ_ITER(proto, p) {
+  obj = fh_eval(ctx, node->e2);
+  env = ctx;
+
+  if (node->e1->type == NODE_MEMBER) {
+    env = fh_member_parent(ctx, node->e1);
+    name = fh_member_child(ctx, node->e1);
+  }
+  else 
+    name = fh_str_from_node(ctx, node->e1);
+
+  js_prop *p;
+  while (obj != NULL) {
+    OBJ_ITER(obj, p) {
       if (p->enumerable) {
         // Assign to name, possibly undeclared assignment.
-        fh_set_rec(ctx, name->string.ptr, JSSTR(p->name));
+        fh_set_rec(env, name->string.ptr, JSSTR(p->name));
         result = fh_eval(ctx, node->e3);
         if (result->signal == S_BREAK) break;
       }
     }
-    proto = proto->proto;
+    obj = obj->proto;
   }
 }
 
@@ -959,6 +969,8 @@ fh_str_from_node(js_val *ctx, ast_node *node)
 
   if (node->type == NODE_IDENT)
     return JSSTR(node->sval);
+  if (node->type == NODE_VAR_DEC)
+    return fh_str_from_node(ctx, node->e1);
   return TO_STR(fh_eval(ctx, node));
 }
 

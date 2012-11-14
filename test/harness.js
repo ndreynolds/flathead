@@ -1,4 +1,4 @@
-// Define a basic console in Rhino (or SpiderMonkey) for use in tests.
+// Define a basic console for implementations that do not provide one.
 
 if (typeof console !== 'object') {
   console = {

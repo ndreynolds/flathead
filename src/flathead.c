@@ -323,9 +323,14 @@ fh_to_string(js_val *val)
     // TODO: check spec
     if (val->number.is_nan) return JSSTR("NaN");
     if (val->number.is_inf) return JSSTR("Infinity");
-    int size = snprintf(NULL, 0, "%g", val->number.val) + 1;
+    char *fmt = "%f";
+    if (fmod(val->number.val, 1) == 0) 
+      fmt = "%.0f";
+    if (fabs(val->number.val) > 1e21)
+      fmt = "%g";
+    int size = snprintf(NULL, 0, fmt, val->number.val) + 1;
     char *num = malloc(size);
-    snprintf(num, size, "%g", val->number.val);
+    snprintf(num, size, fmt, val->number.val);
     return JSSTR(num);
   }
   if (IS_OBJ(val))
