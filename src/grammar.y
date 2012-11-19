@@ -123,7 +123,7 @@
 %token<val> AND OR
 %token<val> PLUSPLUS MINUSMINUS VOID DELETE TYPEOF 
 %token<val> EQEQ GTE LTE NE STEQ STNE INSTANCEOF
-%token<val> LSHIFT RSHIFT ULSHIFT URSHIFT
+%token<val> LSHIFT RSHIFT URSHIFT
 %token<val> PLUSEQ MINUSEQ MULTEQ DIVEQ MODEQ
 %token<val> LSHIFTEQ RSHIFTEQ URSHIFTEQ 
 %token<val> ANDEQ XOREQ OREQ
@@ -726,8 +726,6 @@ ShiftExpression          : AdditiveExpression
                              { $$ = NEW_EXP($1, $3, "<<"); }
                          | ShiftExpression RSHIFT AdditiveExpression          
                              { $$ = NEW_EXP($1, $3, ">>"); }
-                         | ShiftExpression ULSHIFT AdditiveExpression
-                             { $$ = NEW_EXP($1, $3, "<<<"); }
                          | ShiftExpression URSHIFT AdditiveExpression
                              { $$ = NEW_EXP($1, $3, ">>>"); }
                          ;
@@ -768,6 +766,8 @@ UnaryExpression          : PostfixExpression
                              { $$ = NEW_UNPRE($2, "-"); }
                          | '!' UnaryExpression                                
                              { $$ = NEW_UNPRE($2, "!"); }
+                         | '~' UnaryExpression                                
+                             { $$ = NEW_UNPRE($2, "~"); }
                          ;
 
 PostfixExpression        : LeftHandSideExpression                               

@@ -159,7 +159,6 @@ L?\/[^\ \/]+\/([imgy]{0,4})  { /* FIXME: This is very incomplete */
 ">>"                         return OP(RSHIFT);
 "<<="                        return OP(LSHIFTEQ);
 ">>="                        return OP(RSHIFTEQ);
-"<<<"                        return OP(ULSHIFT);
 ">>>"                        return OP(URSHIFT);
 "==="                        return OP(STEQ);
 "!=="                        return OP(STNE);
@@ -168,9 +167,9 @@ L?\/[^\ \/]+\/([imgy]{0,4})  { /* FIXME: This is very incomplete */
 
     /* SINGLE-CHARACTER PUNCTUATORS & OPERATORS */
 
-[-+()\[\]=*/%<>,.:`;?!{}]    { 
-                               TOKEN("LITERAL", 0); 
-                               return *yytext; 
+[-+()\[\]=*/%<>,.:`;?!{}~&|^] {
+                                TOKEN("LITERAL", 0);
+                                return *yytext;
                              }
 
 

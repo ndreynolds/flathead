@@ -655,7 +655,6 @@ fh_prefix_exp(js_val *ctx, ast_node *node)
     fh_eval(ctx, node->e1);
     return JSUNDEF();
   }
-
   if (STREQ(op, "+"))
     return TO_NUM(fh_eval(ctx, node->e1));
   if (STREQ(op, "!"))
@@ -667,9 +666,10 @@ fh_prefix_exp(js_val *ctx, ast_node *node)
     return JSNUM(-1 * x->number.val);
   }
 
-  // Increment and decrement.
   js_val *old_val = TO_NUM(fh_eval(ctx, node->e1));
   js_val *new_val;
+
+  // Increment and decrement.
   if (STREQ(op, "++")) {
     new_val = fh_add(old_val, JSNUM(1));
     fh_set_rec(ctx, node->e1->sval, new_val);
@@ -679,6 +679,13 @@ fh_prefix_exp(js_val *ctx, ast_node *node)
     new_val = fh_sub(old_val, JSNUM(1));
     fh_set_rec(ctx, node->e1->sval, new_val);
     return new_val;
+  }
+
+  // Bitwise NOT
+  if (STREQ(op, "~")) {
+    old_val = fh_to_int32(old_val);
+    int old_val_int32 = (int)old_val->number.val;
+    return JSNUM(~old_val_int32);
   }
 
   UNREACHABLE();
@@ -745,10 +752,28 @@ fh_bin_exp(js_val *ctx, ast_node *node)
       fh_error(NULL, E_TYPE, "Expecting a function in 'instanceof' check");
     return fh_has_instance(b, a);
   }
-  if (STREQ(op, "in"))
+  if (STREQ(op, "in")) {
     if (!IS_OBJ(b))
       fh_error(NULL, E_TYPE, "Expecting an object with 'in' operator");
     return fh_has_property(b, TO_STR(a)->string.ptr);
+  }
+
+  int a_int32 = fh_to_int32(a)->number.val;
+  int b_int32 = fh_to_int32(b)->number.val;
+
+  // Bitwise Logical
+  if (STREQ(op, "&")) return JSNUM(a_int32 & b_int32);
+  if (STREQ(op, "^")) return JSNUM(a_int32 ^ b_int32);
+  if (STREQ(op, "|")) return JSNUM(a_int32 | b_int32);
+
+  unsigned a_uint32 = fh_to_uint32(a)->number.val;
+  unsigned b_uint32 = fh_to_uint32(b)->number.val;
+  unsigned shift_cnt = b_uint32 & 0x1F;
+
+  // Bitwise Shift
+  if (STREQ(op, "<<")) return JSNUM(a_int32 << shift_cnt);
+  if (STREQ(op, ">>")) return JSNUM(a_int32 >> shift_cnt);
+  if (STREQ(op, ">>>")) return JSNUM(a_uint32 >> shift_cnt);
 
   UNREACHABLE();
 }

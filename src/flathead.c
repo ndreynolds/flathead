@@ -311,6 +311,32 @@ fh_to_number(js_val *val)
 }
 
 js_val *
+fh_to_int32(js_val *val)
+{
+  long long int32_bit = fh_to_uint32(val)->number.val;
+
+  if (int32_bit >= pow(2, 31))
+    return JSNUM(int32_bit - pow(2, 32));
+  return JSNUM(int32_bit);
+}
+
+js_val *
+fh_to_uint32(js_val *val)
+{
+  long long pos_int, int32_bit;
+
+  val = fh_to_number(val);
+  if (IS_NAN(val) || IS_INF(val) || val->number.val == 0)
+    return JSNUM(0);
+
+  int sign = val->number.val < 0 ? -1 : 1;
+  pos_int = sign * floor(abs(val->number.val));
+  int32_bit = fmod(pos_int, pow(2, 32));
+
+  return JSNUM(int32_bit);
+}
+
+js_val *
 fh_to_string(js_val *val)
 {
   if (IS_UNDEF(val)) return JSSTR("undefined");

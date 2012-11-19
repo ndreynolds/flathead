@@ -245,6 +245,8 @@ js_val * fh_try_get_proto(char *);
 bool fh_is_callable(js_val *);
 js_val * fh_to_primitive(js_val *, js_type);
 js_val * fh_to_number(js_val *);
+js_val * fh_to_int32(js_val *);
+js_val * fh_to_uint32(js_val *);
 js_val * fh_to_string(js_val *);
 js_val * fh_to_boolean(js_val *);
 js_val * fh_to_object(js_val *);
