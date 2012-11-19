@@ -495,8 +495,7 @@ date_from_time(double t)
     case 7: mdays = 30; mstart = 31+30+31+30+31+31+30; break;
     case 8: mdays = 31; mstart = 31+30+31+30+31+31+30+31; break;
     case 9: mdays = 30; mstart = 31+30+31+30+31+31+30+31+30; break;
-    case 10:
-        return d - (31+30+31+30+31+31+30+31+30) + 1;
+    default: return d - (31+30+31+30+31+31+30+31+30) + 1;
   }
   d -= mstart;
   if (d < 0) d += mdays;
@@ -1018,7 +1017,7 @@ make_part(double t, int shift)
 double
 make_date_from_args(js_args *args, double t, int shift, int max_args)
 {
-  double parts[6];
+  double parts[7];
   int i, j = 0;
   js_val *arg;
 

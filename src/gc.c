@@ -22,6 +22,46 @@
 #include "gc.h"
 #include "debug.h"
 
+/* GC Overview
+ *
+ * Bi-color, non-incremental, mark & sweep, stop-the-world garbage collection.
+ *
+ * Arenas
+ * ------
+ * The global state object keeps an array of pointers to arenas – big
+ * contiguous blocks of memory which are slotted to hold Flathead's js_val
+ * structs. The arena size is determined by the SLOTS_PER_ARENA define. The
+ * size is then that number of slots multiplied by the size of a js_val struct.
+ * The system will create arenas on demand, when space cannot be freed from an
+ * existing arena, and the MAX_ARENAS define has not been exceeded.
+ *
+ * At the start of each arena is a metadata section which stores usage
+ * information and the list of vacant slots.
+ *
+ * Allocation
+ * ----------
+ *
+ * Mark Phase
+ * ----------
+ *
+ * Sweep Phase
+ * -----------
+ *
+ * Issues & Enhancement Ideas
+ * --------------------------
+ * - Arena free lists should be bitmaps. Integer arrays are a huge waste of
+ *   space.
+ * - Store the color (e.g. black or white) of the js_val instead of explicitly
+ *   labeling them marked or unmarked. Then we can flip the color semantics
+ *   after each run and save some time unmarking.
+ * - Tri- or quad-color incremental algorithm a la LuaJIT.
+ * - Utility structs (e.g. js_args, js_prop, eval_state, ast_nodes) need to be
+ *   garbage collected or freed by hand, whichever is more appropriate.
+ * - Strings need to be stored within the arena somehow. Maybe they can be
+ *   broken into js_val-sized pieces and be read and written to through an API
+ *   that handles any needed reassembly.
+ */
+
 
 js_val *
 fh_malloc(bool first_attempt)
@@ -161,7 +201,7 @@ fh_gc_mark(js_val *val)
   if (val->map) {
     js_prop *prop;
     OBJ_ITER(val, prop) {
-      if (prop->ptr && !prop->circular) 
+      if (prop->ptr && !prop->circular)
         fh_gc_mark(prop->ptr);
     }
   }
@@ -186,8 +226,11 @@ fh_gc_sweep(gc_arena *arena)
 void
 fh_gc_free_val(js_val *val)
 {
-  /*
   // Free the object hashtable 
+  //
+  // Note we're not freeing the values pointed at, only the pointers to them
+  // and the hashtable overhead.
+  /*
   if (val->map) {
     js_prop *prop, *tmp;
     HASH_ITER(hh, val->map, prop, tmp) {

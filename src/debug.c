@@ -116,8 +116,9 @@ fh_debug_obj(FILE *stream, js_val *obj, int indent, bool force_enum)
       for (i = 0; i < (indent + 1); i++) fprintf(stream, " ");
     }
     fprintf(stream, " %s: ", x->name);
-    x->circular ? 
-      fprintf(stream, "[Circular]") : 
+    if (x->circular)
+      fprintf(stream, "[Circular]");
+    else
       fh_debug(stream, x->ptr, indent+3, false);
   };
 

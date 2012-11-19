@@ -24,10 +24,10 @@
 #define SLOTS_PER_ARENA 10000
 
 typedef struct gc_arena {
-  js_val *slots;
   int num_slots;
   int used_slots;
   bool freelist[SLOTS_PER_ARENA];
+  js_val *slots;
 } gc_arena;
 
 gc_arena * fh_new_arena(void);

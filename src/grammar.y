@@ -882,7 +882,7 @@ void
 yyerror(const char *s) 
 {
   // Trim the "syntax error: " prefix so we can use fh_error.
-  char *trimmed = strndup(s + 14, strlen(s) - 14);
+  const char *trimmed = strlen(s) < 14 ? s : strndup(s + 14, strlen(s) - 14);
   eval_state *state = fh_new_state(yylloc.first_line, yylloc.first_column);
   fh_error(state, E_SYNTAX, trimmed);
 }
@@ -965,7 +965,7 @@ main(int argc, char **argv)
     optind++;
   }
 
-  FILE *source;
+  FILE *source = NULL;
   if (optind < argc)
     source = fopen(argv[optind], "r");
   else if (!isatty(fileno(stdin)) && !fh->opt_interactive)

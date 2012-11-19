@@ -44,20 +44,20 @@ fh_eval(js_val *ctx, ast_node *node)
     case NODE_NEW:         return fh_new_exp(ctx, node);
     case NODE_MEMBER:      return fh_member(ctx, node);
     case NODE_IDENT:       return fh_ident(ctx, node);
-    case NODE_BLOCK:       return fh_eval(ctx, node->e1);
     case NODE_STMT_LST:    return fh_stmt_lst(ctx, node);
     case NODE_SRC_LST:     return fh_src_lst(ctx, node);
-    case NODE_EXP_STMT:    return fh_eval(ctx, node->e1);
     case NODE_EXP:         return fh_exp(ctx, node);
-    case NODE_IF:          return fh_if(ctx, node);
-    case NODE_TERN:        return fh_if(ctx, node);
     case NODE_SWITCH_STMT: return fh_switch(ctx, node);
     case NODE_ASGN:        return fh_assign(ctx, node);
     case NODE_RETURN:      return fh_return(ctx, node);
-    case NODE_VAR_STMT:    return fh_eval(ctx, node->e1);
-    case NODE_VAR_DEC_LST: return fh_eval_each(ctx, node);
     case NODE_VAR_DEC:     return fh_var_dec(ctx, node, false);
     case NODE_BREAK:       return fh_break();
+    case NODE_IF:          return fh_if(ctx, node);
+    case NODE_TERN:        return fh_if(ctx, node);
+    case NODE_BLOCK:       return fh_eval(ctx, node->e1);
+    case NODE_EXP_STMT:    return fh_eval(ctx, node->e1);
+    case NODE_VAR_STMT:    return fh_eval(ctx, node->e1);
+    case NODE_VAR_DEC_LST: return fh_eval_each(ctx, node);
     case NODE_PROP_LST:    return fh_eval_each(ctx, node);
 
     case NODE_PROP:        fh_set(ctx, node->e1->sval, fh_eval(ctx, node->e2)); break;
@@ -317,14 +317,17 @@ fh_assign(js_val *ctx, ast_node *node)
 void 
 fh_do_assign(js_val *obj, char *name, js_val *val, char *op)
 {
-  if (STREQ(op, "=")) return fh_set_rec(obj, name, val);
+  if (STREQ(op, "=")) { 
+    fh_set_rec(obj, name, val);
+    return;
+  }
 
   // Handle other assignment operators
   js_val *cur = fh_get_rec(obj, name);
-  if (STREQ(op, "+=")) return fh_set_rec(obj, name, fh_add(cur, val));
-  if (STREQ(op, "-=")) return fh_set_rec(obj, name, fh_sub(cur, val));
-  if (STREQ(op, "*=")) return fh_set_rec(obj, name, fh_mul(cur, val));
-  if (STREQ(op, "/=")) return fh_set_rec(obj, name, fh_div(cur, val));
+  if (STREQ(op, "+=")) fh_set_rec(obj, name, fh_add(cur, val));
+  if (STREQ(op, "-=")) fh_set_rec(obj, name, fh_sub(cur, val));
+  if (STREQ(op, "*=")) fh_set_rec(obj, name, fh_mul(cur, val));
+  if (STREQ(op, "/=")) fh_set_rec(obj, name, fh_div(cur, val));
 }
 
 js_val *
@@ -411,7 +414,7 @@ js_val *
 fh_return(js_val *ctx, ast_node *node)
 {
   js_val *result = node->e1 ? fh_eval(ctx, node->e1) : JSUNDEF();
-  if (IS_FUNC(result)) 
+  if (IS_FUNC(result))
     result->object.scope = ctx;
   result->signal = S_BREAK;
   return result;

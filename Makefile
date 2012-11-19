@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 CC = gcc
-CFLAGS = -Wall -O3
+CFLAGS = -Wall -O3 # -std=c11 -pedantic
 YACC = bison -y -d -t -v
 LEX = flex
 
@@ -28,6 +28,8 @@ YACC_FILE = src/grammar.y
 LEX_FILE = src/lexer.l
 LEX_OUT = lex.yy.c
 YACC_OUT = y.tab.c
+
+VERSION = 0.6
 
 # Build flags, usage: make debug=on
 
@@ -98,3 +100,7 @@ test-sm:
 
 test-rhino:
 	node test/runner.js --exec rhino --timeout 10000 --args "-f test/harness.js -f [test]"
+
+archive:
+	git archive --format=tar.gz --prefix="flathead-$(VERSION)/" \
+		--output="flathead-$(VERSION).tar.gz" master .
