@@ -37,6 +37,10 @@ ifeq ($(debug), on)
   CFLAGS += -Dfh_debug
 endif
 
+ifdef hashfn
+  CFLAGS += -DHASH_FUNCTION=$(hashfn)
+endif
+
 ifeq ($(gcprofile), on)
   CFLAGS += -Dfh_gc_profile
 endif
@@ -74,13 +78,16 @@ lexer:
 parser: 
 	$(YACC) $(YACC_FILE)
 
+make-bin:
+	mkdir -p bin
+
 clean:
 	rm -rf y.* lex.yy.c bin/fh* a.out
 
 install:
 	cp $(OUT_FILE) /usr/local/bin/
 
-default: parser lexer 
+default: make-bin parser lexer 
 	$(CC) $(CFLAGS) -o $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(SRC_FILES) $(LIB_FILES) $(LIBS)
 
 ctest:
