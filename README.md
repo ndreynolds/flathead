@@ -2,6 +2,8 @@ Flathead
 ========
 Flathead is a tiny JavaScript (Ecma-262) interpreter written in C.
 
+![Flathead's REPL](http://ndreynolds.com/img/flathead.png)
+
 The interpreter does a direct evaluation of the parse tree - it does not
 currently build any further IR or perform any optimizations. As a result, it
 starts up very quickly, and performs well on code that wouldn't benefit much
@@ -15,8 +17,6 @@ Flathead comes with the full EcmaScript runtime (i.e. the Date, Math, Array,
 and other global objects) as well as a console object.
 
 It's nearly complete, but is still missing a few features - see [the Docket](#the-docket).
-
-![Flathead's REPL](http://ndreynolds.com/img/flathead.png)
 
 
 Installing
@@ -96,8 +96,8 @@ and options.
 
 The Makefile has a few shortcuts:
 
-`make test` to run with Flathead's `bin/flat` executable. 
-`make test-v8` to run using `v8` 
+`make test` to run with Flathead's `bin/flat` executable.  
+`make test-v8` to run using `v8`.   
 `make test-node` to run using `node`.  
 `make test-sm` to run using `js` (SpiderMonkey).  
 `make test-rhino` to run using `rhino`.  
