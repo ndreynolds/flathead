@@ -28,6 +28,9 @@
 
 #include "../ext/uthash.h"
 
+#ifndef INFINITY
+#define INFINITY       (1.0/0.0)
+#endif
 
 #define VERSION        "0.6.0"
 
