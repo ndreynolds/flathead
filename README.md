@@ -14,7 +14,7 @@ x86, x86_64 and ARM.
 Flathead comes with the full EcmaScript runtime (i.e. the Date, Math, Array,
 and other global objects) as well as a console object.
 
-It's nearly complete, but is still missing a few features - see below.
+It's nearly complete, but is still missing a few features - see [the Docket](#the-docket).
 
 ![Flathead's REPL](http://ndreynolds.com/img/flathead.png)
 
@@ -44,7 +44,32 @@ If you're still having trouble building, please create an issue.
 
 Running
 -------
-Once built, run `bin/flat` to start a REPL, or `bin/flat -h` for more options.
+Once built, you can run `bin/flat` without arguments to start a REPL:
+
+    $ bin/flat
+    > 2 + 2
+    4
+    >
+
+Or with a script as argument:
+
+    $ bin/flat say_hello.js
+    Hello!
+
+View the parse tree with `-n`:
+
+    $ bin/flat -n
+    > 2 + 2
+    source list
+      expression statement
+        expression (binary)
+          +
+          number (2.000000)
+          number (2.000000)
+    4
+    >
+
+See all the options with `-h`:
 
     $ bin/flat -h
     Usage: flat [options] [script.js] 
@@ -55,9 +80,6 @@ Once built, run `bin/flat` to start a REPL, or `bin/flat -h` for more options.
       -i, --interactive   force REPL
       -n, --nodes         print the AST
       -t, --tokens        print tokens
-
-All that's left is JavaScript. Use the `console.log` or `print` method to write
-to stdout.
 
 
 Running the tests
@@ -74,11 +96,11 @@ and options.
 
 The Makefile has a few shortcuts:
 
-`make test` to run with Flathead's `bin/flat` executable.
-`make test-v8` to run using `v8`
-`make test-node` to run using `node`.
-`make test-sm` to run using `js` (SpiderMonkey).
-`make test-rhino` to run using `rhino`.
+`make test` to run with Flathead's `bin/flat` executable. 
+`make test-v8` to run using `v8` 
+`make test-node` to run using `node`.  
+`make test-sm` to run using `js` (SpiderMonkey).  
+`make test-rhino` to run using `rhino`.  
 
 
 The Docket
