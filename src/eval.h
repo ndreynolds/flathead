@@ -31,6 +31,7 @@ void fh_forin(js_val *, ast_node *);
 void fh_do_assign(js_val *, char *, js_val *, char *);
 void fh_func_dec_scan(js_val *, ast_node *);
 void fh_var_dec_scan(js_val *, ast_node *);
+void fh_put(js_val *, ast_node *, js_val *);
 
 js_args * fh_build_args(js_val *, ast_node *);
 js_val * fh_break(void);

@@ -93,15 +93,21 @@ test('unary prefix operators', function() {
 test('unary postfix', function() {
 
   test('increment', function() {
-    var c = 0;
-    assert(c++ === 0);
-    assert(c === 1);
+    var x = 0;
+    var obj = {x: 0};
+    assertEquals(0, x++);
+    assertEquals(1, x);
+    assertEquals(0, obj.x++);
+    assertEquals(1, obj.x);
   });
 
   test('decrement', function() {
-    var d = 2;
-    assert(d-- === 2);
-    assert(d === 1);
+    var x = 2;
+    var obj = {x: 5};
+    assertEquals(2, x--);
+    assertEquals(1, x);
+    assertEquals(5, obj.x--);
+    assertEquals(4, obj.x);
   });
 
 });
@@ -247,4 +253,28 @@ test('binary', function() {
     assert({} instanceof Object);
   });
 
+});
+
+
+// ------------------------------------------------------------------
+// TRICKS
+// ------------------------------------------------------------------
+
+test('non alphanumeric js', function() {
+  assertEquals('10', ++[[]][+[]]+[+[]]);
+  assertEquals(true, !![]);
+  assertEquals(false, ![]);
+  assertEquals(undefined, [][+[]]);
+  assertEquals('[object Object]', {}+[]);
+
+  assertEquals(0, +[]);
+  assertEquals(1, +!![]);
+  assertEquals(2, !+[]+!![]);
+  assertEquals(3, !+[]+!![]+!![]);
+  assertEquals(4, !+[]+!![]+!![]+!![]);
+  assertEquals(5, !+[]+!![]+!![]+!![]+!![]);
+  assertEquals(6, !+[]+!![]+!![]+!![]+!![]+!![]);
+  assertEquals(7, !+[]+!![]+!![]+!![]+!![]+!![]+!![]);
+  assertEquals(8, !+[]+!![]+!![]+!![]+!![]+!![]+!![]+!![]);
+  assertEquals(9, !+[]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]);
 });

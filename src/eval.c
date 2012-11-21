@@ -292,13 +292,8 @@ fh_assign(js_val *ctx, ast_node *node)
 
   if (node->e1->type == NODE_MEMBER) {
     js_val *old_ctx = ctx; 
-
-    ast_node *member = node->e1;
-    ctx = member->e2->type == NODE_MEMBER ?
-      fh_member(ctx, member->e2) :
-      fh_get_rec(ctx, fh_str_from_node(ctx, member->e2)->string.ptr);
-
-    key = fh_str_from_node(old_ctx, member->e1)->string.ptr;
+    ctx = fh_member_parent(old_ctx, node->e1);
+    key = fh_member_child(old_ctx, node->e1)->string.ptr;
 
     // Set the array length.
     if (IS_ARR(ctx)) {
@@ -629,11 +624,11 @@ fh_postfix_exp(js_val *ctx, ast_node *node)
   js_val *old_val = TO_NUM(fh_eval(ctx, node->e1));
   char *op = node->sval;
   if (STREQ(op, "++")) {
-    fh_set_rec(ctx, node->e1->sval, fh_add(old_val, JSNUM(1)));
+    fh_put(ctx, node->e1, fh_add(old_val, JSNUM(1)));
     return old_val;
   }
   if (STREQ(op, "--")) {
-    fh_set_rec(ctx, node->e1->sval, fh_sub(old_val, JSNUM(1)));
+    fh_put(ctx, node->e1, fh_sub(old_val, JSNUM(1)));
     return old_val;
   }
   UNREACHABLE();
@@ -670,14 +665,15 @@ fh_prefix_exp(js_val *ctx, ast_node *node)
   js_val *new_val;
 
   // Increment and decrement.
+  // TODO: these need to throw a syntax error for strict references
   if (STREQ(op, "++")) {
     new_val = fh_add(old_val, JSNUM(1));
-    fh_set_rec(ctx, node->e1->sval, new_val);
+    fh_put(ctx, node->e1, new_val);
     return new_val;
   }
   if (STREQ(op, "--")) {
     new_val = fh_sub(old_val, JSNUM(1));
-    fh_set_rec(ctx, node->e1->sval, new_val);
+    fh_put(ctx, node->e1, new_val);
     return new_val;
   }
 
@@ -988,6 +984,22 @@ fh_or(js_val *ctx, ast_node *a, ast_node *b)
 // ----------------------------------------------------------------------------
 // Utilities
 // ----------------------------------------------------------------------------
+
+void
+fh_put(js_val *ctx, ast_node *ref, js_val *val)
+{
+  char *key;
+  if (ref->type == NODE_MEMBER) {
+    ctx = fh_member_parent(ctx, ref);
+    key = fh_member_child(ctx, ref)->string.ptr;
+  }
+  else if (ref->sval)
+    key = ref->sval;
+  else
+    return;
+
+  fh_set_rec(ctx, key, val);
+}
 
 js_val *
 fh_str_from_node(js_val *ctx, ast_node *node)

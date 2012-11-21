@@ -10,7 +10,7 @@
 //
 //                 e.g. -x node
 //
-// -a / --args     A template in which the string "[test]" will be interploated
+// -a / --args     A template in which the string "[test]" will be interpolated
 //                 with the path to each test script and given as argument to
 //                 the executable.
 //
