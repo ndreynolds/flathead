@@ -143,6 +143,16 @@ fh_bootstrap()
   DEF(global, "undefined", JSUNDEF());
   DEF(global, "this", global);
 
+  // These aren't currently optimized, just here for compatibility's sake.
+  DEF(global, "Float32Array", JSNFUNC(arr_new, 1));
+  DEF(global, "Float64Array", JSNFUNC(arr_new, 1));
+  DEF(global, "Uint8Array", JSNFUNC(arr_new, 1));
+  DEF(global, "Uint16Array", JSNFUNC(arr_new, 1));
+  DEF(global, "Uint32Array", JSNFUNC(arr_new, 1));
+  DEF(global, "Int8Array", JSNFUNC(arr_new, 1));
+  DEF(global, "Int16Array", JSNFUNC(arr_new, 1));
+  DEF(global, "Int32Array", JSNFUNC(arr_new, 1));
+
   DEF(global, "isNaN", JSNFUNC(global_is_nan, 1));
   DEF(global, "isFinite", JSNFUNC(global_is_finite, 1));
   DEF(global, "parseInt", JSNFUNC(global_parse_int, 2));
