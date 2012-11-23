@@ -258,6 +258,7 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
       match++;
     else
       match = str[i] == sep[0] ? 1 : 0;
+   
     if (match == (int)strlen(sep)) {
       split = fh_str_slice(str, start, i - strlen(sep) + 1);
       fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(split));
@@ -268,7 +269,7 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
   }
 
   // Move the remaining string (possibly all of it) into the array.
-  if (limit > 0) {
+  if (limit > 0 && start != len) {
     split = fh_str_slice(str, start, len);
     fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(split));
   }

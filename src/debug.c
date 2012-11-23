@@ -117,7 +117,7 @@ fh_debug_obj(FILE *stream, js_val *obj, int indent, bool force_enum)
     }
     fprintf(stream, " %s: ", x->name);
     if (x->circular)
-      fprintf(stream, "[Circular]");
+      cfprintf(stream, ANSI_BLUE, "[Circular]");
     else
       fh_debug(stream, x->ptr, indent+3, false);
   };
@@ -128,7 +128,7 @@ fh_debug_obj(FILE *stream, js_val *obj, int indent, bool force_enum)
 void
 fh_debug_arr(FILE *stream, js_val *arr, int indent)
 {
-  if (HASH_COUNT(arr->map) == 0) {
+  if (HASH_COUNT(arr->map) <= 1) {
     fprintf(stream, "[]");
     return;
   }
@@ -140,8 +140,12 @@ fh_debug_arr(FILE *stream, js_val *arr, int indent)
       fprintf(stream, ", ");
     else if (x->enumerable)
       first = false;
-    if (x->enumerable)
-      fh_debug(stream, x->ptr, 0, false);
+    if (x->enumerable) {
+      if (x->circular)
+        cfprintf(stream, ANSI_BLUE, "[Circular]");
+      else
+        fh_debug(stream, x->ptr, 0, false);
+    }
   };
   fprintf(stream, " ]");
 }
