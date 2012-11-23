@@ -106,7 +106,6 @@ The Makefile has a few shortcuts:
 The Docket
 ----------
 - Try statements (`try`, `catch`, `finally`)
-- Named function expressions (e.g. `var f = function named(x) {};`)
 - Labels (e.g. `loop1: ...; continue loop1;`)
 - Automatic Semicolon Insertion
 - Unicode (might work, but currently unsupported)

@@ -19,6 +19,17 @@ function f0() {
 }
 
 
+// Named function expressions
+
+var square = function innerSquare(x) {
+  assert(square === innerSquare);
+  return x * x;
+};
+
+assertEquals(144, square(12));
+assertEquals('undefined', typeof innerSquare);
+
+
 // Syntax allows an empty function body.
 
 var f1 = function() {};
