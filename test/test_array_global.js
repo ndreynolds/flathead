@@ -109,7 +109,7 @@ test('Array#unshift(element1, ..., elementN)', function() {
   assert(a.unshift('!', 'my') === 8);
   assert(a.length === 8);
   // Just for fun
-  // FIXME: assert(a5.reverse().join(' ') === 'lions and tigers and bears oh my !'
+  assertEquals('lions and tigers and bears oh my !', a.reverse().join(' '));
 });
 
 test('Array#reverse()', function() {

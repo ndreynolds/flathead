@@ -1012,23 +1012,23 @@ LeftHSExpressionNoFn     : NewExpressionNoFn
                              { $$ = $1; }
                          ;
 
-CallExpression           : MemberExpression Arguments                
+CallExpression           : MemberExpression Arguments
                              { $$ = NEW_CALL($1, $2); }
-                         | CallExpression Arguments                
+                         | CallExpression Arguments
                              { $$ = NEW_CALL($1, $2); }
-                         | CallExpression '[' Expression ']'       
+                         | CallExpression '[' Expression ']'
                              { $$ = NEW_CALL($1, $3); }
-                         | CallExpression '.' Identifier           
+                         | CallExpression '.' Identifier
                              { $$ = NEW_CALL($1, $3); }
                          ;
 
-CallExpressionNoFn       : MemberExpressionNoFn Arguments                
+CallExpressionNoFn       : MemberExpressionNoFn Arguments
                              { $$ = NEW_CALL($1, $2); }
-                         | CallExpressionNoFn Arguments                
+                         | CallExpressionNoFn Arguments
                              { $$ = NEW_CALL($1, $2); }
-                         | CallExpressionNoFn '[' Expression ']'       
+                         | CallExpressionNoFn '[' Expression ']'
                              { $$ = NEW_CALL($1, $3); }
-                         | CallExpressionNoFn '.' Identifier           
+                         | CallExpressionNoFn '.' Identifier
                              { $$ = NEW_CALL($1, $3); }
                          ;
 

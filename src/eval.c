@@ -490,6 +490,13 @@ js_val *
 fh_call_exp(js_val *ctx, ast_node *call)
 {
   js_val *maybe_func = fh_eval(ctx, call->e1);
+
+  // Special treatment for:
+  //   CallExpression [ Expression ] 
+  //   CallExpression . Identifier
+  if (call->e2->type != NODE_ARG_LST)
+    return fh_get_proto(maybe_func, fh_str_from_node(ctx, call->e2)->string.ptr);
+
   eval_state *state= fh_new_state(call->line, call->column);
   state->ctx = ctx;
   if (!IS_FUNC(maybe_func))
