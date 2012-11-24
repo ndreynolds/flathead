@@ -137,12 +137,15 @@ test('Array#join(sep)', function() {
   assert(concat.join('') === 'tactfulness');
 
   var a1 = ['foo', 'bar'];
-  assert(a1.join('') === 'foobar');
-  assert(a1.join(',') === 'foo,bar');
-  assert(a1.join('baz') === 'foobazbar');
+  assertEquals('foobar', a1.join(''));
+  assertEquals('foo,bar', a1.join(','));
+  assertEquals('foobazbar', a1.join('baz'));
 
   var a2 = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-  assert(a2.join(',') === '1,2,3,4,5,6,7,8,9');
+  assertEquals('1,2,3,4,5,6,7,8,9', a2.join(','));
+
+  var a3 = ['a', 'b', 'c'];
+  assertEquals('a,b,c', a3.join());
 });
 
 test('Array#slice(begin[, end])', function() {

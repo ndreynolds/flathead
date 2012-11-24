@@ -667,6 +667,9 @@ arr_do_join(js_val *arr, js_val *sep)
 {
   js_val *result = JSSTR("");
 
+  if (IS_UNDEF(sep)) sep = JSSTR(",");
+  sep = TO_STR(sep);
+
   bool first = true;
   js_prop *p;
   js_val *strval;
