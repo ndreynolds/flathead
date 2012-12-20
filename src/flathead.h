@@ -75,6 +75,7 @@
 #define OBJ_ITER(o,p)  js_prop *_tmp; HASH_ITER(hh,(o)->map,p,_tmp)
 
 #define DEF(o,k,v)     fh_set_prop((o),(k),(v),P_BUILTIN)
+#define DEF2(o,k,v,f)  fh_set_prop((o),(k),(v),(f))
 
 #define DEBUG(x)       fh_debug(stdout,(x),0,1)
 #define UNREACHABLE()  assert(0)
@@ -122,10 +123,11 @@ typedef enum {
 } js_error_type;
 
 typedef enum {
+  P_NONE    = 0x00, 
   P_WRITE   = 0x01,
   P_ENUM    = 0x02,
   P_CONF    = 0x04,
-  P_NONE    = 0x08,
+  P_IGNORE  = 0x08,
   P_BUILTIN = P_WRITE | P_CONF,
   P_DEFAULT = P_WRITE | P_ENUM | P_CONF
 } js_prop_flags;

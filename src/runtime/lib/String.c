@@ -160,7 +160,7 @@ str_proto_match(js_val *instance, js_args *args, eval_state *state)
 
   int count;
   char *str = instance->string.ptr;
-  int *matches = fh_regexp(str, pattern, &count, caseless);
+  int *matches = fh_regexp(str, pattern, &count, 0, caseless);
 
   if (!matches) 
     return arr;
@@ -194,7 +194,7 @@ str_proto_search(js_val *instance, js_args *args, eval_state *state)
   bool caseless = fh_get_proto(regexp, "ignoreCase")->boolean.val;
 
   int count;
-  int *matches = fh_regexp(instance->string.ptr, pattern, &count, caseless);
+  int *matches = fh_regexp(instance->string.ptr, pattern, &count, 0, caseless);
 
   if (!matches) 
     return JSNUM(-1);

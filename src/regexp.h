@@ -21,6 +21,6 @@
 #ifndef REGEXP_H
 #define REGEXP_H
 
-int * fh_regexp(char *, char *, int *, bool);
+int * fh_regexp(char *, char *, int *, int, bool);
 
 #endif

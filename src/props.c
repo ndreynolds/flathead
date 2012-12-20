@@ -95,7 +95,7 @@ fh_get_prop_proto(js_val *obj, char *name)
 void
 fh_set(js_val *obj, char *name, js_val *val)
 {
-  fh_set_prop(obj, name, val, P_NONE);
+  fh_set_prop(obj, name, val, P_IGNORE);
 }
 
 /* Set a property on an object using the provided name, value, and property
@@ -113,8 +113,8 @@ fh_set_prop(js_val *obj, char *name, js_val *val, js_prop_flags flags)
   }
 
   // Update the prop flags.
-  // The P_NONE value is used to convey that the flags should not be changed.
-  if (flags != P_NONE) {
+  // The P_IGNORE value is used to convey that the flags should not be changed.
+  if (flags != P_IGNORE) {
     prop->writable = flags & P_WRITE;
     prop->configurable = flags & P_CONF;
     prop->enumerable = flags & P_ENUM;

@@ -37,8 +37,40 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
 js_val *
 regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
 {
-  // TODO
-  return JSUNDEF();
+  js_val *pattern = fh_get_proto(instance, "source"),
+         *last_ind = fh_get_proto(instance, "lastIndex"),
+         *str = ARG(args, 0),
+         *g = fh_get_proto(instance, "global"),
+         *c = fh_get_proto(instance, "ignoreCase"),
+         *m = fh_get_proto(instance, "multiline");
+
+  bool matched = false;
+  bool caseless = c->boolean.val;
+  int *matches;
+  int count;
+  int length = strlen(str->string.ptr);
+  int i = fh_to_int32(last_ind)->number.val;
+  if (!TO_BOOL(g)->boolean.val)
+    i = 0;
+
+  while (!matched) {
+    if (i < 0 || i > length) {
+      fh_set(instance, "lastIndex", JSNUM(0));
+      return JSNULL();
+    }
+    matches = fh_regexp(str->string.ptr, pattern->string.ptr, &count, 0, caseless);
+    if (count == 0) 
+      i++;
+    else
+      matched = true;
+  }
+
+  fh_set(instance, "lastIndex", JSNUM(i));
+
+  js_val *res = JSOBJ();
+  js_val *arr = JSARR();
+  fh_set(instance, "index", JSNUM(i));
+  fh_set(instance, "input", str);
 }
 
 // RegExp.prototype.test([str])
@@ -49,7 +81,7 @@ regexp_proto_test(js_val *instance, js_args *args, eval_state *state)
   char *pattern = TO_STR(fh_get(instance, "source"))->string.ptr;
   bool caseless = fh_get_proto(instance, "ignoreCase")->boolean.val;
   int count;
-  fh_regexp(str, pattern, &count, caseless);
+  fh_regexp(str, pattern, &count, 0, caseless);
   return JSBOOL(count > 0);
 }
 
@@ -58,10 +90,10 @@ js_val *
 regexp_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *pattern = fh_get_proto(instance, "source"),
-          *g = fh_get_proto(instance, "global"),
-          *i = fh_get_proto(instance, "ignoreCase"),
-          *m = fh_get_proto(instance, "multiline"),
-          *y = fh_get_proto(instance, "sticky");
+         *g = fh_get_proto(instance, "global"),
+         *i = fh_get_proto(instance, "ignoreCase"),
+         *m = fh_get_proto(instance, "multiline"),
+         *y = fh_get_proto(instance, "sticky");
 
   size_t size = strlen(pattern->string.ptr) + 7; // space for 2 slashes and imgy
   char *new = malloc(size);
@@ -98,14 +130,13 @@ bootstrap_regexp()
   // ----------------
 
   // Properties
-  // FIXME: these properties need to be non-writable.
   DEF(prototype, "constructor", JSNFUNC(regexp_new, 2));
-  DEF(prototype, "global", JSBOOL(0));
-  DEF(prototype, "ignoreCase", JSBOOL(0));
-  DEF(prototype, "lastIndex", JSBOOL(0));
-  DEF(prototype, "multiline", JSBOOL(0));
-  DEF(prototype, "source", JSSTR(""));
-  DEF(prototype, "sticky", JSBOOL(0));
+  DEF2(prototype, "global", JSBOOL(0), P_NONE);
+  DEF2(prototype, "ignoreCase", JSBOOL(0), P_NONE);
+  DEF2(prototype, "lastIndex", JSBOOL(0), P_WRITE);
+  DEF2(prototype, "multiline", JSBOOL(0), P_NONE);
+  DEF2(prototype, "source", JSSTR(""), P_NONE);
+  DEF2(prototype, "sticky", JSBOOL(0), P_NONE);
 
   // Methods
   DEF(prototype, "exec", JSNFUNC(regexp_proto_exec, 1));
