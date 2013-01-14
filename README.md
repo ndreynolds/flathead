@@ -31,11 +31,10 @@ Flathead should build on most POSIX platforms (no Windows support yet).
 
 If you received any errors, you may just be missing dependencies.
 
-`flex` and `bison` are required to generate the lexer and parser. (Most systems
-will already have these.)
+`flex` and `bison` are required to generate the lexer and parser.
 
-The default build depends on GNU Readline `lreadline` for the REPL, and PCRE
-`lpcre` or the regular expression implementation. If you don't have these, or
+The default build depends on GNU Readline (`lreadline`) for the REPL, and PCRE
+(`lpcre`) for the regular expression implementation. If you don't have these, or
 don't need the features, you can run `make readline=off regexp=off` to compile
 without them.
 
@@ -108,12 +107,13 @@ The Docket
 - Try statements (`try`, `catch`, `finally`)
 - Labels (e.g. `loop1: ...; continue loop1;`)
 - Automatic Semicolon Insertion
-- Unicode (might work, but currently unsupported)
+- Unicode
 - The JSON object ([JSON-js][1] can be used as polyfill)
 - RegExp#exec
 - String#match
 - String#replace
 - `new Function(...)`
+- Garbage collection needs work
 
 
 [1]: http://github.com/douglascrockford/JSON-js
