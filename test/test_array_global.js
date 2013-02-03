@@ -10,8 +10,7 @@ var assertEquals = function(a, b) {
 };
 
 var assertArrayEquals = function(a, b) {
-  if (a.length !== b.length)
-    return false;
+  assert(a.length === b.length);
   for (var i = 0; i < a.length; i++) {
     assert(a[i] === b[i]);
   }
