@@ -355,23 +355,36 @@ arr_proto_slice(js_val *instance, js_args *args, eval_state *state)
   js_val *begin = ARG(args, 0);
   js_val *end = ARG(args, 1);
   js_val *slice = JSARR();
-  unsigned long len = instance->object.length;
+  unsigned long int len = instance->object.length;
 
-  unsigned long i = 0;
-  unsigned long j = begin->number.val;
-  unsigned long k = IS_UNDEF(end) ? len : end->number.val;
+  unsigned long int j;
+  if (IS_UNDEF(begin) || begin->number.val > len)
+    return slice;
+  else if (begin->number.val >= 0)
+    j = begin->number.val;
+  else if (-begin->number.val <= len)
+    j = len + begin->number.val;
+  else
+    j = 0;
+  
+  unsigned long int k;
+  if (IS_UNDEF(end) || end->number.val > len)
+    k = len;
+  else if (end->number.val >= 0)
+    k = end->number.val;
+  else if (-end->number.val <= len)
+    k = len + end->number.val;
+  else
+    k = 0;
 
-  // Handle negative offsets
-  if (j < 0) j = len + j;
-  if (k < 0) k = len + k;
-
-  // Correct to array bounds
-  if (j < 0) j = 0;
-  if (k > len) k = len;
+  if (j > k) {
+    unsigned long int c = j; j = k; k = c;
+  }
 
   // slice from j inclusive to k exclusive. 
   js_val *val;
-  for (; j < k && j < len; j++, i++) {
+  unsigned long int i;
+  for (i = 0; j < k && j < len; j++, i++) {
     val = fh_get(instance, JSNUMKEY(j)->string.ptr);
     fh_set(slice, JSNUMKEY(i)->string.ptr, val);
   }
