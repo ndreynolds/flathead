@@ -43,7 +43,7 @@ arr_new(js_val *instance, js_args *args, eval_state *state)
 
   // Although arrays can be up to 2^32 - 1 in length, the number of
   // arguments may not exceed 2^15 - 1 (INT_MAX).
-  int i;
+  unsigned int i;
   for (i = 0; i < ARGLEN(args); i++) {
     fh_set(arr, JSNUMKEY(i)->string.ptr, ARG(args, i));
   }
@@ -79,8 +79,8 @@ js_val *
 arr_proto_push(js_val *instance, js_args *args, eval_state *state)
 {
   int len = instance->object.length;
-  int nargs = ARGLEN(args);
-  int i;
+  unsigned int nargs = ARGLEN(args);
+  unsigned int i;
   for (i = 0; i < nargs; i++) {
     js_val *key = JSNUMKEY(len);
     fh_set(instance, key->string.ptr, ARG(args, i));
@@ -272,7 +272,7 @@ js_val *
 arr_proto_unshift(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *newarr = JSARR();
-  int nargs = ARGLEN(args);
+  unsigned int nargs = ARGLEN(args);
   unsigned long len = instance->object.length;
 
   unsigned long i = 0, j = 0;
@@ -301,7 +301,7 @@ arr_proto_unshift(js_val *instance, js_args *args, eval_state *state)
 js_val *
 arr_proto_concat(js_val *instance, js_args *args, eval_state *state)
 {
-  int nargs = ARGLEN(args);
+  unsigned int nargs = ARGLEN(args);
   unsigned long len = instance->object.length;
   js_val *concat = JSARR();
   js_val *key;
@@ -404,7 +404,7 @@ arr_proto_index_of(js_val *instance, js_args *args, eval_state *state)
   }
 
   js_val *key, *equals;
-  for (; i < len && i >= 0; i++) {
+  for (; i < len; i++) {
     key = JSNUMKEY(i);
     // indexOf uses strict equality
     equals = fh_eq(fh_get(instance, key->string.ptr), search, true);

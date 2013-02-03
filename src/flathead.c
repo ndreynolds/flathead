@@ -517,13 +517,13 @@ fh_get_arg(js_args *args, int n)
   return JSUNDEF();
 }
 
-int
+unsigned int
 fh_arg_len(js_args *args)
 {
-  int i = 0;
+  if (args == NULL) return 0;
+  unsigned int i = 0;
   while (i < INT_MAX)
   {
-    if (args == NULL) return i;
     if (args->arg != NULL) i++;
     if (args->next == NULL) break;
     args = args->next;
