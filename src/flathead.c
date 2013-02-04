@@ -187,6 +187,9 @@ fh_new_prop(js_prop_flags flags)
   return prop;
 }
 
+static unsigned int statetrace[8][2];
+static unsigned char current;
+
 eval_state *
 fh_new_state(int line, int column)
 {
@@ -194,6 +197,10 @@ fh_new_state(int line, int column)
 
   state->line = line;
   state->column = column;
+  statetrace[current & 7][0] = line;
+  statetrace[current & 7][1] = column;
+  current++;
+
   state->ctx = NULL;
   state->this = NULL;
   state->construct = false;
@@ -440,6 +447,13 @@ fh_error(eval_state *state, js_error_type type, const char *tpl, ...)
 
   if (state != NULL)
     fprintf(stderr, "  at Line %d:%d\n", state->line, state->column);
+
+  unsigned char i;
+  fprintf(stderr, "%s\n", "State trace:");
+  for (i = 0; i < sizeof statetrace / sizeof statetrace[0]; i++, current++) {
+    fprintf(stderr, "%d:%d\n", statetrace[current & 7][0],
+      statetrace[current & 7][1]);
+  }
   exit(1);
 }
 
@@ -517,13 +531,13 @@ fh_get_arg(js_args *args, int n)
   return JSUNDEF();
 }
 
-int
+unsigned int
 fh_arg_len(js_args *args)
 {
-  int i = 0;
+  if (args == NULL) return 0;
+  unsigned int i = 0;
   while (i < INT_MAX)
   {
-    if (args == NULL) return i;
     if (args->arg != NULL) i++;
     if (args->next == NULL) break;
     args = args->next;
