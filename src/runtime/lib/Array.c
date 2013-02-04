@@ -375,11 +375,10 @@ arr_proto_slice(js_val *instance, js_args *args, eval_state *state)
   else if (-end->number.val <= len)
     k = len + end->number.val;
   else
-    k = 0;
+    return slice;
 
-  if (j > k) {
-    unsigned long int c = j; j = k; k = c;
-  }
+  if (j >= k)
+    return slice;
 
   // slice from j inclusive to k exclusive. 
   js_val *val;

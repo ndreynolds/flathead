@@ -164,6 +164,15 @@ test('Array#slice(begin[, end])', function() {
 
   var slice5 = a.slice(-50, 100);
   assertArrayEquals([1, 2, 3, 4, 5, 6, 7, 8, 9], slice5);
+
+  var slice6 = a.slice(4, 2);
+  assertArrayEquals([], slice6);
+
+  var slice7 = a.slice(1, -20);
+  assertArrayEquals([], slice7);
+
+  var slice8 = a.slice(2, 2);
+  assertArrayEquals([], slice8);
 });
 
 test('Array#indexOf()', function() {
