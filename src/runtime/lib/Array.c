@@ -164,6 +164,10 @@ arr_proto_shift(js_val *instance, js_args *args, eval_state *state)
 js_val *
 arr_proto_sort(js_val *instance, js_args *args, eval_state *state)
 {
+  unsigned int len = instance->object.length;
+  if (len == 0)
+    return instance;
+
   js_val *cmp_func = ARG(args, 0);
   if (IS_FUNC(cmp_func)) {
     arr_cmp_func = arr_cmp_js;
@@ -177,7 +181,7 @@ arr_proto_sort(js_val *instance, js_args *args, eval_state *state)
   js_val *sorted = JSARR();
 
   // Build an array of js_prop pointers from the hashmap.
-  int i, j, len = instance->object.length;
+  unsigned int i, j;
   js_prop *prop, *prop_lst[len];
   for (i = 0; i < len; i++) {
     prop = fh_get_prop(instance, JSNUMKEY(i)->string.ptr);

@@ -222,6 +222,8 @@ test('Array#splice(index, howMany[, element1[, ...[, elementN]]])', function() {
 });
 
 test('Array#sort()', function() {
+  [].sort();
+
   // TODO: expand these tests
   var a = [4, 2, 1, 3];
   a.sort();
