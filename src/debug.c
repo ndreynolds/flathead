@@ -170,7 +170,7 @@ fh_debug_num(FILE *stream, js_val *num)
 void
 fh_debug_args(FILE *stream, js_args *args)
 {
-  int i;
+  unsigned int i;
   for (i = 0; i < ARGLEN(args); i++)
     fh_debug(stream, ARG(args, i), 0, 1);
 }
