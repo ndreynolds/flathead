@@ -242,7 +242,7 @@ fh_state * fh_new_global_state();
 eval_state * fh_new_state(int, int);
 
 js_val * fh_get_arg(js_args *, int);
-int fh_arg_len(js_args*);
+unsigned int fh_arg_len(js_args*);
 
 js_val * fh_eval_file(FILE *, js_val *, int);
 js_val * fh_try_get_proto(char *);

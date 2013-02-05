@@ -50,8 +50,15 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
 
   if (count != NULL)
     *count = rc;
+
   pcre_free(regexp);
-  return rc < 0 ? NULL : output_vector;
+
+  if (rc < 0) {
+    free(output_vector);
+    return NULL;
+  }
+  
+  return output_vector;
 #else
   fh_error(NULL, E_ERROR, "Regular expressions are not available");
   return NULL;

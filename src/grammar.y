@@ -1083,10 +1083,9 @@ ArgumentList             : AssignmentExpression
 void 
 yyerror(const char *s) 
 {
-  // Trim the "syntax error: " prefix so we can use fh_error.
-  const char *trimmed = strlen(s) < 14 ? s : strndup(s + 14, strlen(s) - 14);
   eval_state *state = fh_new_state(yylloc.first_line, yylloc.first_column);
-  fh_error(state, E_SYNTAX, trimmed);
+  // Trim the "syntax error: " prefix so we can use fh_error.
+  fh_error(state, E_SYNTAX, strlen(s) >= 14 ? s + 14 : s);
 }
 
 // This is our replacement function when we redefine YY_INPUT

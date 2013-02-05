@@ -10,8 +10,7 @@ var assertEquals = function(a, b) {
 };
 
 var assertArrayEquals = function(a, b) {
-  if (a.length !== b.length)
-    return false;
+  assert(a.length === b.length);
   for (var i = 0; i < a.length; i++) {
     assert(a[i] === b[i]);
   }
@@ -165,6 +164,15 @@ test('Array#slice(begin[, end])', function() {
 
   var slice5 = a.slice(-50, 100);
   assertArrayEquals([1, 2, 3, 4, 5, 6, 7, 8, 9], slice5);
+
+  var slice6 = a.slice(4, 2);
+  assertArrayEquals([], slice6);
+
+  var slice7 = a.slice(1, -20);
+  assertArrayEquals([], slice7);
+
+  var slice8 = a.slice(2, 2);
+  assertArrayEquals([], slice8);
 });
 
 test('Array#indexOf()', function() {
@@ -214,6 +222,8 @@ test('Array#splice(index, howMany[, element1[, ...[, elementN]]])', function() {
 });
 
 test('Array#sort()', function() {
+  [].sort();
+
   // TODO: expand these tests
   var a = [4, 2, 1, 3];
   a.sort();

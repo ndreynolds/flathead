@@ -43,7 +43,7 @@ arr_new(js_val *instance, js_args *args, eval_state *state)
 
   // Although arrays can be up to 2^32 - 1 in length, the number of
   // arguments may not exceed 2^15 - 1 (INT_MAX).
-  int i;
+  unsigned int i;
   for (i = 0; i < ARGLEN(args); i++) {
     fh_set(arr, JSNUMKEY(i)->string.ptr, ARG(args, i));
   }
@@ -79,8 +79,8 @@ js_val *
 arr_proto_push(js_val *instance, js_args *args, eval_state *state)
 {
   int len = instance->object.length;
-  int nargs = ARGLEN(args);
-  int i;
+  unsigned int nargs = ARGLEN(args);
+  unsigned int i;
   for (i = 0; i < nargs; i++) {
     js_val *key = JSNUMKEY(len);
     fh_set(instance, key->string.ptr, ARG(args, i));
@@ -164,6 +164,10 @@ arr_proto_shift(js_val *instance, js_args *args, eval_state *state)
 js_val *
 arr_proto_sort(js_val *instance, js_args *args, eval_state *state)
 {
+  unsigned int len = instance->object.length;
+  if (len == 0)
+    return instance;
+
   js_val *cmp_func = ARG(args, 0);
   if (IS_FUNC(cmp_func)) {
     arr_cmp_func = arr_cmp_js;
@@ -177,7 +181,7 @@ arr_proto_sort(js_val *instance, js_args *args, eval_state *state)
   js_val *sorted = JSARR();
 
   // Build an array of js_prop pointers from the hashmap.
-  int i, j, len = instance->object.length;
+  unsigned int i, j;
   js_prop *prop, *prop_lst[len];
   for (i = 0; i < len; i++) {
     prop = fh_get_prop(instance, JSNUMKEY(i)->string.ptr);
@@ -272,7 +276,7 @@ js_val *
 arr_proto_unshift(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *newarr = JSARR();
-  int nargs = ARGLEN(args);
+  unsigned int nargs = ARGLEN(args);
   unsigned long len = instance->object.length;
 
   unsigned long i = 0, j = 0;
@@ -301,7 +305,7 @@ arr_proto_unshift(js_val *instance, js_args *args, eval_state *state)
 js_val *
 arr_proto_concat(js_val *instance, js_args *args, eval_state *state)
 {
-  int nargs = ARGLEN(args);
+  unsigned int nargs = ARGLEN(args);
   unsigned long len = instance->object.length;
   js_val *concat = JSARR();
   js_val *key;
@@ -355,23 +359,35 @@ arr_proto_slice(js_val *instance, js_args *args, eval_state *state)
   js_val *begin = ARG(args, 0);
   js_val *end = ARG(args, 1);
   js_val *slice = JSARR();
-  unsigned long len = instance->object.length;
+  unsigned long int len = instance->object.length;
 
-  unsigned long i = 0;
-  unsigned long j = begin->number.val;
-  unsigned long k = IS_UNDEF(end) ? len : end->number.val;
+  unsigned long int j;
+  if (IS_UNDEF(begin) || begin->number.val > len)
+    return slice;
+  else if (begin->number.val >= 0)
+    j = begin->number.val;
+  else if (-begin->number.val <= len)
+    j = len + begin->number.val;
+  else
+    j = 0;
+  
+  unsigned long int k;
+  if (IS_UNDEF(end) || end->number.val > len)
+    k = len;
+  else if (end->number.val >= 0)
+    k = end->number.val;
+  else if (-end->number.val <= len)
+    k = len + end->number.val;
+  else
+    return slice;
 
-  // Handle negative offsets
-  if (j < 0) j = len + j;
-  if (k < 0) k = len + k;
-
-  // Correct to array bounds
-  if (j < 0) j = 0;
-  if (k > len) k = len;
+  if (j >= k)
+    return slice;
 
   // slice from j inclusive to k exclusive. 
   js_val *val;
-  for (; j < k && j < len; j++, i++) {
+  unsigned long int i;
+  for (i = 0; j < k && j < len; j++, i++) {
     val = fh_get(instance, JSNUMKEY(j)->string.ptr);
     fh_set(slice, JSNUMKEY(i)->string.ptr, val);
   }
@@ -404,7 +420,7 @@ arr_proto_index_of(js_val *instance, js_args *args, eval_state *state)
   }
 
   js_val *key, *equals;
-  for (; i < len && i >= 0; i++) {
+  for (; i < len; i++) {
     key = JSNUMKEY(i);
     // indexOf uses strict equality
     equals = fh_eq(fh_get(instance, key->string.ptr), search, true);
