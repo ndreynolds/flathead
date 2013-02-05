@@ -607,23 +607,36 @@ js_val *
 arr_proto_reduce_right(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *callback = ARG(args, 0);
+  if (!IS_FUNC(callback))
+    fh_error(state, E_TYPE, "%s is not a function", fh_typeof(callback));
+
   js_val *reduction = ARG(args, 1);
   unsigned long len = instance->object.length;
   unsigned long i = len - 1;
 
-  if (IS_UNDEF(reduction)) { 
-    reduction = fh_get(instance, JSNUMKEY(len-1)->string.ptr);
-    i = len - 2;
+  if (IS_UNDEF(reduction)) {
+    if (len == 0)
+      fh_error(state, E_RANGE, "Reduce of empty array with no initial value");
+
+    reduction = fh_get(instance, JSNUMKEY(i)->string.ptr);
+
+    if (len == 1)
+      return reduction;
+    
+    i--;
+  }
+  else {
+    if (len == 0)
+      return reduction;
   }
 
-  js_val *key, *val;
+  js_val *val;
   js_args *cbargs;
-  for (; i >= 0; i--) {
-    key = JSNUMKEY(i);
-    val = fh_get(instance, key->string.ptr);
+  do {
+    val = fh_get(instance, JSNUMKEY(i)->string.ptr);
     cbargs = fh_new_args(reduction, val, JSNUM(i));
     reduction = fh_call(state->ctx, JSUNDEF(), state, callback, cbargs);
-  }
+  } while (i != 0, i--);
 
   return reduction;
 }
