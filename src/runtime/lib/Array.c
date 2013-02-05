@@ -636,7 +636,7 @@ arr_proto_reduce_right(js_val *instance, js_args *args, eval_state *state)
     val = fh_get(instance, JSNUMKEY(i)->string.ptr);
     cbargs = fh_new_args(reduction, val, JSNUM(i));
     reduction = fh_call(state->ctx, JSUNDEF(), state, callback, cbargs);
-  } while (i != 0, i--);
+  } while (i--);
 
   return reduction;
 }
