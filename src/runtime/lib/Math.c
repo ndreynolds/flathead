@@ -233,14 +233,35 @@ bootstrap_math()
   fh_set_class(math, "Math");
 
   // Properties
-  DEF(math, "E", JSNUM(M_E));
-  DEF(math, "LN2", JSNUM(M_LN2));
-  DEF(math, "LN10", JSNUM(M_LN10));
-  DEF(math, "LOG2E", JSNUM(M_LOG2E));
-  DEF(math, "LOG10E", JSNUM(M_LOG10E));
-  DEF(math, "PI", JSNUM(M_PI));
-  DEF(math, "SQRT1_2", JSNUM(M_SQRT1_2));
-  DEF(math, "SQRT2", JSNUM(M_SQRT2));
+  /* Generated with GHC - the Glasgow Haskell Compiler
+   * echo "import Data.Number.CReal; main = putStrLn $ showCReal 36 pi" |runghc
+   * e:          (exp 1)
+   * ln(2):      log(2)
+   * ln(10):     log(10)
+   * log2(e):    (log(exp 1)/log(2))
+   * log10(e):   (log(exp 1)/log(10))
+   * pi:         pi
+   * pi/2:       (pi/2)
+   * pi/4:       (pi/4)
+   * 1/pi:       (1/pi)
+   * 2/pi:       (2/pi)
+   * 2/sqrt(pi): (2/sqrt(pi))
+   * 1/sqrt(2):  (1/sqrt(2))
+   * SQRT2:      (sqrt(2))
+   */
+  DEF(math, "E",          JSNUM(2.718281828459045235360287471352662498L));
+  DEF(math, "LN2",        JSNUM(0.693147180559945309417232121458176568L));
+  DEF(math, "LN10",       JSNUM(2.302585092994045684017991454684364208L));
+  DEF(math, "LOG2E",      JSNUM(1.442695040888963407359924681001892137L));
+  DEF(math, "LOG10E",     JSNUM(0.434294481903251827651128918916605082L));
+  DEF(math, "PI",         JSNUM(3.141592653589793238462643383279502884L));
+  DEF(math, "M_PI_2",     JSNUM(1.570796326794896619231321691639751442L));
+  DEF(math, "M_PI_4",     JSNUM(0.785398163397448309615660845819875721L));
+  DEF(math, "M_1_PI",     JSNUM(0.318309886183790671537767526745028724L));
+  DEF(math, "M_2_PI",     JSNUM(0.636619772367581343075535053490057448L));
+  DEF(math, "M_2_SQRTPI", JSNUM(1.128379167095512573896158903121545172L));
+  DEF(math, "SQRT1_2",    JSNUM(0.707106781186547524400844362104849039L));
+  DEF(math, "SQRT2",      JSNUM(1.414213562373095048801688724209698079L));
 
   // Methods
   DEF(math, "abs", JSNFUNC(math_abs, 1));
