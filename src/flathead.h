@@ -213,12 +213,10 @@ typedef struct {
 } js_object;
 
 typedef struct js_val {
-  union {
-    js_number number;
-    js_string string;
-    js_boolean boolean;
-    js_object object;   // TODO: make this a pointer (too big as is)
-  };
+  js_number number;
+  js_string string;
+  js_boolean boolean;
+  js_object object;   // TODO: make this a pointer (too big as is)
   js_type type;
   ctl_signal signal;
   struct js_val *proto;
