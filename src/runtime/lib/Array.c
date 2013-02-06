@@ -198,12 +198,16 @@ arr_proto_sort(js_val *instance, js_args *args, eval_state *state)
   // Rebuild the hashmap (using a donor array).
   for (j = 0; j < i; j++) {
     prop = prop_lst[j];
+    free(prop->name);
+    prop->name = JSNUMKEY(j)->string.ptr;
     HASH_ADD_KEYPTR(hh, sorted->map, prop->name, strlen(prop->name), prop);
   }
 
   // Steal the donor array's hashmap.
   instance->map = sorted->map;
   sorted->map = NULL;
+
+  fh_set_len(instance, len);
 
   return instance;
 }
