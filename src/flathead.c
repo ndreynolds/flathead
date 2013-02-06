@@ -280,7 +280,7 @@ fh_to_primitive(js_val *val, js_type hint)
   js_args *args;
   eval_state *state;
   char *types[2] = {"valueOf", "toString"};
-  int i, reverse = hint == T_STRING ? 1 : 0;
+  int i, reverse = hint == T_STRING;
 
   for (i = reverse; i <= 1 && i >= 0; reverse ? i-- : i++) {
     maybe_func = fh_get_proto(val, types[i]);

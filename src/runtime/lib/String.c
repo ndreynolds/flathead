@@ -94,7 +94,7 @@ str_proto_index_of(js_val *instance, js_args *args, eval_state *state)
     if (haystack[i] == needle[match])
       match++;
     else
-      match = haystack[i] == needle[0] ? 1 : 0;
+      match = haystack[i] == needle[0];
     if (match == needle_len)
       return JSNUM(i - needle_len + 1);
   }
@@ -257,7 +257,7 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
     if (str[i] == sep[match])
       match++;
     else
-      match = str[i] == sep[0] ? 1 : 0;
+      match = str[i] == sep[0];
    
     if (match == (int)strlen(sep)) {
       split = fh_str_slice(str, start, i - strlen(sep) + 1);
