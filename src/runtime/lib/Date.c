@@ -926,6 +926,9 @@ date_parse_iso(char *str, double *t)
   return true;
 }
 
+
+#if defined(_BSD_SOURCE)
+
 const char *
 tz_string(double t)
 {
@@ -933,6 +936,21 @@ tz_string(double t)
   struct tm *loc_tm = localtime(&time);
   return loc_tm->tm_zone;
 }
+
+#else
+
+const char *
+tz_string(double t)
+{
+  static char buf[16];
+  time_t time = t / 1000;
+  strftime(buf, sizeof buf, "%Z", localtime(&time));
+  buf[sizeof buf - 1] = '\0';
+  return buf;
+}
+
+#endif
+
 
 char *
 day_string(int d) {
