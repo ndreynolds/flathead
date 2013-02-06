@@ -451,7 +451,7 @@ fh_error(eval_state *state, js_error_type type, const char *tpl, ...)
   unsigned char i;
   fprintf(stderr, "%s\n", "State trace:");
   for (i = 0; i < sizeof statetrace / sizeof statetrace[0]; i++, current++) {
-    fprintf(stderr, "%d:%d\n", statetrace[current & 7][0],
+    fprintf(stderr, "%u:%u\n", statetrace[current & 7][0],
       statetrace[current & 7][1]);
   }
   exit(1);

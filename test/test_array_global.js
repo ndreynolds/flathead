@@ -281,10 +281,22 @@ test('Array#reduce(callback[, seed])', function() {
   var a = [0, 1, 2, 3, 4];
   assert(a.reduce(f5) === 10);
   assert(a.reduce(f5, 10) === 20);
+
+  assert([].reduce(f5, 5) === 5);
+  assert([].reduce(f4, 5) === 5);
+
+  assert([5].reduce(f5) === 5);
+  assert([5].reduce(f4) === 5);
 });
 
 test('Array#reduceRight(callback[, seed])', function() {
   var a = [0, 1, 2, 3, 4];
   assert(a.reduceRight(f5) === 10);
   assert(a.reduceRight(f5, 10) === 20);
+
+  assert([].reduceRight(f5, 5) === 5);
+  assert([].reduceRight(f4, 5) === 5);
+
+  assert([5].reduceRight(f5) === 5);
+  assert([5].reduceRight(f4) === 5);
 });
