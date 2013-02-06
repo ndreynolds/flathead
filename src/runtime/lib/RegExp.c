@@ -37,12 +37,14 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
 js_val *
 regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
 {
+  // TODO: Finish implementation
+  
   js_val *pattern = fh_get_proto(instance, "source"),
          *last_ind = fh_get_proto(instance, "lastIndex"),
          *str = ARG(args, 0),
          *g = fh_get_proto(instance, "global"),
-         *c = fh_get_proto(instance, "ignoreCase"),
-         *m = fh_get_proto(instance, "multiline");
+         *c = fh_get_proto(instance, "ignoreCase");
+         // *m = fh_get_proto(instance, "multiline");
 
   bool matched = false;
   bool caseless = c->boolean.val;
@@ -68,9 +70,10 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
   fh_set(instance, "lastIndex", JSNUM(i));
 
   js_val *res = JSOBJ();
-  js_val *arr = JSARR();
+  // js_val *arr = JSARR();
   fh_set(instance, "index", JSNUM(i));
   fh_set(instance, "input", str);
+  return res;
 }
 
 // RegExp.prototype.test([str])
