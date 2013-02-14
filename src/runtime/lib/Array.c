@@ -32,9 +32,9 @@ arr_new(js_val *instance, js_args *args, eval_state *state)
   if (ARGLEN(args) == 1 && IS_NUM(ARG(args, 0))) {
     double len = ARG(args, 0)->number.val;
     // Must be positive integer less than 2^32 - 1
-    if (len < 0 || len >= ULONG_MAX || fmod(len, 1) != 0) {
+    if (len < 0 || len >= ULONG_MAX || fmod(len, 1) != 0)
       fh_error(state, E_RANGE, "Invalid array length");
-    }
+
     fh_set_len(arr, len);
     return arr;
   }
@@ -710,19 +710,20 @@ arr_do_join(js_val *arr, js_val *sep)
   sep = TO_STR(sep);
 
   bool first = true;
-  js_prop *p;
+  js_val *el;
   js_val *strval;
+  unsigned long i;
 
-  OBJ_ITER(arr, p) {
-    if (!p->enumerable) continue;
-    if (p->ptr) {
-      if (!first)
-        result = JSSTR(fh_str_concat(result->string.ptr, sep->string.ptr));
-      else
-        first = false;
-      strval = TO_STR(p->ptr);
-      result = JSSTR(fh_str_concat(result->string.ptr, strval->string.ptr));
-    }
+  for (i = 0; i < arr->object.length; i++) {
+    el = fh_get(arr, JSNUMKEY(i)->string.ptr);
+
+    if (!first)
+      result = JSSTR(fh_str_concat(result->string.ptr, sep->string.ptr));
+    else
+      first = false;
+
+    strval = IS_UNDEF(el) || IS_NULL(el) ? JSSTR("") : TO_STR(el);
+    result = JSSTR(fh_str_concat(result->string.ptr, strval->string.ptr));
   }
 
   return result;

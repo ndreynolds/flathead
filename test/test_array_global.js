@@ -145,6 +145,11 @@ test('Array#join(sep)', function() {
 
   var a3 = ['a', 'b', 'c'];
   assertEquals('a,b,c', a3.join());
+
+  // Examples from WAT talk
+  assertEquals('watwatwat', Array(4).join('wat'));
+  assertEquals('wat1wat1wat1', Array(4).join('wat' + 1));
+  assertEquals('NaNNaNNaN', Array(4).join('wat' - 1));
 });
 
 test('Array#slice(begin[, end])', function() {
