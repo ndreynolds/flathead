@@ -19,6 +19,7 @@
 #include <math.h>
 
 #include "debug.h"
+#include "props.h"
 #include "cli.h"
 
 
@@ -128,25 +129,32 @@ fh_debug_obj(FILE *stream, js_val *obj, int indent, bool force_enum)
 void
 fh_debug_arr(FILE *stream, js_val *arr, int indent)
 {
-  if (HASH_COUNT(arr->map) <= 1) {
+  if (arr->object.length == 0) {
     fprintf(stream, "[]");
     return;
   }
-  bool first = true;
-  js_prop *x;
   fprintf(stream, "[ ");
-  OBJ_ITER(arr, x) {
+
+  bool first = true;
+  js_prop *prop;
+  unsigned long i;
+
+  for (i = 0; i < arr->object.length; i++) {
+    prop = fh_get_prop(arr, JSNUMKEY(i)->string.ptr);
+
     if (!first) 
       fprintf(stream, ", ");
-    else if (x->enumerable)
+    else
       first = false;
-    if (x->enumerable) {
-      if (x->circular)
-        cfprintf(stream, ANSI_BLUE, "[Circular]");
-      else
-        fh_debug(stream, x->ptr, 0, false);
-    }
-  };
+
+    if (!prop) continue;
+
+    if (prop->circular)
+      cfprintf(stream, ANSI_BLUE, "[Circular]");
+    else
+      fh_debug(stream, prop->ptr, 0, false);
+  }
+
   fprintf(stream, " ]");
 }
 
