@@ -144,6 +144,8 @@ typedef struct {
   bool opt_print_tokens;
   bool opt_print_ast;
 
+  char script_name[50];
+
   struct js_val *function_proto;    // cache prototype pointers
   struct js_val *object_proto;
   struct js_val *array_proto;

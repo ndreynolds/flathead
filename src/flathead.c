@@ -224,6 +224,8 @@ fh_new_global_state()
   state->function_proto = NULL;
   state->object_proto = NULL;
 
+  strcpy(state->script_name, "main");
+
   state->opt_interactive = false;
   state->opt_print_tokens = false;
   state->opt_print_ast = false;
@@ -428,14 +430,14 @@ fh_cast(js_val *val, js_type type)
 void
 fh_error(eval_state *state, js_error_type type, const char *tpl, ...)
 {
-  char *name = type == E_TYPE ? "TypeError" : 
-               type == E_SYNTAX ? "SyntaxError" :
-               type == E_EVAL ? "EvalError" :
-               type == E_RANGE ? "RangeError" :
+  char *name = type == E_TYPE      ? "TypeError" : 
+               type == E_SYNTAX    ? "SyntaxError" :
+               type == E_EVAL      ? "EvalError" :
+               type == E_RANGE     ? "RangeError" :
                type == E_ASSERTION ? "AssertionError" :
                type == E_REFERENCE ? "ReferenceError" :
-               type == E_PARSE ? "ParseError" :
-               "Error";
+               type == E_PARSE     ? "ParseError" :
+                                     "Error";
 
   fprintf(stderr, "%s: ", name);
 
@@ -446,13 +448,12 @@ fh_error(eval_state *state, js_error_type type, const char *tpl, ...)
   fprintf(stderr, "\n");
 
   if (state != NULL)
-    fprintf(stderr, "  at Line %d:%d\n", state->line, state->column);
+    fprintf(stderr, "  at %s:%u:%u\n", fh->script_name, state->line, state->column);
 
   unsigned char i;
-  fprintf(stderr, "%s\n", "State trace:");
   for (i = 0; i < sizeof statetrace / sizeof statetrace[0]; i++, current++) {
-    fprintf(stderr, "%u:%u\n", statetrace[current & 7][0],
-      statetrace[current & 7][1]);
+    fprintf(stderr, "  at %s:%u:%u\n", 
+        fh->script_name, statetrace[current & 7][0], statetrace[current & 7][1]);
   }
   exit(1);
 }

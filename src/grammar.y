@@ -1167,12 +1167,17 @@ main(int argc, char **argv)
   }
 
   FILE *source = NULL;
-  if (optind < argc)
+  if (optind < argc) {
     source = fopen(argv[optind], "r");
-  else if (!isatty(fileno(stdin)) && !fh->opt_interactive)
+    strncpy(fh->script_name, argv[optind], sizeof(fh->script_name));
+  }
+  else if (!isatty(fileno(stdin)) && !fh->opt_interactive) {
     source = stdin;
-  else 
+  }
+  else {
     fh->opt_interactive = true;
+    strcpy(fh->script_name, "(repl)");
+  }
 
   // Bootstrap our runtime
   fh->global = fh_bootstrap();
