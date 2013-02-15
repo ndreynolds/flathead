@@ -224,7 +224,7 @@ fh_new_global_state()
   state->function_proto = NULL;
   state->object_proto = NULL;
 
-  strcpy(state->script_name, "main");
+  state->script_name = "main";
 
   state->opt_interactive = false;
   state->opt_print_tokens = false;
