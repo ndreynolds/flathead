@@ -3,3 +3,4 @@ y.*
 lex.yy.c
 *.out
 tags
+*.o
