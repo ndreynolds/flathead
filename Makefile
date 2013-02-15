@@ -108,6 +108,9 @@ test-sm:
 test-rhino:
 	node test/runner.js --exec rhino --timeout 10000 --args "-f test/harness.js -f [test]"
 
+test-grammar:
+	mocha test/grammar
+
 archive:
 	git archive --format=tar.gz --prefix="flathead-$(VERSION)/" \
 		--output="flathead-$(VERSION).tar.gz" master .

@@ -4,18 +4,18 @@
 
 var exec = require('child_process').exec,
     fs = require('fs'),
-    cmd = __dirname + '/../../bin/fh',
+    cmd = __dirname + '/../../bin/flat',
     fixtures = __dirname + '/fixtures/';
 
 exports.withParseTree = function(evalString, cb) {
   var parseTree;
-  var child = exec(cmd + ' -p', function(err, stdout, stderr) {
+  var child = exec(cmd + ' -n', function(err, stdout, stderr) {
     cb(stdout);
   });
   child.stdin.write(evalString);
   child.stdin.end();
-}
+};
 
 exports.fixture = function(name) {
   return fs.readFileSync(fixtures + name, 'utf8');
-}
+};

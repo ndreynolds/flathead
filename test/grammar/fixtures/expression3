@@ -1,8 +1,8 @@
-statement list
+source list
   expression statement
-    expression
+    expression (binary)
       /
-      expression
+      expression (binary)
         *
         number (1.000000)
         number (2.000000)

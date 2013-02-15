@@ -1,0 +1,7 @@
+source list
+  expression statement
+    expression (unary prefix)
+      +
+      object
+  source list
+    block

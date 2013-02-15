@@ -2,5 +2,5 @@ source list
   expression statement
     expression (binary)
       +
-      number (2.000000)
-      number (2.000000)
+      array literal
+      object

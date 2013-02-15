@@ -209,6 +209,7 @@
 %type<node> LeftHSExpression
 %type<node> LeftHSExpressionNoFn
 %type<node> Literal
+%type<node> LiteralNoObj
 %type<node> LogicalANDExpression
 %type<node> LogicalANDExpressionNoIn
 %type<node> LogicalANDExpressionNoFn
@@ -228,6 +229,7 @@
 %type<node> PostfixExpression
 %type<node> PostfixExpressionNoFn
 %type<node> PrimaryExpression
+%type<node> PrimaryExpressionNoObj
 %type<node> Program
 %type<node> PropertyAssignment
 %type<node> PropertyName
@@ -264,11 +266,17 @@
  * declaration and a named function expression. Expression statements cannot
  * begin with the 'function' keyword (Ecma-252 12.4). These productions
  * prevent that.
+ * 
+ * 'NoObj' rides the 'NoFn' train, forking at 'MemberExpressionNoFn' to ensure
+ * that 'PrimaryExpression' cannot be an object literal. Like the function
+ * declaration and expression, object literals must be disambiguated from
+ * blocks, and therefore may not be used to start an expression statement
+ * (Ecma-252 12.4).
  */
 
 %%
 
-Program                  : SourceElements                                    
+Program                  : SourceElements
                              { root = $1; }
                          ;
 
@@ -314,7 +322,9 @@ Statement                : Block
                              { $$ = $1; }
                          ; 
 
-Block                    : '{' StatementList '}'                             
+Block                    : '{' '}'
+                             { $$ = NEW_BLOCK(NULL); }
+                         | '{' StatementList '}'                             
                              { $$ = NEW_BLOCK($2); }
                          ;
 
@@ -501,6 +511,18 @@ Literal                  : NullLiteral
                              { $$ = $1; }
                          ;
 
+LiteralNoObj             : NullLiteral                        
+                             { $$ = $1; }
+                         | BooleanLiteral                   
+                             { $$ = $1; }
+                         | NumericLiteral                   
+                             { $$ = $1; }
+                         | StringLiteral                    
+                             { $$ = $1; }
+                         | RegularExpressionLiteral
+                             { $$ = $1; }
+                         ;
+
 ArrayLiteral             : '[' ']'                            
                              { $$ = NEW_ARR(NULL); }
                          | '[' Elision ']'                  
@@ -623,6 +645,18 @@ PrimaryExpression        : THIS
                          | Identifier
                              { $$ = $1; }
                          | Literal
+                             { $$ = $1; }
+                         | ArrayLiteral
+                             { $$ = $1; }
+                         | '(' Expression ')'  
+                             { $$ = $2; }
+                         ;
+
+PrimaryExpressionNoObj   : THIS
+                             { $$ = NEW_THIS(); }
+                         | Identifier
+                             { $$ = $1; }
+                         | LiteralNoObj
                              { $$ = $1; }
                          | ArrayLiteral
                              { $$ = $1; }
@@ -1056,7 +1090,7 @@ MemberExpression         : PrimaryExpression
                              { $$ = NEW_NEW(NEW_MEMBER($3, $2, false)); }
                          ;
 
-MemberExpressionNoFn     : PrimaryExpression
+MemberExpressionNoFn     : PrimaryExpressionNoObj
                              { $$ = $1; }
                          | MemberExpressionNoFn '[' Expression ']'
                              { $$ = NEW_MEMBER($3, $1, 42); }

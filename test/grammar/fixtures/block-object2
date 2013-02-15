@@ -1,0 +1,7 @@
+source list
+  expression statement
+    expression (unary prefix)
+      +
+      array literal
+  source list
+    block
