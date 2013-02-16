@@ -116,14 +116,8 @@ fh_var_dec_scan(js_val *ctx, ast_node *node)
   // Declare the variable and possibly convert it to an assignment
   if (node->type == NODE_VAR_DEC) {
     fh_var_dec(ctx, node, true); // true to ignore rhs
-    if (node->e2) {
-      node->type = NODE_ASGN;
-      node->sval = "=";
-    }
-    else {
-      // Signals that it has been hoisted
-      node->val = 1; 
-    }
+    // Signals that it has been hoisted
+    node->val = 1; 
   }
 
   // Recurse sub nodes, will hit the whole tree.
@@ -335,6 +329,11 @@ fh_var_dec(js_val *ctx, ast_node *node, bool ignore_rval)
       fh_set_prop(ctx, node->e1->sval, JSUNDEF(), P_WRITE | P_ENUM);
     else
       fh_set_prop(ctx, node->e1->sval, fh_eval(ctx, node->e2), P_WRITE | P_ENUM);
+  }
+  // If it has already been hoisted, we may still need to do the assignment.
+  else if (node->e2) {
+    node->sval = "=";
+    fh_assign(ctx, node);
   }
   return JSUNDEF();
 }
