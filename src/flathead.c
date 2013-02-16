@@ -536,14 +536,17 @@ unsigned int
 fh_arg_len(js_args *args)
 {
   if (args == NULL) return 0;
+
+  // Although arrays can be up to 2^32 - 1 in length, we limit
+  // the number of arguments to 2^16 - 1 (UINT_MAX).
   unsigned int i = 0;
-  while (i < INT_MAX)
+  while (i < UINT_MAX)
   {
     if (args->arg != NULL) i++;
     if (args->next == NULL) break;
     args = args->next;
   }
-  if (i == INT_MAX)
+  if (i == UINT_MAX)
     fh_error(NULL, E_RANGE, "too many arguments");
   return i;
 }
