@@ -15,19 +15,21 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 CC = gcc
-CFLAGS = -Wall -O3 # -std=c11 -pedantic
+CFLAGS = -Wall -Wextra -Wno-unused-parameter -O3 -std=c99 -pedantic -D_XOPEN_SOURCE
 YACC = bison -y -d -t -v
 LEX = flex
 
 LIBS = -I/usr/local/include -I/usr/include -L/usr/local/lib -L/usr/lib -lm
-SRC_FILES = $(wildcard src/*.c)
-LIB_FILES = $(wildcard src/runtime/*.c) $(wildcard src/runtime/lib/*.c)
+OBJ_FILES = y.tab.o lex.yy.o src/eval.o src/str.o src/regexp.o src/cli.o \
+src/nodes.o src/flathead.o src/debug.o src/gc.o src/props.o \
+src/runtime/runtime.o src/runtime/lib/Math.o src/runtime/lib/RegExp.o \
+src/runtime/lib/Error.o src/runtime/lib/String.o src/runtime/lib/console.o \
+src/runtime/lib/Function.o src/runtime/lib/Object.o src/runtime/lib/Boolean.o \
+src/runtime/lib/Number.o src/runtime/lib/Date.o src/runtime/lib/Array.o
 
 OUT_FILE = bin/flat
 YACC_FILE = src/grammar.y
 LEX_FILE = src/lexer.l
-LEX_OUT = lex.yy.c
-YACC_OUT = y.tab.c
 
 VERSION = 0.6
 
@@ -63,7 +65,7 @@ endif
 
 .PHONY: test ctest
 
-all: clean default
+all: default
 
 debug: CFLAGS += -g -O0
 debug: default
@@ -72,23 +74,34 @@ malloc-debug: CC = gcc-4.7
 malloc-debug: LIBS += -lefence
 malloc-debug: debug
 
-lexer:
+lex.yy.o: $(LEX_FILE)
 	$(LEX) $(LEX_FILE)
+	@echo "[CC -o] lex.yy.o"
+	@$(CC) -c $(CFLAGS) lex.yy.c -o lex.yy.o
 
-parser: 
+y.tab.o: $(YACC_FILE)
 	$(YACC) $(YACC_FILE)
+	@echo "[CC -o] y.tab.o"
+	@$(CC) -c $(CFLAGS) y.tab.c -o y.tab.o
+
+linker: $(OBJ_FILES)
+
+.c.o:
+	@echo "[CC -c] $@"
+	@$(CC) -c $(CFLAGS) $< -o $@
 
 make-bin:
 	mkdir -p bin
 
 clean:
-	rm -rf y.* lex.yy.c bin/fh* a.out
+	rm -rf y.* lex.yy.c bin/fh* a.out $(OBJ_FILES)
 
 install:
 	cp $(OUT_FILE) /usr/local/bin/
 
-default: make-bin parser lexer 
-	$(CC) $(CFLAGS) -o $(OUT_FILE) $(YACC_OUT) $(LEX_OUT) $(SRC_FILES) $(LIB_FILES) $(LIBS)
+default: make-bin linker
+	@echo "[CC -o] $(OUT_FILE)"
+	@$(CC) -o $(OUT_FILE) $(OBJ_FILES) $(LIBS)
 
 ctest:
 	node ctest/crunner.js
