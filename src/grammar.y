@@ -1203,14 +1203,14 @@ main(int argc, char **argv)
   FILE *source = NULL;
   if (optind < argc) {
     source = fopen(argv[optind], "r");
-    strncpy(fh->script_name, argv[optind], sizeof(fh->script_name));
+    fh->script_name = argv[optind];
   }
   else if (!isatty(fileno(stdin)) && !fh->opt_interactive) {
     source = stdin;
   }
   else {
     fh->opt_interactive = true;
-    strcpy(fh->script_name, "(repl)");
+    fh->script_name = "(repl)";
   }
 
   // Bootstrap our runtime
