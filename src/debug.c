@@ -107,7 +107,6 @@ fh_debug_obj(FILE *stream, js_val *obj, int indent, bool force_enum)
   OBJ_ITER(obj, x) {
     if (!x->enumerable && !force_enum) continue;
     if (first) {
-      fprintf(stream, "\n");
       for (i = 0; i < indent; i++) fprintf(stream, " ");
       fprintf(stream, "{");
       first = false;
