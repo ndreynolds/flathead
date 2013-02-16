@@ -69,7 +69,17 @@ assert(RegExp.prototype);
 assertEquals('object', typeof RegExp.prototype);
 
 test('RegExp#exec(str)', function() {
-  // TODO
+  var result, re = /abc/;
+
+  result = re.exec('xxabcxx');
+  assertEquals('xxabcxx', result.input);
+  assertEquals(2, result.index);
+  assertEquals(1, result.length);
+
+  result = /abc/.exec('....abc....');
+  assertEquals('....abc....', result.input);
+  assertEquals(4, result.index);
+  assertEquals(1, result.length);
 });
 
 test('RegExp#test(str)', function() {
