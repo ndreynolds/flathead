@@ -20,6 +20,8 @@
 //                 and the test failed.
 //
 //                 e.g. -t 2000
+//
+// -q / --quiet    Only display failed tests
 
 var exec = require('child_process').exec,
     fs = require('fs'),
@@ -31,6 +33,7 @@ var testRunner = exports.testRunner = {
     exec: __dirname + '/../bin/flat',
     argsTemplate: '[test]',
     timeout: 2000,
+    quiet: false,
     files: []
   },
 
@@ -49,51 +52,80 @@ var testRunner = exports.testRunner = {
     reset: '\033[0m'
   },
 
+  print: function(msg, force) {
+    if (!this.options.quiet || force) console.log(msg);
+  },
+
+  error: function(msg) {
+    console.error(msg);
+  },
+
   // Parse command line arguments into the options object.
   parseArgs: function() {
     this.args = process.argv;
 
     this.options.exec = this.getOpt('exec', 'x') || this.options.exec;
     this.options.argsTemplate = this.getOpt('args', 'a') || this.options.argsTemplate;
-    this.options.timeout = this.getOpt('timeout', 't') || this.options.timeout;
+    this.options.timeout = this.getOpt('timeout', 't', true, Number) || this.options.timeout;
+    this.options.quiet = this.getOpt('quiet', 'q', false) || this.options.quiet;
 
     if (this.args.length > 2)
       this.options.files = this.args.slice(2);
   },
 
   // Get and remove an option from the args array.
-  getOpt: function(longOpt, shortOpt) {
+  getOpt: function(longOpt, shortOpt, hasVal, type) {
     var val, index, args = this.args;
+
+    // Just indicate presence of the option
+    hasVal = hasVal === undefined ? true : hasVal;
+    if (!hasVal) val = false;
+
     _.each(['--' + longOpt, '-' + shortOpt], function(opt) {
       if ((index = args.indexOf(opt)) >= 0) {
-        val = args[index + 1];
-        args = _.without(args, args[index], args[index + 1]);
+        if (hasVal) {
+          val = args[index + 1];
+          args = _.without(args, args[index], args[index + 1]);
+        } else {
+          val = true;
+          args = _.without(args, args[index]);
+        }
       }
     });
     this.args = args;
+
+    if (type == Number)
+      val = parseInt(val, 10);
+
     return val;
   },
 
   // Print a success message and update the stats.
   onTestPass: function(fileName) {
     this.stats.passed++;
-    console.log(this.colors.success + '✓ ' + fileName + this.colors.reset);
+    if (!this.options.quiet)
+      this.print(this.colors.success + '✓ ' + fileName + this.colors.reset);
     if (this.stats.done()) this.finish();
   },
 
   // Print a failure message and update the stats.
   onTestFail: function(fileName, err, stderr) {
     this.stats.failed++;
-    console.log(this.colors.failure + '✖ ' + fileName + this.colors.reset);
-    console.error(err);
-    console.error(stderr);
+    this.error(this.colors.failure + '✖ ' + fileName + this.colors.reset);
+    this.error(err);
+    this.error(stderr);
     if (this.stats.done()) this.finish();
   },
 
   // Print the test summary.
   finish: function() {
-    console.log(
-      '\n', this.stats.passed + ' passed,', this.stats.failed + ' failed'
+    this.print(
+      '\n' +
+      this.stats.passed + ' passed, ' +
+      this.stats.failed + ' failed' +
+      ' (' + this.options.exec + ')' +
+      '\n',
+      true
     );
     if (this.stats.failed > 0)
       process.exit(1);
@@ -127,7 +159,7 @@ var testRunner = exports.testRunner = {
           that.stats.found++;
         }
       });
-      console.log('Found ' + that.stats.found + ' test files.\n  ');
+      that.print('Found ' + that.stats.found + ' test files.\n  ');
     });
   },
 

@@ -31,6 +31,8 @@ OUT_FILE = bin/flat
 YACC_FILE = src/grammar.y
 LEX_FILE = src/lexer.l
 
+TEST_FLAGS =
+
 VERSION = 0.6
 
 # Build flags, usage: make debug=on
@@ -68,7 +70,7 @@ endif
 all: default
 
 debug: CFLAGS += -g -O0
-debug: default
+debug: clean default
 
 malloc-debug: CC = gcc-4.7
 malloc-debug: LIBS += -lefence
@@ -107,19 +109,23 @@ ctest:
 	node ctest/crunner.js
 
 test: 
-	node test/runner.js
+	node test/runner.js $(TEST_FLAGS) --exec bin/flat
 
 test-node:
-	node test/runner.js --exec node
+	node test/runner.js $(TEST_FLAGS) --exec node
 
 test-v8:
-	node test/runner.js --exec v8 --args "test/harness.js [test]"
+	node test/runner.js $(TEST_FLAGS) --exec v8 --args "test/harness.js [test]"
 
 test-sm:
-	node test/runner.js --exec js --args "-f test/harness.js -f [test]"
+	node test/runner.js $(TEST_FLAGS) --exec js --args "-f test/harness.js -f [test]"
 
 test-rhino:
-	node test/runner.js --exec rhino --timeout 10000 --args "-f test/harness.js -f [test]"
+	node test/runner.js $(TEST_FLAGS) --exec rhino --timeout 10000 \
+		--args "-f test/harness.js -f [test]"
+
+test-all: TEST_FLAGS += --quiet
+test-all: test test-node test-v8 test-sm test-rhino
 
 test-grammar:
 	mocha test/grammar
