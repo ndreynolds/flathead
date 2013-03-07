@@ -70,15 +70,16 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
       matched = true;
   }
 
+  char *substr = fh_str_slice(str->string.ptr, matches[0], matches[1]);
+
   if (global)
-    fh_set(instance, "lastIndex", JSNUM(i));
+    fh_set(instance, "lastIndex", JSNUM(matches[0] + strlen(substr)));
 
   js_val *res = JSARR();
 
   fh_set(res, "index", JSNUM(matches[0]));
   fh_set(res, "input", str);
 
-  char *substr = fh_str_slice(str->string.ptr, matches[0], matches[1]);
   fh_set(res, "0", JSSTR(substr));
 
   for (i = 1; i <= count; i++) {
