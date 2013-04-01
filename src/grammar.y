@@ -260,18 +260,18 @@
 
 /* 'NoIn' variants are used to differentiate between the 'in' operatior in a
  * relational expression and the 'in' operator in a for-statement.  
- * (see Ecma-252 11.8)
+ * (see Ecma-262 11.8)
  * 
  * 'NoFn' variants are used to make the distinction between a function
  * declaration and a named function expression. Expression statements cannot
- * begin with the 'function' keyword (Ecma-252 12.4). These productions
+ * begin with the 'function' keyword (Ecma-262 12.4). These productions
  * prevent that.
  * 
  * 'NoObj' rides the 'NoFn' train, forking at 'MemberExpressionNoFn' to ensure
  * that 'PrimaryExpression' cannot be an object literal. Like the function
  * declaration and expression, object literals must be disambiguated from
  * blocks, and therefore may not be used to start an expression statement
- * (Ecma-252 12.4).
+ * (Ecma-262 12.4).
  */
 
 %%
