@@ -109,8 +109,6 @@ The Docket
 - Automatic Semicolon Insertion
 - Unicode
 - The JSON object ([JSON-js][1] can be used as polyfill)
-- RegExp#exec
-- String#match
 - String#replace
 - `new Function(...)`
 - Garbage collection needs work

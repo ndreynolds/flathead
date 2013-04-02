@@ -24,6 +24,7 @@
   #include "y.tab.h"
 
   int yycolumn = 1;
+  int prev_token = 0;
   void yyuseraction(void);
 
   char * fh_extract_string(char *);
@@ -87,6 +88,24 @@ E                            [Ee][+-]?{D}+
 "false"                      return KEYWORD(FALSE);
 
 
+    /* COMMENTS */
+
+    /* single-line */
+[/][/].*                     ; /* ignore comments */
+
+
+    /* multi-line (taken from the Flex manual) */
+<INITIAL>{
+"/*"                         BEGIN(ML_COMMENT);
+}
+<ML_COMMENT>{
+"*/"                         BEGIN(INITIAL);
+[^*\n]+                      // eat comment in chunks
+"*"                          // eat the lone star
+\n                           yylineno++;
+}
+
+
     /* LITERALS */
 
     /* double-quoted strings */
@@ -114,27 +133,20 @@ L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext);
                                return TOKEN("FLOAT", NUMBER); }
 
     /* regexps */
-L?\/[^\ \/]+\/([imgy]{0,4})  { /* FIXME: This is very incomplete */
+L?\/([^\*\n\/\\]|\\.|\\\/)([^\n\/\\]|\\.|\\\/)*\/([imgy]{0,4}) { 
+                               /* FIXME: This is incomplete */
+                               if (prev_token == NUMBER     ||
+                                   prev_token == STRING     ||
+                                   prev_token == IDENT      ||
+                                   prev_token == REGEXP     ||
+                                   prev_token == TRUE       ||
+                                   prev_token == FALSE      ||
+                                   prev_token == NULLT      ||
+                                   prev_token == PLUSPLUS   ||
+                                   prev_token == MINUSMINUS) REJECT;
+                                    
                                yylval.val = yytext;
                                return TOKEN("REGEXP", REGEXP); }
-
-
-    /* COMMENTS */
-
-    /* single-line */
-[/][/].*                     ; /* ignore comments */
-
-
-    /* multi-line (taken from the Flex manual) */
-<INITIAL>{
-"/*"                         BEGIN(ML_COMMENT);
-}
-<ML_COMMENT>{
-"*/"                         BEGIN(INITIAL);
-[^*\n]+                      // eat comment in chunks
-"*"                          // eat the lone star
-\n                           yylineno++;
-}
 
 
     /* MULTI-CHARACTER PUNCTUATORS & OPERATORS */
@@ -169,8 +181,7 @@ L?\/[^\ \/]+\/([imgy]{0,4})  { /* FIXME: This is very incomplete */
 
 [-+()\[\]=*/%<>,.:`;?!{}~&|^] {
                                 TOKEN("LITERAL", 0);
-                                return *yytext;
-                             }
+                                return *yytext; }
 
 
     /* WHITESPACE & TABS */
@@ -227,6 +238,7 @@ fh_parse_error(char * val)
 int
 fh_token(char *name, int token)
 {
+  prev_token = token;
   if (fh->opt_print_tokens) {
     if (yytext)
       printf("(%s %s)\n", name, yytext);

@@ -33,9 +33,7 @@ var assertEmptyRegExp = function(r, cmp) {
   assertEquals(r.ignoreCase, cmp.ignoreCase);
 };
 
-var test = function(name, f) {
-  f();
-};
+var test = function(name, f) { f(); };
 
 
 // ----------------------------------------------------------------------------
@@ -69,7 +67,32 @@ assert(RegExp.prototype);
 assertEquals('object', typeof RegExp.prototype);
 
 test('RegExp#exec(str)', function() {
-  // TODO
+  var result, re = /abc/;
+
+  result = re.exec('xxabcxx');
+  assertEquals('xxabcxx', result.input);
+  assertEquals(2, result.index);
+  assertEquals(1, result.length);
+
+  result = /abc/.exec('....abc....');
+  assertEquals('....abc....', result.input);
+  assertEquals(4, result.index);
+  assertEquals(1, result.length);
+
+  // Adapted example from MDN docs:
+  var myRe = /ab*/g;
+  var str = "abbcdefabh";
+  var myArray;
+  result = [];
+  while ((myArray = myRe.exec(str)) !== null) {
+    result.push(myRe.lastIndex);
+    result.push(myArray[0]);
+  }
+
+  assertEquals(3, result[0]);
+  assertEquals('abb', result[1]);
+  assertEquals(9, result[2]);
+  assertEquals('ab', result[3]);
 });
 
 test('RegExp#test(str)', function() {

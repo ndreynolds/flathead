@@ -10,6 +10,13 @@ var assertEquals = function(a, b) {
   assert(a === b);
 };
 
+var assertArrayEquals = function(a, b) {
+  assert(a.length === b.length);
+  for (var i = 0; i < a.length; i++) {
+    assert(a[i] === b[i]);
+  }
+};
+
 var test = function(name, f) {
   f();
 };
@@ -116,7 +123,16 @@ test('String#localeCompare(compareString)', function() {
 });
 
 test('String#match(regexp)', function() {
-  // TODO
+  var s, re, matches;
+  s = "For more information, see Chapter 3.4.5.1";
+  re = /(chapter \d+(\.\d)*)/i;
+  matches = s.match(re);
+  assertArrayEquals(['Chapter 3.4.5.1', 'Chapter 3.4.5.1', '.1'], matches);
+
+  s = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  re = /[A-E]/gi;
+  matches = s.match(re);
+  assertArrayEquals(['A', 'B', 'C', 'D', 'E', 'a', 'b', 'c', 'd', 'e'], matches);
 });
 
 test('String#replace(regexp|substr, newSubStr|function[, flags])', function() {

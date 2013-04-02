@@ -49,7 +49,7 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
                  output_vector, regexp_vector_len);
 
   if (count != NULL)
-    *count = rc;
+    *count = rc > 0 ? rc : 0;
 
   pcre_free(regexp);
 

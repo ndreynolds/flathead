@@ -7,6 +7,7 @@
 js_val *
 regexp_new(js_val *instance, js_args *args, eval_state *state)
 {
+  // TODO: Could this be done with fh_new_regexp?
   js_val *pattern = ARG(args, 0);
   js_val *flags = ARG(args, 1);
 
@@ -37,22 +38,21 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
 js_val *
 regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
 {
-  // TODO: Finish implementation
-  
   js_val *pattern = fh_get_proto(instance, "source"),
          *last_ind = fh_get_proto(instance, "lastIndex"),
-         *str = ARG(args, 0),
-         *g = fh_get_proto(instance, "global"),
-         *c = fh_get_proto(instance, "ignoreCase");
-         // *m = fh_get_proto(instance, "multiline");
+         *str = TO_STR(ARG(args, 0));
+
+  bool global   = fh_get_proto(instance, "global")->boolean.val;
+  bool caseless = fh_get_proto(instance, "ignoreCase")->boolean.val;
 
   bool matched = false;
-  bool caseless = c->boolean.val;
   int *matches;
+
   int count;
   int length = strlen(str->string.ptr);
   int i = fh_to_int32(last_ind)->number.val;
-  if (!TO_BOOL(g)->boolean.val)
+
+  if (!global) 
     i = 0;
 
   while (!matched) {
@@ -60,19 +60,31 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
       fh_set(instance, "lastIndex", JSNUM(0));
       return JSNULL();
     }
-    matches = fh_regexp(str->string.ptr, pattern->string.ptr, &count, 0, caseless);
+    matches = fh_regexp(str->string.ptr, pattern->string.ptr, &count, i, caseless);
     if (count == 0) 
       i++;
     else
       matched = true;
   }
 
-  fh_set(instance, "lastIndex", JSNUM(i));
+  char *substr = fh_str_slice(str->string.ptr, matches[0], matches[1]);
 
-  js_val *res = JSOBJ();
-  // js_val *arr = JSARR();
-  fh_set(instance, "index", JSNUM(i));
-  fh_set(instance, "input", str);
+  if (global)
+    fh_set(instance, "lastIndex", JSNUM(matches[0] + strlen(substr)));
+
+  js_val *res = JSARR();
+
+  fh_set(res, "index", JSNUM(matches[0]));
+  fh_set(res, "input", str);
+
+  fh_set(res, "0", JSSTR(substr));
+
+  for (i = 1; i <= count; i++) {
+    substr = fh_str_slice(str->string.ptr, matches[2*i], matches[2*i+1]);
+    fh_set(res, JSNUMKEY(i)->string.ptr, JSSTR(substr));
+  }
+  fh_set_len(res, count);
+
   return res;
 }
 
