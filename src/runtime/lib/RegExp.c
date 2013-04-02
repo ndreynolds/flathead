@@ -7,6 +7,7 @@
 js_val *
 regexp_new(js_val *instance, js_args *args, eval_state *state)
 {
+  // TODO: Could this be done with fh_new_regexp?
   js_val *pattern = ARG(args, 0);
   js_val *flags = ARG(args, 1);
 
@@ -37,16 +38,12 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
 js_val *
 regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
 {
-  // TODO: Finish implementation
-  
   js_val *pattern = fh_get_proto(instance, "source"),
          *last_ind = fh_get_proto(instance, "lastIndex"),
-         *str = ARG(args, 0),
-         *g = fh_get_proto(instance, "global"),
-         *c = fh_get_proto(instance, "ignoreCase");
+         *str = TO_STR(ARG(args, 0));
 
-  bool caseless = TO_BOOL(c)->boolean.val;
-  bool global = TO_BOOL(g)->boolean.val;
+  bool global   = fh_get_proto(instance, "global")->boolean.val;
+  bool caseless = fh_get_proto(instance, "ignoreCase")->boolean.val;
 
   bool matched = false;
   int *matches;
@@ -83,7 +80,7 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
   fh_set(res, "0", JSSTR(substr));
 
   for (i = 1; i <= count; i++) {
-    substr = fh_str_slice(str->string.ptr, matches[0], matches[1]);
+    substr = fh_str_slice(str->string.ptr, matches[2*i], matches[2*i+1]);
     fh_set(res, JSNUMKEY(i)->string.ptr, JSSTR(substr));
   }
   fh_set_len(res, count);

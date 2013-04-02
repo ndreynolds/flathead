@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <math.h>
 
+#include "RegExp.h"
 #include "String.h"
 
 js_val *
@@ -153,25 +154,47 @@ js_val *
 str_proto_match(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *regexp = ARG(args, 0);
-  js_val *arr = JSARR();
+  if (!IS_REGEXP(regexp))
+    regexp = fh_new_regexp("");
 
-  char *pattern = fh_get_proto(regexp, "source")->string.ptr;
-  bool caseless = fh_get_proto(regexp, "ignoreCase")->boolean.val;
+  js_args *exec_args;
 
-  int count;
-  char *str = instance->string.ptr;
-  int *matches = fh_regexp(str, pattern, &count, 0, caseless);
-
-  if (!matches) 
-    return arr;
-
-  int i;
-  for (i = 0; i < count; i++) {
-    js_val *match = JSSTR(fh_str_slice(str, matches[2 * i], matches[2 * i + 1]));
-    fh_set(arr, JSNUMKEY(i)->string.ptr, match);
+  bool global = fh_get_proto(regexp, "global")->boolean.val;
+  if (!global) {
+    exec_args = fh_new_args(instance, NULL, NULL);
+    return regexp_proto_exec(regexp, exec_args, state);
   }
-  free(matches);
-  fh_set_len(arr, i);
+
+  fh_set(regexp, "lastIndex", JSNUM(0));
+
+  js_val *arr = JSARR();
+  int this_ind, prev_last_ind = 0, n = 0;
+  bool last_match = true;
+  js_val *result, *match_str;
+
+  while (last_match) {
+    exec_args = fh_new_args(instance, NULL, NULL);
+    result = regexp_proto_exec(regexp, exec_args, state);
+    if (IS_NULL(result)) {
+      last_match = false;
+      break;
+    }
+    this_ind = TO_NUM(fh_get(regexp, "lastIndex"))->number.val;
+    if (this_ind == prev_last_ind) {
+      fh_set(regexp, "lastIndex", JSNUM(this_ind + 1));
+      prev_last_ind = this_ind + 1;
+    }
+    else {
+      prev_last_ind = this_ind;
+    }
+    match_str = fh_get(result, "0");
+    fh_set(arr, JSNUMKEY(n)->string.ptr, match_str);
+    n++;
+  }
+
+  if (n == 0)
+    return JSNULL();
+  fh_set_len(arr, n);
   return arr;
 }
 
@@ -181,6 +204,9 @@ str_proto_replace(js_val *instance, js_args *args, eval_state *state)
 {
   // NOTE: flags parameter is non-standard
   // TODO: requires regex
+  /* char *str = instance->string.ptr; */
+  /* js_val *search_val = ARG(args, 0); */
+
   return JSUNDEF();
 }
 
