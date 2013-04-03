@@ -455,6 +455,8 @@ fh_error(eval_state *state, js_error_type type, const char *tpl, ...)
     fprintf(stderr, "  at %s:%u:%u\n", 
         fh->script_name, statetrace[current & 7][0], statetrace[current & 7][1]);
   }
+  if (fh->opt_interactive)
+    longjmp(fh->jmpbuf, 1); 
   exit(1);
 }
 

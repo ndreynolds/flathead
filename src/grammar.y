@@ -22,6 +22,7 @@
   #include <math.h>
   #include <stdlib.h>
   #include <getopt.h>
+  #include <setjmp.h>
 
 #ifndef fh_no_repl
   #include <readline/readline.h>
@@ -1129,7 +1130,8 @@ fh_get_input(char *buf, int size)
   // For the REPL:
   if (fh->opt_interactive) {
 #ifdef fh_no_repl
-    fh_error(NULL, E_ERROR, "REPL not available. Build with readline.");
+    fprintf(stderr, "Error: REPL not available. Build with readline.");
+    exit(1);
 #else
     char *line;
     line = readline("> ");
@@ -1219,8 +1221,13 @@ main(int argc, char **argv)
   // We can operate as a REPL or in file/stdin mode.
   if (fh->opt_interactive) {
     print_startup();
-    while (true)
-      DEBUG(fh_eval_file(source, fh->global, true));
+    while (true) {
+      // Normally errors cause the program to exit, but we'd like the REPL to
+      // continue. Use setjmp here and longjmp in `fh_error` to simulate
+      // exception handling.
+      if (!setjmp(fh->jmpbuf))
+        DEBUG(fh_eval_file(source, fh->global, true));
+    }
   } else {
     fh_eval_file(source, fh->global, false);
   }

@@ -23,6 +23,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <setjmp.h>
 #include <assert.h>
 #include <limits.h>
 
@@ -145,6 +146,8 @@ typedef struct {
   bool opt_print_ast;
 
   const char *script_name;
+
+  jmp_buf jmpbuf;                   // used to handle errors within REPL
 
   struct js_val *function_proto;    // cache prototype pointers
   struct js_val *object_proto;
