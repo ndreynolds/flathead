@@ -740,7 +740,7 @@ bootstrap_array()
   DEF(array, "prototype", proto);
 
   // Methods
-  DEF(array, "isArray", JSNFUNC(arr_is_array, 0));
+  DEF(array, "isArray", JSNFUNC(arr_is_array, 1));
 
   // Array.prototype
   // ---------------

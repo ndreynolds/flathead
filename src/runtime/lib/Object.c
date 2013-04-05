@@ -306,7 +306,7 @@ bootstrap_object()
   DEF(object, "defineProperties", JSNFUNC(obj_define_properties, 2));
   DEF(object, "getOwnPropertyDescriptor", JSNFUNC(obj_get_own_property_descriptor, 2));
   DEF(object, "keys", JSNFUNC(obj_keys, 1));
-  DEF(object, "getOwnPropertyName", JSNFUNC(obj_get_own_property_names, 1));
+  DEF(object, "getOwnPropertyNames", JSNFUNC(obj_get_own_property_names, 1));
   DEF(object, "getPrototypeOf", JSNFUNC(obj_get_prototype_of, 1));
   DEF(object, "preventExtensions", JSNFUNC(obj_prevent_extensions, 1));
   DEF(object, "isExtensible", JSNFUNC(obj_is_extensible, 1));

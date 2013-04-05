@@ -44,6 +44,17 @@ test('instanceof behavior of built-ins', function() {
 
   assertTrue(reg instanceof RegExp);
   assertTrue(reg instanceof Object);
+
+  assertTrue(Object instanceof Object);
+  assertTrue(Object instanceof Function);
+  assertTrue(Function instanceof Object);
+  assertTrue(Function instanceof Function);
+
+  assertTrue(String instanceof Object);
+  assertTrue(Array instanceof Object);
+  assertTrue(RegExp instanceof Object);
+  assertTrue(Number instanceof Object);
+  assertTrue(Boolean instanceof Object);
 });
 
 

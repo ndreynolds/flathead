@@ -1,7 +1,7 @@
 /*
  * flathead.c -- Core types, constructors, casting, and debug.
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -122,6 +122,10 @@ fh_new_function(struct ast_node *node)
 
   fh_set_class(val, "Function");
   fh_set_prop(val, "prototype", JSOBJ(), P_WRITE);
+
+  fh_set(val, "name", JSSTR(""));
+  fh_set(val, "arguments", JSNULL());
+  fh_set(val, "caller", JSNULL());
 
   val->object.native = false;
   val->object.generator = false;

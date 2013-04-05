@@ -1,7 +1,7 @@
 /*
  * runtime.c -- Bootstrap global object and friends 
  * 
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -79,8 +79,9 @@ global_parse_float(js_val *instance, js_args *args, eval_state *state)
 js_val *
 global_eval(js_val *instance, js_args *args, eval_state *state)
 {
-  // TODO
-  return JSUNDEF();
+  // TODO: implement
+  fh_error(state, E_ERROR, "eval is not yet implemented");
+  UNREACHABLE();
 }
 
 // gc()
@@ -122,44 +123,61 @@ js_val *
 fh_bootstrap()
 {
   js_val *global = JSOBJ();
+  js_val *object_cons = bootstrap_object();
 
-  DEF(global, "Object", bootstrap_object());
+  DEF(global, "Object",   object_cons);
   DEF(global, "Function", bootstrap_function());
-  DEF(global, "Array", bootstrap_array());
-  DEF(global, "String", bootstrap_string());
-  DEF(global, "Number", bootstrap_number());
-  DEF(global, "Boolean", bootstrap_boolean());
-  DEF(global, "Date", bootstrap_date());
-  DEF(global, "RegExp", bootstrap_regexp());
-  DEF(global, "Error", bootstrap_error());
-  DEF(global, "Math", bootstrap_math());
-  DEF(global, "console", bootstrap_console());
+  DEF(global, "Array",    bootstrap_array());
+  DEF(global, "String",   bootstrap_string());
+  DEF(global, "Number",   bootstrap_number());
+  DEF(global, "Boolean",  bootstrap_boolean());
+  DEF(global, "Date",     bootstrap_date());
+  DEF(global, "RegExp",   bootstrap_regexp());
+  DEF(global, "Error",    bootstrap_error());
+  DEF(global, "Math",     bootstrap_math());
+  DEF(global, "console",  bootstrap_console());
 
+  // The Object constructor and its methods are created before the Function
+  // constructor exists, so we need connect the prototypes manually.
+  object_cons->proto = fh->function_proto;
+  fh_attach_prototype(object_cons, fh->function_proto);
   fh_attach_prototype(fh->object_proto, fh->function_proto);
+
+  // Likewise for the Function prototype.
   fh_attach_prototype(fh->function_proto, fh->function_proto);
 
-  DEF(global, "NaN", JSNAN());
-  DEF(global, "Infinity", JSINF());
+  DEF(global, "NaN",       JSNAN());
+  DEF(global, "Infinity",  JSINF());
   DEF(global, "undefined", JSUNDEF());
-  DEF(global, "this", global);
+  DEF(global, "this",      global);
+
+  // Other Error constructors
+  DEF(global, "EvalError",      JSNFUNC(error_eval_new, 1));
+  DEF(global, "RangeError",     JSNFUNC(error_range_new, 1));
+  DEF(global, "ReferenceError", JSNFUNC(error_ref_new, 1));
+  DEF(global, "SyntaxError",    JSNFUNC(error_syntax_new, 1));
+  DEF(global, "TypeError",      JSNFUNC(error_type_new, 1));
+  DEF(global, "URIError",       JSNFUNC(error_uri_new, 1));
 
   // These aren't currently optimized, just here for compatibility's sake.
   DEF(global, "Float32Array", JSNFUNC(arr_new, 1));
   DEF(global, "Float64Array", JSNFUNC(arr_new, 1));
-  DEF(global, "Uint8Array", JSNFUNC(arr_new, 1));
-  DEF(global, "Uint16Array", JSNFUNC(arr_new, 1));
-  DEF(global, "Uint32Array", JSNFUNC(arr_new, 1));
-  DEF(global, "Int8Array", JSNFUNC(arr_new, 1));
-  DEF(global, "Int16Array", JSNFUNC(arr_new, 1));
-  DEF(global, "Int32Array", JSNFUNC(arr_new, 1));
+  DEF(global, "Uint8Array",   JSNFUNC(arr_new, 1));
+  DEF(global, "Uint16Array",  JSNFUNC(arr_new, 1));
+  DEF(global, "Uint32Array",  JSNFUNC(arr_new, 1));
+  DEF(global, "Int8Array",    JSNFUNC(arr_new, 1));
+  DEF(global, "Int16Array",   JSNFUNC(arr_new, 1));
+  DEF(global, "Int32Array",   JSNFUNC(arr_new, 1));
 
-  DEF(global, "isNaN", JSNFUNC(global_is_nan, 1));
-  DEF(global, "isFinite", JSNFUNC(global_is_finite, 1));
-  DEF(global, "parseInt", JSNFUNC(global_parse_int, 2));
+  DEF(global, "isNaN",      JSNFUNC(global_is_nan, 1));
+  DEF(global, "isFinite",   JSNFUNC(global_is_finite, 1));
+  DEF(global, "parseInt",   JSNFUNC(global_parse_int, 2));
   DEF(global, "parseFloat", JSNFUNC(global_parse_float, 1));
-  DEF(global, "eval", JSNFUNC(global_eval, 1));
-  DEF(global, "load", JSNFUNC(global_load, 1));
-  DEF(global, "print", JSNFUNC(console_log, 1));
+  DEF(global, "eval",       JSNFUNC(global_eval, 1));
+
+  // Extras
+  DEF(global, "load",       JSNFUNC(global_load, 1));
+  DEF(global, "print",      JSNFUNC(console_log, 1));
 
 #ifdef fh_gc_expose
   DEF(global, "gc", JSNFUNC(global_gc, 0));

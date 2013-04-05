@@ -19,6 +19,60 @@ error_new(js_val *instance, js_args *args, eval_state *state)
   return err;
 }
 
+// [new] EvalError(message)
+js_val *
+error_eval_new(js_val *instance, js_args *args, eval_state *state)
+{
+  js_val *err = error_new(instance, args, state);
+  fh_set_class(err, "EvalError");
+  return err;
+}
+
+// [new] RangeError(message)
+js_val *
+error_range_new(js_val *instance, js_args *args, eval_state *state)
+{
+  js_val *err = error_new(instance, args, state);
+  fh_set_class(err, "RangeError");
+  return err;
+}
+
+// [new] ReferenceError(message)
+js_val *
+error_ref_new(js_val *instance, js_args *args, eval_state *state)
+{
+  js_val *err = error_new(instance, args, state);
+  fh_set_class(err, "ReferenceError");
+  return err;
+}
+
+// [new] SyntaxError(message)
+js_val *
+error_syntax_new(js_val *instance, js_args *args, eval_state *state)
+{
+  js_val *err = error_new(instance, args, state);
+  fh_set_class(err, "SyntaxError");
+  return err;
+}
+
+// [new] TypeError(message)
+js_val *
+error_type_new(js_val *instance, js_args *args, eval_state *state)
+{
+  js_val *err = error_new(instance, args, state);
+  fh_set_class(err, "TypeError");
+  return err;
+}
+
+// [new] URIError(message)
+js_val *
+error_uri_new(js_val *instance, js_args *args, eval_state *state)
+{
+  js_val *err = error_new(instance, args, state);
+  fh_set_class(err, "URIError");
+  return err;
+}
+
 // Error.prototype.toString()
 js_val *
 error_proto_to_string(js_val *instance, js_args *args, eval_state *state)

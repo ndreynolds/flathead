@@ -11,7 +11,8 @@ func_new(js_val *instance, js_args *args, eval_state *state)
   // TODO: No clue how this is going to work. Need to generate
   // nodes for the args, which can be manual, but also the func
   // body, which we'll need the parser's help with.
-  return JSUNDEF();
+  fh_error(state, E_ERROR, "The Function constructor is not yet implemented");
+  UNREACHABLE();
 }
 
 // Function.prototype.apply(thisValue[, argsArray])
@@ -85,6 +86,7 @@ bootstrap_function()
 {
   js_val *function = JSNFUNC(func_new, 1);
   js_val *prototype = JSFUNC(NULL);
+  function->proto = prototype;
   prototype->proto = fh->object_proto;
 
   // Function

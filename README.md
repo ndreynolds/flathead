@@ -1,6 +1,6 @@
 Flathead
 ========
-Flathead is a tiny JavaScript (Ecma-262) interpreter written in C.
+Flathead is a tiny JavaScript (ECMA-262) interpreter written in C.
 
 ![Flathead's REPL](http://ndreynolds.com/img/flathead.png)
 
@@ -111,6 +111,8 @@ The Docket
 - The JSON object ([JSON-js][1] can be used as polyfill)
 - String#replace
 - `new Function(...)`
+- eval
+- URI functions
 - Garbage collection needs work
 
 
