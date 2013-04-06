@@ -23,11 +23,48 @@
 //
 // -q / --quiet    Only display failed tests
 
-var exec = require('child_process').exec,
-    fs = require('fs'),
-    _ = require('./underscore');
 
-var testRunner = exports.testRunner = {
+var exec = require('child_process').exec,
+    fs   = require('fs'),
+    _    = require('./underscore');
+
+
+// Formatting
+// ----------
+
+// Python style string formatting
+var format = function(str) {
+  var args = _.toArray(arguments).slice(1);
+  while(args.length) {
+    if (!/%s/.test(str)) return str;
+    str = str.replace(/%s/, args.shift());
+  }
+  return str;
+};
+
+// ANSI color wrappers
+var colors = {
+  success: function(str) {
+    return '\033[34m' + str + '\033[0m';
+  },
+  failure: function(str) {
+    return '\033[31m' + str + '\033[0m';
+  }
+};
+
+
+// TestRunner
+// ----------
+
+var TestRunner = module.exports = function(options) {
+  if (options)
+    _.extend(this.options, options);
+  else if (process.argv)
+    this.parseArgs();
+};
+
+// Define the TestRunner prototype
+_.extend(TestRunner.prototype, {
 
   options: {
     exec: __dirname + '/../bin/flat',
@@ -41,17 +78,13 @@ var testRunner = exports.testRunner = {
     passed: 0,
     failed: 0,
     found: 0,
+    startedAt: 0,
     done: function() {
       return this.passed + this.failed === this.found;
     }
   },
 
-  colors: {
-    success: '\033[34m',
-    failure: '\033[31m',
-    reset: '\033[0m'
-  },
-
+  // Print to stdout unless quiet
   print: function(msg, force) {
     if (!this.options.quiet || force) console.log(msg);
   },
@@ -94,7 +127,7 @@ var testRunner = exports.testRunner = {
     });
     this.args = args;
 
-    if (type == Number)
+    if (type === Number)
       val = parseInt(val, 10);
 
     return val;
@@ -104,14 +137,14 @@ var testRunner = exports.testRunner = {
   onTestPass: function(fileName) {
     this.stats.passed++;
     if (!this.options.quiet)
-      this.print(this.colors.success + '✓ ' + fileName + this.colors.reset);
+      this.print(colors.success(format('✓ %s', fileName)));
     if (this.stats.done()) this.finish();
   },
 
   // Print a failure message and update the stats.
   onTestFail: function(fileName, err, stderr) {
     this.stats.failed++;
-    this.error(this.colors.failure + '✖ ' + fileName + this.colors.reset);
+    this.error(colors.failure('✖ %s', fileName));
     this.error(err);
     this.error(stderr);
     if (this.stats.done()) this.finish();
@@ -119,14 +152,10 @@ var testRunner = exports.testRunner = {
 
   // Print the test summary.
   finish: function() {
-    this.print(
-      '\n' +
-      this.stats.passed + ' passed, ' +
-      this.stats.failed + ' failed' +
-      ' (' + this.options.exec + ')' +
-      '\n',
-      true
-    );
+    var duration = Date.now() - this.stats.startedAt;
+    var msg = format('\n%s passed, %s failed (%s) %sms\n',
+                     this.stats.passed, this.stats.failed, this.options.exec, duration);
+    this.print(msg, true);
     if (this.stats.failed > 0)
       process.exit(1);
   },
@@ -147,19 +176,19 @@ var testRunner = exports.testRunner = {
 
   // Look for test files in this file's directory and run them.
   runAll: function() {
-    var that = this;
+    var this_ = this;
     fs.readdir(__dirname, function(err, files) {
       files.forEach(function(f) {
         if (f.match(/^test_/)) {
-          that.runScript(
+          this_.runScript(
             [__dirname, f].join('/'),
-            that.onTestPass,
-            that.onTestFail
+            _.bind(this_.onTestPass, this_),
+            _.bind(this_.onTestFail, this_)
           );
-          that.stats.found++;
+          this_.stats.found++;
         }
       });
-      that.print('Found ' + that.stats.found + ' test files.\n  ');
+      this_.print(format('Found %s test files.\n', this_.stats.found));
     });
   },
 
@@ -167,20 +196,21 @@ var testRunner = exports.testRunner = {
   runEach: function(files) {
     this.stats.found = files.length;
     files.forEach(function(f) {
-      this.runScript(f, this.onTestPass, this.onTestFail);
+      this.runScript(f, _.bind(this.onTestPass, this), _.bind(this.onTestFail, this));
     }, this);
   },
 
   // Start running tests.
   run: function() {
+    this.stats.startedAt = Date.now();
+
     this.parseArgs();
 
     if (this.options.files.length)
       return this.runEach(this.options.files);
     return this.runAll();
   }
-};
+});
 
-_.bindAll(testRunner);
-
-if (require.main === module) testRunner.run();
+if (require.main === module)
+  (new TestRunner()).run();
