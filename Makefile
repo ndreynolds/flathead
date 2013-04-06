@@ -1,6 +1,6 @@
 # Makefile
 #
-# Copyright (c) 2012 Nick Reynolds
+# Copyright (c) 2012-2013 Nick Reynolds
 #  
 # Permission to use, copy, modify, and/or distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -31,7 +31,7 @@ OUT_FILE = bin/flat
 YACC_FILE = src/grammar.y
 LEX_FILE = src/lexer.l
 
-TEST_FLAGS =
+TEST_FLAGS = --dir test
 
 VERSION = 0.6
 
@@ -76,6 +76,7 @@ malloc-debug: CC = gcc-4.7
 malloc-debug: LIBS += -lefence
 malloc-debug: debug
 
+
 lex.yy.o: $(LEX_FILE)
 	$(LEX) $(LEX_FILE)
 	@echo "[CC -o] lex.yy.o"
@@ -92,43 +93,41 @@ linker: $(OBJ_FILES)
 	@echo "[CC -c] $@"
 	@$(CC) -c $(CFLAGS) $< -o $@
 
-make-bin:
-	mkdir -p bin
-
 clean:
-	rm -rf y.* lex.yy.c bin/fh* a.out $(OBJ_FILES)
+	rm -rf y.* lex.yy.c $(OUT_FILE) $(OBJ_FILES)
 
 install:
 	cp $(OUT_FILE) /usr/local/bin/
 
-default: make-bin linker
+default: linker
 	@echo "[CC -o] $(OUT_FILE)"
 	@$(CC) -o $(OUT_FILE) $(OBJ_FILES) $(LIBS)
+
 
 ctest:
 	node ctest/crunner.js
 
 test: 
-	node test/runner.js $(TEST_FLAGS) --exec bin/flat
+	bin/test $(TEST_FLAGS) -x bin/flat
 
 test-node:
-	node test/runner.js $(TEST_FLAGS) --exec node
+	bin/test $(TEST_FLAGS) -x node
 
 test-v8:
-	node test/runner.js $(TEST_FLAGS) --exec v8 --args "test/harness.js [test]"
+	bin/test $(TEST_FLAGS) -x v8 -a "test/tools/harness.js [test]"
 
 test-sm:
-	node test/runner.js $(TEST_FLAGS) --exec js --args "-f test/harness.js -f [test]"
+	bin/test $(TEST_FLAGS) -x js -a "\-f test/tools/harness.js \-f [test]"
 
 test-rhino:
-	node test/runner.js $(TEST_FLAGS) --exec rhino --timeout 10000 \
-		--args "-f test/harness.js -f [test]"
+	bin/test $(TEST_FLAGS) -x rhino -t 10000 -a "\-f test/tools/harness.js \-f [test]"
 
 test-all: TEST_FLAGS += --quiet
 test-all: test test-node test-v8 test-sm test-rhino
 
 test-grammar:
-	mocha test/grammar
+	node_modules/mocha/bin/mocha test/grammar
+
 
 archive:
 	git archive --format=tar.gz --prefix="flathead-$(VERSION)/" \

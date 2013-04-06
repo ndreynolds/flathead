@@ -1,0 +1,12 @@
+{
+  "name":         "flathead",
+  "description":  "Testing dependencies for flathead",
+  "author":       "Nick Reynolds",
+  "version":      "0.6.0",
+  "engine":       "node >=0.2.0",
+  "dependencies": {
+    "commander":  ">= 0.5.2",
+    "underscore": ">= 1.0.0",
+    "mocha":      ">= 1.8.0"
+  }
+}

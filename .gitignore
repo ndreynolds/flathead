@@ -4,3 +4,4 @@ lex.yy.c
 *.out
 tags
 *.o
+node_modules
