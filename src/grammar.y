@@ -1,7 +1,7 @@
 /*
  * grammar.y -- Bison/YACC parser definition for an EcmaScript
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -1177,6 +1177,7 @@ fh_eval_file(FILE *file, js_val *ctx, int is_repl)
 int
 main(int argc, char **argv)
 {
+  // Create the global state object
   fh = fh_new_global_state();
 
   int c = 0, fakeind = 0, optind = 1;

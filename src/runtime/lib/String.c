@@ -22,7 +22,7 @@ js_val *
 str_from_char_code(js_val *instance, js_args *args, eval_state *state)
 {
   fh_error(state, E_EVAL, "Unicode is not supported");
-  return JSUNDEF();
+  UNREACHABLE();
 }
 
 // String.prototype.charAt(index)
@@ -43,7 +43,7 @@ js_val *
 str_proto_char_code_at(js_val *instance, js_args *args, eval_state *state)
 {
   fh_error(state, E_EVAL, "Unicode is not supported");
-  return JSUNDEF();
+  UNREACHABLE();
 }
 
 // String.prototype.concat(string2, string3[, ..., stringN])
@@ -198,29 +198,62 @@ str_proto_match(js_val *instance, js_args *args, eval_state *state)
   return arr;
 }
 
-// String.prototype.replace(regexp|substr, newSubStr|function[, flags])
+// String.prototype.replace(regexp|substr, newSubStr|function)
 js_val *
 str_proto_replace(js_val *instance, js_args *args, eval_state *state)
 {
-  // NOTE: flags parameter is non-standard
-  // TODO: requires regex
-  /* char *str = instance->string.ptr; */
-  /* js_val *search_val = ARG(args, 0); */
+  // TODO: replace function, replacement substitutions
+  char *str = TO_STR(instance)->string.ptr;
+  js_val *search_val = ARG(args, 0);
+  js_val *replace_val = ARG(args, 1);
 
-  return JSUNDEF();
+  // Not a RegExp
+  if (!IS_REGEXP(search_val)) {
+    char *search = TO_STR(search_val)->string.ptr;
+    char *replace = TO_STR(replace_val)->string.ptr;
+    return JSSTR(fh_str_replace(str, search, replace, 1));
+  }
+
+  bool global = TO_BOOL(fh_get_proto(search_val, "global"))->boolean.val,
+       caseless = TO_BOOL(fh_get_proto(search_val, "ignoreCase"))->boolean.val;
+
+  char *pattern = fh_get(search_val, "source")->string.ptr;
+  char *repl = TO_STR(replace_val)->string.ptr;
+  int count, *matches;
+
+  fh_set(search_val, "lastIndex", JSNUM(0));
+
+  unsigned i = 0;
+  while (i < strlen(str)) {
+    matches = fh_regexp(str, pattern, &count, i, caseless);
+    if (count == 0) break;
+    fh_set(search_val, "lastIndex", JSNUM(matches[1]));
+    str = str_splice(str, repl, matches[0], matches[1]);
+    i = matches[1] + strlen(repl) - (matches[1] - matches[0]);
+    count = 0;
+    free(matches);
+    if (!global) break;
+  }
+
+  if (instance->string.ptr != str) {
+    free(instance->string.ptr);
+    instance->string.ptr = str;
+  }
+  return instance;
 }
 
 // String.prototype.search(regexp)
 js_val *
 str_proto_search(js_val *instance, js_args *args, eval_state *state)
 {
+  char *str = TO_STR(instance)->string.ptr;
   js_val *regexp = ARG(args, 0);
 
   char *pattern = fh_get(regexp, "source")->string.ptr;
   bool caseless = fh_get_proto(regexp, "ignoreCase")->boolean.val;
 
-  int count;
-  int *matches = fh_regexp(instance->string.ptr, pattern, &count, 0, caseless);
+  int count, *matches = fh_regexp(str, pattern, &count, 0, caseless);
+
 
   if (!matches) 
     return JSNUM(-1);
@@ -267,6 +300,9 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
     fh_set(arr, "0", instance);
     fh_set_len(arr, 1);
     return arr;
+  }
+  else if (IS_REGEXP(sep_arg)) {
+    fh_error(state, E_ERROR, "RegExp separators are not yet implemented");
   }
 
   char *split;                         // store the split substring
@@ -429,6 +465,21 @@ js_val *
 str_proto_value_of(js_val *instance, js_args *args, eval_state *state)
 {
   return instance;
+}
+
+/* Cut out the string between start and end, replacing it with the new string */
+char *
+str_splice(char *str, char *rep, int start, int end)
+{
+  char *front, *back, *tmp, *new;
+  front = fh_str_slice(str, 0, start);
+  back = fh_str_slice(str, end, strlen(str));
+  tmp = fh_str_concat(front, rep);
+  new = fh_str_concat(tmp, back);
+  free(front);
+  free(back);
+  free(tmp);
+  return new;
 }
 
 js_val *

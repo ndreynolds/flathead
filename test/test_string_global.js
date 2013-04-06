@@ -136,7 +136,31 @@ test('String#match(regexp)', function() {
 });
 
 test('String#replace(regexp|substr, newSubStr|function[, flags])', function() {
-  // TODO
+
+  // No replace possible
+  assertEquals('apple', 'apple'.replace('strawberry', 'orange'));
+
+  // Simple strings
+  assertEquals('orange', 'apple'.replace('apple', 'orange'));
+  assertEquals('pineapple', 'apple'.replace('a', 'pinea'));
+  assertEquals('grapefruit', 'grapes'.replace('s', 'fruit'));
+  assertEquals('arple', 'apple'.replace('p', 'r'));
+
+  // RegExp search, string replacement
+  assertEquals('orange', 'APPLE'.replace(/apple/i, 'orange'));
+  assertEquals('arple', 'apple'.replace(/p/, 'r'));
+  assertEquals('arrle', 'apple'.replace(/p/g, 'r'));
+  assertEquals('', 'ABCDEF'.replace(/[a-f]/gi, ''));
+  assertEquals('', 'ABCDEF'.replace(/[a-f]+/i, ''));
+
+  assertEquals('xb', 'xyxyxyxbxyxyxyxy'.replace(/xy/g, ''));
+  assertEquals('axbxcx', 'xaxbxcx'.replace('x', ''));
+  assertEquals('axbxcx', 'xaxbxcx'.replace(/x/, ''));
+  assertEquals('abc', 'xaxbxcx'.replace(/x/g, ''));
+
+  assertEquals('xaxxcx', 'xaxbxcx'.replace('b', ''));
+  assertEquals('xaxxcx', 'xaxbxcx'.replace(/b/, ''));
+  assertEquals('xaxxcx', 'xaxbxcx'.replace(/b/g, ''));
 });
 
 test('String#search(regexp)', function() {

@@ -58,6 +58,7 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
   while (!matched) {
     if (i < 0 || i > length) {
       fh_set(instance, "lastIndex", JSNUM(0));
+      free(matches);
       return JSNULL();
     }
     matches = fh_regexp(str->string.ptr, pattern->string.ptr, &count, i, caseless);
@@ -70,7 +71,7 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
   char *substr = fh_str_slice(str->string.ptr, matches[0], matches[1]);
 
   if (global)
-    fh_set(instance, "lastIndex", JSNUM(matches[0] + strlen(substr)));
+    fh_set(instance, "lastIndex", JSNUM(matches[1]));
 
   js_val *res = JSARR();
 
@@ -83,6 +84,8 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
     substr = fh_str_slice(str->string.ptr, matches[2*i], matches[2*i+1]);
     fh_set(res, JSNUMKEY(i)->string.ptr, JSSTR(substr));
   }
+
+  free(matches);
   fh_set_len(res, count);
 
   return res;

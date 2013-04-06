@@ -1,7 +1,7 @@
 /*
  * str.h -- String functions
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -21,5 +21,6 @@
 
 char * fh_str_concat(char *, char *);
 char * fh_str_slice(char *, int, int);
+char * fh_str_replace(char *, char *, char *, int);
 
 #endif
