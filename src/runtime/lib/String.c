@@ -77,11 +77,11 @@ str_proto_index_of(js_val *instance, js_args *args, eval_state *state)
   char *needle = search_str->string.ptr;
   js_val *from = ARG(args, 1);
 
-  int i = IS_NUM(from) ? from->number.val : 0;
-  int match = 0;
+  long i = TO_INT(from)->number.val;
+  long match = 0;
 
-  int needle_len = strlen(needle);
-  int haystack_len = strlen(haystack);
+  long needle_len = strlen(needle);
+  long haystack_len = strlen(haystack);
 
   // Searching for an empty string returns the fromIndex when less than
   // the instance string length, and the instance string length otherwise.
@@ -249,11 +249,15 @@ str_proto_search(js_val *instance, js_args *args, eval_state *state)
   char *str = TO_STR(instance)->string.ptr;
   js_val *regexp = ARG(args, 0);
 
+  if (!IS_REGEXP(regexp)) {
+    js_val *tmp = TO_STR(regexp);
+    regexp = JSRE("");
+    fh_set(regexp, "source", tmp);
+  }
+
   char *pattern = fh_get(regexp, "source")->string.ptr;
   bool caseless = fh_get_proto(regexp, "ignoreCase")->boolean.val;
-
   int count, *matches = fh_regexp(str, pattern, &count, 0, caseless);
-
 
   if (!matches) 
     return JSNUM(-1);
@@ -289,9 +293,11 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
   js_val *sep_arg = ARG(args, 0);
   js_val *limit_arg = ARG(args, 1);
 
+  instance = TO_STR(instance);
   js_val *arr = JSARR();
 
-  int limit = IS_UNDEF(limit_arg) ? pow(2, 32) - 1 : TO_NUM(limit_arg)->number.val;
+  unsigned long limit = IS_UNDEF(limit_arg) ? 
+    pow(2, 32) - 1 : TO_UINT32(limit_arg)->number.val;
 
   if (limit == 0) 
     return arr;
@@ -301,21 +307,24 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
     fh_set_len(arr, 1);
     return arr;
   }
-  else if (IS_REGEXP(sep_arg)) {
-    fh_error(state, E_ERROR, "RegExp separators are not yet implemented");
-  }
+  else if (IS_REGEXP(sep_arg))
+    return str_regexp_splitter(instance->string.ptr, sep_arg, limit);
+  else
+    sep_arg = TO_STR(sep_arg);
 
-  char *split;                         // store the split substring
-  char *sep = sep_arg->string.ptr;     // separator string
-  char *str = instance->string.ptr;    // instance string
-  int len = instance->string.length;   // instance string length
-  int match = 0;                       // number of chars of sep matched
-  int start = 0;                       // start index to split from
-  int index = 0;                       // result array index
-  int i;                               // instance string index
-  int n;                               // strlen
+  char *split;                       // store the split substring
+  char *str = instance->string.ptr;  // instance string
+  char *sep = sep_arg->string.ptr;   // separator string
+  int len = instance->string.length; // instance string length
+  int match = 0;                     // number of chars of sep matched
+  int start = 0;                     // start index to split from
+  int index = 0;                     // result array index
+  int n = strlen(str);               // len of str
+  int i;                             // instance string index
+  bool matched_last = false;         // 
 
-  for (i = 0, n = strlen(str); i < n; i++) {
+  for (i = 0; i < n; i++) {
+    matched_last = false;
     if (str[i] == sep[match])
       match++;
     else
@@ -324,16 +333,23 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
     if (match == (int)strlen(sep)) {
       split = fh_str_slice(str, start, i - strlen(sep) + 1);
       fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(split));
+      free(split);
       start = i + 1;
       match = 0;
+      matched_last = true;
       if (--limit == 0) break;
     }
   }
 
   // Move the remaining string (possibly all of it) into the array.
-  if (limit > 0 && start != len) {
-    split = fh_str_slice(str, start, len);
-    fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(split));
+  if (limit > 0) {
+    if (start != len) {
+      split = fh_str_slice(str, start, len);
+      fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(split));
+      free(split);
+    }
+    else if (matched_last && strlen(sep))
+      fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(""));
   }
 
   fh_set_len(arr, index);
@@ -344,17 +360,17 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
 js_val *
 str_proto_substr(js_val *instance, js_args *args, eval_state *state)
 {
-  int strlen = instance->string.length;
-  int start = TO_NUM(ARG(args, 0))->number.val;
-  int length = IS_UNDEF(ARG(args, 1)) ? strlen : TO_NUM(ARG(args, 1))->number.val;
+  long slen = instance->string.length;
+  long start = TO_INT(ARG(args, 0))->number.val;
+  long length = IS_UNDEF(ARG(args, 1)) ?  slen : TO_INT(ARG(args, 1))->number.val;
 
   if (start < 0) 
-    start = MAX(start + strlen, 0);
+    start = MAX(start + slen, 0);
 
-  if (MIN(MAX(length, 0), strlen - start) <= 0)
+  if (MIN(MAX(length, 0), slen - start) <= 0)
     return JSSTR("");
 
-  int end = MIN(strlen, start + length);
+  int end = MIN(slen, start + length);
   return JSSTR(fh_str_slice(instance->string.ptr, start, end));
 }
 
@@ -362,9 +378,9 @@ str_proto_substr(js_val *instance, js_args *args, eval_state *state)
 js_val *
 str_proto_substring(js_val *instance, js_args *args, eval_state *state)
 {
-  int len = instance->string.length;
-  int start = TO_NUM(ARG(args, 0))->number.val;
-  int end = IS_UNDEF(ARG(args, 1)) ? len : TO_NUM(ARG(args, 1))->number.val;
+  long len = instance->string.length;
+  long start = TO_INT(ARG(args, 0))->number.val;
+  int end = IS_UNDEF(ARG(args, 1)) ? len : TO_INT(ARG(args, 1))->number.val;
 
   start = MIN(MAX(start, 0), len);
   end = MIN(MAX(end, 0), len);
@@ -480,6 +496,40 @@ str_splice(char *str, char *rep, int start, int end)
   free(back);
   free(tmp);
   return new;
+}
+
+js_val *
+str_regexp_splitter(char *str, js_val *regexp, int limit)
+{
+  char *source = TO_STR(fh_get_proto(regexp, "source"))->string.ptr;
+  bool caseless = TO_BOOL(fh_get_proto(regexp, "ignoreCase"))->boolean.val;
+  // int ncaps = fh_regexp_ncaptures(source);
+  js_val *arr = JSARR();
+  int count, *matches;
+  char *tmp;
+  unsigned i, j;
+  bool matched_last = false;
+
+  for (i = 0, j = 0; i < strlen(str); j++) {
+    matched_last = false;
+    matches = fh_regexp(str, source, &count, i, caseless);
+    if (count == 0) break;
+    tmp = fh_str_slice(str, i, matches[0]);
+    fh_set(arr, JSNUMKEY(j)->string.ptr, JSSTR(tmp));
+    i = matches[1];
+    free(matches);
+    matched_last = true;
+  }
+
+  if (i < strlen(str)) {
+    tmp = fh_str_slice(str, i, strlen(str));
+    fh_set(arr, JSNUMKEY(j++)->string.ptr, JSSTR(tmp));
+  }
+  else if (matched_last)
+    fh_set(arr, JSNUMKEY(j++)->string.ptr, JSSTR(""));
+
+  fh_set_len(arr, j);
+  return arr;
 }
 
 js_val *

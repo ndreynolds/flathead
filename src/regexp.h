@@ -1,7 +1,7 @@
 /*
  * regexp.h -- String functions
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -22,5 +22,6 @@
 #define REGEXP_H
 
 int * fh_regexp(char *, char *, int *, int, bool);
+int fh_regexp_ncaptures(char *);
 
 #endif

@@ -1,7 +1,7 @@
 /*
  * regexp.h -- PCRE wrapper
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -27,8 +27,9 @@
 const int regexp_vector_len = 30;
 
 
-// Gateway to the PCRE library. When compiled with fh_no_regexp, this function
-// is still available, but will throw an error when called.
+/* Gateway to the PCRE library. Compiles a regular expression pattern and
+ * returns matches. When compiled with fh_no_regexp, this function is still
+ * available, but will throw an error when called. */
 int *
 fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
 {
@@ -43,7 +44,8 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
 
   pcre *regexp = pcre_compile(pattern, options, &error, &error_offset, NULL);
   if (!regexp)
-    fh_error(NULL, E_SYNTAX, "Regular expression is not valid");
+    fh_error(NULL, E_SYNTAX, "Invalid Regular Expression:\n  %s at offset %d", 
+             error, error_offset);
 
   rc = pcre_exec(regexp, NULL, str, strlen(str), offset, 0, 
                  output_vector, regexp_vector_len);
@@ -61,6 +63,28 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
   return output_vector;
 #else
   fh_error(NULL, E_ERROR, "Regular expressions are not available");
-  return NULL;
+  UNREACHABLE();
+#endif
+}
+
+/* Get the number of capturing subpatterns in the regular expression. This is
+ * used to get the `NCapturingParens` value used in parts of the ECMA spec */
+int 
+fh_regexp_ncaptures(char *pattern)
+{
+#ifndef fh_no_regexp
+  const char *error;
+  int error_offset;
+  int options = PCRE_JAVASCRIPT_COMPAT;
+  int captures;
+  pcre *regexp = pcre_compile(pattern, options, &error, &error_offset, NULL);
+  if (!regexp)
+    fh_error(NULL, E_SYNTAX, "Invalid Regular Expression:\n  %s at offset %d", 
+             error, error_offset);
+  pcre_fullinfo(regexp, NULL, PCRE_INFO_CAPTURECOUNT, &captures);
+  return captures;
+#else
+  fh_error(NULL, E_ERROR, "Regular expressions are not available");
+  UNREACHABLE();
 #endif
 }

@@ -1,7 +1,7 @@
 /*
  * flathead.h -- Core types, constructors, casting, and debug.
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -49,7 +49,7 @@
 #define JSARR()        fh_new_array()
 #define JSFUNC(x)      fh_new_function(x)
 #define JSNFUNC(x,n)   fh_new_native_function(x,n)
-#define JSREGEXP(x)    fh_new_regexp(x)
+#define JSRE(x)        fh_new_regexp(x)
 #define JSNUMKEY(x)    fh_cast(JSNUM((x)), T_STRING)
 
 #define IS_STR(x)      ((x)->type == T_STRING)
@@ -68,6 +68,10 @@
 #define TO_NUM(x)      fh_cast((x),T_NUMBER)
 #define TO_BOOL(x)     fh_cast((x),T_BOOLEAN)
 #define TO_OBJ(x)      fh_cast((x),T_OBJECT)
+
+#define TO_INT(x)      fh_to_int(x)
+#define TO_INT32(x)    fh_to_int32(x)
+#define TO_UINT32(x)   fh_to_uint32(x)
 
 #define ARG(args,n)    fh_get_arg((args), (n))
 #define ARGLEN(args)   fh_arg_len(args)
@@ -253,6 +257,7 @@ js_val * fh_try_get_proto(char *);
 bool fh_is_callable(js_val *);
 js_val * fh_to_primitive(js_val *, js_type);
 js_val * fh_to_number(js_val *);
+js_val * fh_to_int(js_val *);
 js_val * fh_to_int32(js_val *);
 js_val * fh_to_uint32(js_val *);
 js_val * fh_to_string(js_val *);

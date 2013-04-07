@@ -171,9 +171,10 @@ fh_new_regexp(char *re)
   }
 
   // Store the inner pattern 
-  fh_set(val, "source", JSSTR(fh_str_slice(re, 1, i)));
-  fh_set_class(val, "RegExp");
+  if (i > 1)
+    fh_set(val, "source", JSSTR(fh_str_slice(re, 1, i)));
 
+  fh_set_class(val, "RegExp");
   return val;
 }
 
@@ -321,6 +322,21 @@ fh_to_number(js_val *val)
     return fh_to_number(fh_to_primitive(val, T_NUMBER));
 
   return val;
+}
+
+js_val *
+fh_to_int(js_val *val)
+{
+  long long int_val;
+
+  val = fh_to_number(val);
+  if (IS_NAN(val))
+    return JSNUM(0);
+  if (IS_INF(val) || val->number.val == 0)
+    return val;
+  int sign = val->number.val < 0 ? -1 : 1;
+  int_val = sign * floor(abs(val->number.val));
+  return JSNUM(int_val);
 }
 
 js_val *

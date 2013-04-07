@@ -34,6 +34,7 @@ js_val * str_proto_trim_right(js_val *, js_args *, eval_state *);
 js_val * str_proto_value_of(js_val *, js_args *, eval_state *);
 
 char * str_splice(char *, char *, int, int);
+js_val * str_regexp_splitter(char *, js_val *, int);
 
 js_val * bootstrap_string(void);
 

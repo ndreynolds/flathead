@@ -1,7 +1,7 @@
 /*
  * eval.c -- AST-walking interpreter
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -33,7 +33,7 @@ fh_eval(js_val *ctx, ast_node *node)
   switch(node->type) {
     case NODE_BOOL:        return JSBOOL(node->val);
     case NODE_STR:         return JSSTR(node->sval);
-    case NODE_REGEXP:      return JSREGEXP(node->sval);
+    case NODE_REGEXP:      return JSRE(node->sval);
     case NODE_NUM:         return JSNUM(node->val);
     case NODE_NULL:        return JSNULL();
     case NODE_FUNC:        return JSFUNC(node);
