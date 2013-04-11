@@ -53,23 +53,23 @@ test('global functions', function() {
     assertIsFunction(parseInt, 2);
 
     // without radix
-    assert(parseInt("42") === 42);
-    assert(parseInt("3.14") === 3);
+    assertEquals(42, parseInt("42"));
+    assertEquals(3,  parseInt("3.14"));
     assertNaN(parseInt("Not a number"));
 
     // with radix
-    assert(parseInt(" 0xF", 16) === 15);
-    assert(parseInt(" F", 16) === 15);
-    assert(parseInt("17", 8) === 15);
-    // FIXME: assert(parseInt(021, 8) === 15);
-    assert(parseInt("015", 10) === 15);
-    assert(parseInt(15.99, 10) === 15);
-    // FIXME: assert(parseInt("FXX123", 16) === 15);
-    assert(parseInt("1111", 2) === 15);
-    // FIXME: assert(parseInt("15*3", 10) === 15);
-    // FIXME: assert(parseInt("15e2", 10) === 15);
-    // FIXME: assert(parseInt("15px", 10) === 15);
-    assert(parseInt("12", 13) === 15);
+    assertEquals(15, parseInt(" 0xF", 16));
+    assertEquals(15, parseInt(" F", 16));
+    assertEquals(15, parseInt("17", 8));
+    // FIXME: assertEquals(15, parseInt(021, 8));
+    assertEquals(15, parseInt("015", 10));
+    assertEquals(15, parseInt(15.99, 10));
+    // FIXME: assertEquals(15, parseInt("FXX123", 16));
+    assertEquals(15, parseInt("1111", 2));
+    // FIXME: assertEquals(15, parseInt("15*3", 10));
+    // FIXME: assertEquals(15, parseInt("15e2", 10));
+    // FIXME: assertEquals(15, parseInt("15px", 10));
+    assertEquals(15, parseInt("12", 13));
     assertNaN(parseInt("Not a number", 10));
   });
 
@@ -82,7 +82,10 @@ test('global functions', function() {
   });
 
   test('eval(x)', function() {
+    // See also: test_eval.js
     assertIsFunction(eval, 1);
+    assertEquals(4,  eval('2 + 2;'));
+    assertEquals(42, eval('21 * 2;'));
   });
 
 });

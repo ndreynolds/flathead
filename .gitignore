@@ -1,6 +1,6 @@
 bin/flat
 y.*
-lex.yy.c
+lex.yy.?
 *.out
 tags
 *.o

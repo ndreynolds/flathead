@@ -251,7 +251,8 @@ eval_state * fh_new_state(int, int);
 js_val * fh_get_arg(js_args *, int);
 unsigned int fh_arg_len(js_args*);
 
-js_val * fh_eval_file(FILE *, js_val *, int);
+js_val * fh_eval_file(FILE *, js_val *);
+js_val * fh_eval_string(char *, js_val *);
 js_val * fh_try_get_proto(char *);
 
 bool fh_is_callable(js_val *);

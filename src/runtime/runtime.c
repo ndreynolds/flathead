@@ -80,9 +80,9 @@ global_parse_float(js_val *instance, js_args *args, eval_state *state)
 js_val *
 global_eval(js_val *instance, js_args *args, eval_state *state)
 {
-  // TODO: implement
-  fh_error(state, E_ERROR, "eval is not yet implemented");
-  UNREACHABLE();
+  js_val *code = TO_STR(ARG(args, 0));
+  code->string.ptr[code->string.length] = '\0';
+  return fh_eval_string(code->string.ptr, state->ctx);
 }
 
 // gc()
@@ -108,7 +108,7 @@ global_load(js_val *instance, js_args *args, eval_state *state)
       fh_error(state, E_ERROR, "File could not be read");
 
     FILE *file = fopen(name->string.ptr, "r");
-    fh_eval_file(file, fh->global, false);
+    fh_eval_file(file, fh->global);
     fclose(file);
   }
   return JSUNDEF();

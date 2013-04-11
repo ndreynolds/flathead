@@ -26,6 +26,8 @@
   int yycolumn = 1;
   int prev_token = 0;
   void yyuseraction(void);
+  YY_BUFFER_STATE yy_scan_string(const char *);
+  void yy_delete_buffer(YY_BUFFER_STATE);
 
   char * fh_extract_string(char *);
   void fh_parse_error(char *);

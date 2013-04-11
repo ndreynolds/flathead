@@ -29,6 +29,7 @@
   #include <readline/history.h>
 #endif
 
+  #include "lex.yy.h"
   #include "src/flathead.h"
   #include "src/nodes.h"
   #include "src/eval.h"
@@ -99,10 +100,7 @@
   #define NEW_WITH(exp,stmt)         NEW_NODE(NODE_WITH_STMT,exp,stmt,0,0,0)
 
   void yyerror(const char *);
-  void yyrestart(FILE *);
-  int yylex(void);
   int yydebug;
-  FILE *yyin;
   int fh_get_input(char *, int);
   ast_node *root;
   eval_state *state;
@@ -1142,8 +1140,10 @@ fh_get_input(char *buf, int size)
       return 0;
     }
     strcpy(buf, line);
-    // Ghetto ASI
+
+    // Poor man's ASI:
     if (!strchr(buf, ';')) strcat(buf, ";");
+
     strcat(buf, "\n");
     free(line);
     add_history(buf);
@@ -1162,7 +1162,7 @@ fh_get_input(char *buf, int size)
 }
 
 js_val *
-fh_eval_file(FILE *file, js_val *ctx, int is_repl)
+fh_eval_file(FILE *file, js_val *ctx)
 {
   yyrestart(file);
   yyparse();
@@ -1171,6 +1171,20 @@ fh_eval_file(FILE *file, js_val *ctx, int is_repl)
     print_node(root, true, 0);
 
   js_val *res = fh_eval(ctx, root);
+  return res;
+}
+
+js_val *
+fh_eval_string(char *string, js_val *ctx)
+{
+  void *buffer = yy_scan_string(string);
+  yyparse();
+
+  if (fh->opt_print_ast) 
+    print_node(root, true, 0);
+
+  js_val *res = fh_eval(ctx, root);
+  yy_delete_buffer(buffer);
   return res;
 }
 
@@ -1227,10 +1241,10 @@ main(int argc, char **argv)
       // continue. Use setjmp here and longjmp in `fh_error` to simulate
       // exception handling.
       if (!setjmp(fh->jmpbuf))
-        DEBUG(fh_eval_file(source, fh->global, true));
+        DEBUG(fh_eval_file(source, fh->global));
     }
   } else {
-    fh_eval_file(source, fh->global, false);
+    fh_eval_file(source, fh->global);
   }
 
   return 0;

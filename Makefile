@@ -16,8 +16,12 @@
 
 CC = gcc
 CFLAGS = -Wall -Wextra -Wno-unused-parameter -O3 -std=c99 -pedantic -D_XOPEN_SOURCE
-YACC = bison -y -d -t -v
+
+YACC = bison
+YACC_FLAGS = -y -d -t -v
+
 LEX = flex
+LEX_FLAGS =
 
 LIBS = -I/usr/local/include -I/usr/include -L/usr/local/lib -L/usr/lib -lm
 OBJ_FILES = y.tab.o lex.yy.o src/eval.o src/str.o src/regexp.o src/cli.o \
@@ -77,13 +81,15 @@ malloc-debug: LIBS += -lefence
 malloc-debug: debug
 
 
-lex.yy.o: $(LEX_FILE)
-	$(LEX) $(LEX_FILE)
+lex.yy.c:
+	$(LEX) --header-file=lex.yy.h $(LEX_FLAGS) $(LEX_FILE)
+
+lex.yy.o: lex.yy.c $(LEX_FILE)
 	@echo "[CC -o] lex.yy.o"
 	@$(CC) -c $(CFLAGS) lex.yy.c -o lex.yy.o
 
-y.tab.o: $(YACC_FILE)
-	$(YACC) $(YACC_FILE)
+y.tab.o: lex.yy.c $(YACC_FILE)
+	$(YACC) $(YACC_FLAGS) $(YACC_FILE)
 	@echo "[CC -o] y.tab.o"
 	@$(CC) -c $(CFLAGS) y.tab.c -o y.tab.o
 
@@ -94,7 +100,7 @@ linker: $(OBJ_FILES)
 	@$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
-	rm -rf y.* lex.yy.c $(OUT_FILE) $(OBJ_FILES)
+	rm -rf y.* lex.yy.c y.tab.c y.tab.h $(OUT_FILE) $(OBJ_FILES)
 
 install:
 	cp $(OUT_FILE) /usr/local/bin/
