@@ -17,6 +17,7 @@
  */
 
 #include <math.h>
+#include <unistd.h>
 #include "runtime.h"
 #include "lib/console.h"
 #include "lib/Math.h"
@@ -94,16 +95,22 @@ global_gc(js_val *instance, js_args *args, eval_state *state)
 
 // load(filename)
 //
-// Custom Flathead function. Execute the given file in the 
-// global scope. Parsing and evaluation occur at runtime.
+// Execute the file with the given name in the global scope. Compatible
+// with the function of the same name in V8, SpiderMonkey and Rhino.
 js_val *
 global_load(js_val *instance, js_args *args, eval_state *state)
 {
-  js_val *name = TO_STR(ARG(args, 0));
+  unsigned int i;
+  js_val *name;
+  for (i = 0; i < ARGLEN(args); i++) {
+    name = TO_STR(ARG(args, i));
+    if (access(name->string.ptr, R_OK) == -1)
+      fh_error(state, E_ERROR, "File could not be read");
 
-  FILE *file = fopen(name->string.ptr, "r");
-  fh_eval_file(file, fh->global, false);
-
+    FILE *file = fopen(name->string.ptr, "r");
+    fh_eval_file(file, fh->global, false);
+    fclose(file);
+  }
   return JSUNDEF();
 }
 

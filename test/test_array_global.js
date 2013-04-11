@@ -1,24 +1,7 @@
 // test_array_global.js
 // --------------------
 
-var assert = console.assert;
-
-var assertEquals = function(a, b) {
-  if (a !== b)
-    console.log(a + ' !== ' + b);
-  assert(a === b);
-};
-
-var assertArrayEquals = function(a, b) {
-  assert(a.length === b.length);
-  for (var i = 0; i < a.length; i++) {
-    assert(a[i] === b[i]);
-  }
-};
-
-var test = function(name, f) {
-  f();
-};
+(this.load || require)((this.load ? 'test' : '.') + '/tools/assertions.js');
 
 
 // ----------------------------------------------------------------------------

@@ -116,8 +116,7 @@ fh_var_dec_scan(js_val *ctx, ast_node *node)
   // Declare the variable and possibly convert it to an assignment
   if (node->type == NODE_VAR_DEC) {
     fh_var_dec(ctx, node, true); // true to ignore rhs
-    // Signals that it has been hoisted
-    node->val = 1; 
+    node->val = 1;               // Signals that it has been hoisted
   }
 
   // Recurse sub nodes, will hit the whole tree.

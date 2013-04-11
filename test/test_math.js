@@ -2,25 +2,13 @@
 // ------------
 // Tests for the Math global object, some adapted from v8's mjsunit.
 
-var assert = console.assert;
-
-var assertEquals = function(a, b) {
-  assert(a === b);
-};
-
-var assertClose = function(a, b, tolerance) {
-  assert(a < (b + tolerance));
-  assert(a > (b - tolerance));
-};
+(this.load || require)((this.load ? 'test' : '.') + '/tools/assertions.js');
 
 var zero = function() {
   var x = 0.5;
   return (function() { return x - 0.5; }());
 };
 
-var test = function(name, f) {
-  f();
-};
 
 // ----------------------------------------------------------------------------
 // Properties

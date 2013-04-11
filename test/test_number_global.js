@@ -38,8 +38,8 @@ test('Properties', function() {
   assert(Number.MAX_VALUE);
   assert(Number.MIN_VALUE);
   assert(isNaN(Number.NaN) && Number.NaN !== undefined);
-  assert(Number.NEGATIVE_INFINITY === -Infinity);
-  assert(Number.POSITIVE_INFINITY === Infinity);
+  assertEquals(-Infinity, Number.NEGATIVE_INFINITY);
+  assertEquals( Infinity, Number.POSITIVE_INFINITY);
 });
 
 // TODO: Harmony Number.isNaN & Number.isFinite ?
@@ -63,7 +63,7 @@ test('Number#toExponential([fracDigits])', function() {
 
   num = 0.000414723723471;
   // TODO: precision is off (though otherwise correct)
-  //assert(num.toExponential() === '4.14723723471e-4');
+  // assert(num.toExponential() === '4.14723723471e-4');
 });
 
 test('Number#toFixed([digits])', function() {
