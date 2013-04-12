@@ -113,8 +113,6 @@ The Docket
 - Automatic Semicolon Insertion
 - Unicode
 - The JSON object ([JSON-js][1] can be used as polyfill)
-- `new Function(...)`
-- `eval`
 - URI functions
 - `String#replace`: replacement function
 - `String#split`: RegExp separators
