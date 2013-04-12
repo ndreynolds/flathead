@@ -31,6 +31,8 @@
 #include "lib/RegExp.h"
 #include "lib/Error.h"
 
+static int load_file(char *);
+
 
 // isNaN(value)
 js_val *
@@ -101,14 +103,14 @@ global_load(js_val *instance, js_args *args, eval_state *state)
 {
   unsigned int i;
   for (i = 0; i < ARGLEN(args); i++) {
-    if (fh_load_file(TO_STR(ARG(args, i))->string.ptr) == -1)
+    if (load_file(TO_STR(ARG(args, i))->string.ptr) == -1)
       fh_error(state, E_ERROR, "File could not be read");
   }
   return JSUNDEF();
 }
 
-int
-fh_load_file(char *name)
+static int
+load_file(char *name)
 {
   if (access(name, R_OK) == -1)
     return -1;
@@ -119,7 +121,7 @@ fh_load_file(char *name)
   unsigned size = ftell(file);
   fseek(file, 0, SEEK_SET);
 
-  char *fcontent = malloc(size);
+  char *fcontent = malloc(size + 1);
   fread(fcontent, 1, size, file); 
   fclose(file);
 

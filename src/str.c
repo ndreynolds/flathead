@@ -38,8 +38,10 @@ fh_str_concat(char *a, char *b)
 
 /* Returns a newly allocated substring from start and end indices provided */
 char *
-fh_str_slice(char *str, int start, int end)
+fh_str_slice(char *str, unsigned start, unsigned end)
 {
+  if (start > end || end > strlen(str))
+    return NULL;
   size_t size = end - start + 1;
   char *new = malloc(size);
   snprintf(new, size, "%.*s", end - start, str + start);
@@ -68,7 +70,7 @@ fh_str_replace(char *orig, char *repl, char *new, int limit)
   tmp = result = malloc(strlen(orig) + (len_new - len_repl) * count + 1);
   if (!result) return orig;
   
-  while(count--) {
+  while (count--) {
     ins = strstr(orig, repl);
     dist = ins - orig;
     tmp = strncpy(tmp, orig, dist) + dist;

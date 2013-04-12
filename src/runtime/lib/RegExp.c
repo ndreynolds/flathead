@@ -3,6 +3,11 @@
 
 #include "RegExp.h"
 
+
+// ---------------------------------------------------------------------------- 
+// RegExp Constructor
+// ---------------------------------------------------------------------------- 
+
 // [new] RegExp(pattern)
 js_val *
 regexp_new(js_val *instance, js_args *args, eval_state *state)
@@ -22,7 +27,7 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
     fh_error(state, E_TYPE, "Invalid flags supplied to RegExp constructor");
   int i, n;
   for (i = 0, n = strlen(flags->string.ptr); i < n; i++) {
-    switch(flags->string.ptr[i]) {
+    switch (flags->string.ptr[i]) {
       case 'g': fh_set(regexp, "global", JSBOOL(1)); break;
       case 'i': fh_set(regexp, "ignoreCase", JSBOOL(1)); break;
       case 'm': fh_set(regexp, "multiline", JSBOOL(1)); break;
@@ -33,6 +38,11 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
   regexp->proto = fh_try_get_proto("RegExp");
   return regexp;
 }
+
+
+// ---------------------------------------------------------------------------- 
+// RegExp Prototype
+// ---------------------------------------------------------------------------- 
 
 // RegExp.prototype.exec(str)
 js_val *
@@ -46,7 +56,7 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
   bool caseless = fh_get_proto(instance, "ignoreCase")->boolean.val;
 
   bool matched = false;
-  int *matches;
+  int *matches = NULL;
 
   int count;
   int length = strlen(str->string.ptr);
@@ -82,7 +92,7 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
 
   for (i = 1; i <= count; i++) {
     substr = fh_str_slice(str->string.ptr, matches[2*i], matches[2*i+1]);
-    fh_set(res, JSNUMKEY(i)->string.ptr, JSSTR(substr));
+    fh_set(res, JSNUMKEY(i)->string.ptr, JSSTR(substr ? substr : ""));
   }
 
   free(matches);

@@ -45,7 +45,7 @@
   // more clarity and serve as reference to the locations of child nodes and
   // values on a particular type of struct.
 
-  #define NEW_NODE(t,e1,e2,e3,d,s)   new_node(t,e1,e2,e3,d,s,yylloc.first_line,yylloc.first_column) 
+  #define NEW_NODE(t,e1,e2,e3,d,s)   node_new(t,e1,e2,e3,d,s,yylloc.first_line,yylloc.first_column) 
 
   #define NEW_ARGLST(head,tail)      NEW_NODE(NODE_ARG_LST,head,tail,0,0,0)
   #define NEW_ARR(ellst)             NEW_NODE(NODE_ARR,ellst,0,0,0,0)
@@ -1131,6 +1131,10 @@ fh_get_input(char *buf, int size)
     fprintf(stderr, "Error: REPL not available. Build with readline.");
     exit(1);
 #else
+    if (fh->opt_keep_history_file) {
+      read_history(fh->opt_history_filename);
+    }
+
     char *line;
     line = readline("> ");
     if (!line)
@@ -1141,12 +1145,18 @@ fh_get_input(char *buf, int size)
     }
     strcpy(buf, line);
 
+    add_history(buf);
+
+    if (fh->opt_keep_history_file) {
+      history_truncate_file(fh->opt_history_filename, 1000);
+      write_history(fh->opt_history_filename);
+    }
+
     // Poor man's ASI:
     if (!strchr(buf, ';')) strcat(buf, ";");
 
     strcat(buf, "\n");
     free(line);
-    add_history(buf);
 #endif
   }
   // For file or stdin:
@@ -1168,7 +1178,7 @@ fh_eval_file(FILE *file, js_val *ctx)
   yyparse();
 
   if (fh->opt_print_ast) 
-    print_node(root, true, 0);
+    node_print(root, true, 0);
 
   return fh_eval(ctx, root);
 }
@@ -1184,7 +1194,7 @@ fh_eval_string(char *string, js_val *ctx)
   yyparse();
 
   if (fh->opt_print_ast) 
-    print_node(root, true, 0);
+    node_print(root, true, 0);
 
   js_val *res = fh_eval(ctx, root);
   yy_delete_buffer(buffer);
@@ -1211,8 +1221,8 @@ main(int argc, char **argv)
   while ((c = getopt_long(argc, argv, "vhint", long_options, &fakeind)) != -1) {
     switch (c) {
       case 0: break;
-      case 'v': print_version(); return 0;
-      case 'h': print_help(); return 0;
+      case 'v': fh_print_version(); return 0;
+      case 'h': fh_print_help(); return 0;
       case 'i': fh->opt_interactive = true; break;
       case 'n': fh->opt_print_ast = true; break;
       case 't': fh->opt_print_tokens = true; break;
@@ -1221,7 +1231,7 @@ main(int argc, char **argv)
     optind++;
   }
 
-  FILE *source = NULL;
+  static FILE *source = NULL;
   if (optind < argc) {
     source = fopen(argv[optind], "r");
     fh->script_name = argv[optind];
@@ -1239,7 +1249,7 @@ main(int argc, char **argv)
 
   // We can operate as a REPL or in file/stdin mode.
   if (fh->opt_interactive) {
-    print_startup();
+    fh_print_startup();
     while (true) {
       // Normally errors cause the program to exit, but we'd like the REPL to
       // continue. Use setjmp here and longjmp in `fh_error` to simulate

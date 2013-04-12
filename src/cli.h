@@ -1,7 +1,7 @@
 /*
  * cli.h -- Utilities for the command line interface.
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -27,9 +27,9 @@
 #define ANSI_WHITE   "\033[37;1m"
 #define ANSI_RESET   "\033[0m"
 
-void print_help(void);
-void print_startup(void);
-void print_version(void);
+void fh_print_help(void);
+void fh_print_startup(void);
+void fh_print_version(void);
 void cfprintf(FILE *, const char *, const char *, ...);
 
 #endif

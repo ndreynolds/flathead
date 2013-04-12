@@ -1,7 +1,7 @@
 /*
  * gc.c -- slotted memory management and mark-sweep garbage collection
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -63,6 +63,36 @@
  */
 
 
+static gc_arena *
+fh_new_arena()
+{
+  size_t arena_size = sizeof(js_val) * SLOTS_PER_ARENA;
+  js_val *slots = malloc(arena_size);
+  gc_arena *arena = malloc(sizeof(gc_arena));
+
+  arena->num_slots = SLOTS_PER_ARENA;
+  arena->used_slots = 0;
+  arena->slots = slots;
+
+  memset(arena->freelist, 0, sizeof(arena->freelist));
+  return arena;
+}
+
+static gc_arena *
+fh_get_arena()
+{
+  // Currently 1 arena, but room for more.
+  gc_arena *arena = NULL;
+  if (fh->gc_num_arenas == 0) {
+    arena = fh_new_arena();
+    fh->gc_arenas[0] = arena;
+    fh->gc_num_arenas++;
+  }
+  else
+    arena = fh->gc_arenas[0];
+  return arena;
+}
+
 js_val *
 fh_malloc(bool first_attempt)
 {
@@ -83,37 +113,7 @@ fh_malloc(bool first_attempt)
   UNREACHABLE();
 }
 
-gc_arena *
-fh_new_arena()
-{
-  size_t arena_size = sizeof(js_val) * SLOTS_PER_ARENA;
-  js_val *slots = malloc(arena_size);
-  gc_arena *arena = malloc(sizeof(gc_arena));
-
-  arena->num_slots = SLOTS_PER_ARENA;
-  arena->used_slots = 0;
-  arena->slots = slots;
-
-  memset(arena->freelist, 0, sizeof(arena->freelist));
-  return arena;
-}
-
-gc_arena *
-fh_get_arena()
-{
-  // Currently 1 arena, but room for more.
-  gc_arena *arena = NULL;
-  if (fh->gc_num_arenas == 0) {
-    arena = fh_new_arena();
-    fh->gc_arenas[0] = arena;
-    fh->gc_num_arenas++;
-  }
-  else
-    arena = fh->gc_arenas[0];
-  return arena;
-}
-
-void
+static void
 fh_gc_debug()
 {
 #ifdef fh_gc_profile
@@ -157,31 +157,7 @@ fh_gc_debug()
 #endif
 }
 
-void
-fh_gc()
-{
-  gc_arena *arena = fh_get_arena();
-
-  // Start
-  fh->gc_state = GC_STATE_STARTING;
-  fh_gc_debug();
-
-  // Mark
-  fh->gc_state = GC_STATE_MARK;
-  fh_gc_mark(fh->global);
-  fh_gc_debug();
-
-  // Sweep
-  fh->gc_state = GC_STATE_SWEEP;
-  fh_gc_sweep(arena);
-  fh_gc_debug();
-
-  // Stop
-  fh->gc_state = GC_STATE_NONE;
-  fh_gc_debug();
-}
-
-void
+static void
 fh_gc_mark(js_val *val)
 {
   if (!val || val->marked) return;
@@ -207,23 +183,7 @@ fh_gc_mark(js_val *val)
   }
 }
 
-void
-fh_gc_sweep(gc_arena *arena)
-{
-  int i;
-  js_val val;
-  for (i = 0; i < SLOTS_PER_ARENA; i++) {
-    val = arena->slots[i];
-    if (!val.marked) {
-      arena->freelist[i] = false;
-      fh_gc_free_val(&val);
-      arena->used_slots--;
-    }
-    val.marked = false;
-  }
-}
-
-void
+static void
 fh_gc_free_val(js_val *val)
 {
   // Free the object hashtable 
@@ -246,4 +206,44 @@ fh_gc_free_val(js_val *val)
   }
 
   memset(val, 0, sizeof(js_val));
+}
+
+static void
+fh_gc_sweep(gc_arena *arena)
+{
+  int i;
+  js_val val;
+  for (i = 0; i < SLOTS_PER_ARENA; i++) {
+    val = arena->slots[i];
+    if (!val.marked) {
+      arena->freelist[i] = false;
+      fh_gc_free_val(&val);
+      arena->used_slots--;
+    }
+    val.marked = false;
+  }
+}
+
+void
+fh_gc()
+{
+  gc_arena *arena = fh_get_arena();
+
+  // Start
+  fh->gc_state = GC_STATE_STARTING;
+  fh_gc_debug();
+
+  // Mark
+  fh->gc_state = GC_STATE_MARK;
+  fh_gc_mark(fh->global);
+  fh_gc_debug();
+
+  // Sweep
+  fh->gc_state = GC_STATE_SWEEP;
+  fh_gc_sweep(arena);
+  fh_gc_debug();
+
+  // Stop
+  fh->gc_state = GC_STATE_NONE;
+  fh_gc_debug();
 }

@@ -137,7 +137,7 @@ fh_new_function(struct ast_node *node)
   val->proto = fh->function_proto;
 
   // Set the function length. Native functions must do this manually.
-  fh_set_len(val, (node && node->e1) ? count_node(node->e1) : 0);
+  fh_set_len(val, (node && node->e1) ? node_count(node->e1) : 0);
 
   return val;
 }
@@ -164,7 +164,7 @@ fh_new_regexp(char *re)
   // Process the trailing options: re = /pattern/[imgy]{0,4}
   int i = strlen(re) - 1;
   while (re[i] != '/' && i > 0) {
-    switch(re[i]) {
+    switch (re[i]) {
       case 'g': fh_set(val, "global", JSBOOL(1)); break;
       case 'i': fh_set(val, "ignoreCase", JSBOOL(1)); break;
       case 'm': fh_set(val, "multiline", JSBOOL(1)); break;
@@ -237,6 +237,8 @@ fh_new_global_state()
   state->opt_interactive = false;
   state->opt_print_tokens = false;
   state->opt_print_ast = false;
+  state->opt_keep_history_file = true;
+  state->opt_history_filename = ".flathead_history";
 
   return state;
 }
@@ -435,7 +437,7 @@ fh_cast(js_val *val, js_type type)
 {
   if (val->type == type) return val;
 
-  switch(type) {
+  switch (type) {
     case T_NULL: return JSNULL();
     case T_UNDEF: return JSUNDEF();
     case T_STRING: return fh_to_string(val);
@@ -492,7 +494,7 @@ char *
 fh_typeof(js_val *value) 
 {
   /* Per Table 20 of the ECMA5 spec: */
-  switch(value->type) {
+  switch (value->type) {
     case T_OBJECT:
     case T_NULL:
       return IS_FUNC(value) ? "function" : "object";
@@ -515,7 +517,7 @@ fh_has_instance(js_val *func, js_val *val)
   js_val *fproto = fh_get(func, "prototype");
   if (!IS_UNDEF(fproto) && IS_OBJ(val)) {
     js_val *proto = val->proto;
-    while(proto) {
+    while (proto) {
       if (proto == fproto)
         return JSBOOL(1);
       proto = proto->proto;

@@ -1,7 +1,7 @@
 /*
  * cli.c -- Utilities for the command line interface.
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,7 +23,7 @@
 
 
 void
-print_help()
+fh_print_help()
 {
   printf("Usage: flat [options] [script.js] \n"
          "\n"
@@ -36,7 +36,7 @@ print_help()
 }
 
 void
-print_startup()
+fh_print_startup()
 {
   printf(ANSI_BLUE);
   printf("   ______     __  __               __    \n"
@@ -48,7 +48,7 @@ print_startup()
 }
 
 void
-print_version()
+fh_print_version()
 {
   printf("%s\n", VERSION);
 }

@@ -34,7 +34,6 @@ js_val * glboal_parse_int(js_val *, js_args *, eval_state *);
 js_val * global_eval(js_val *, js_args *, eval_state *);
 js_val * global_gc(js_val *, js_args *, eval_state *);
 
-int fh_load_file(char *);
 void fh_attach_prototype(js_val *, js_val *);
 js_val * fh_bootstrap(void);
 

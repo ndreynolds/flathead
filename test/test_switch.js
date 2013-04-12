@@ -13,7 +13,7 @@ var counter = 0;
 test('matching case', function() {
   var x = 42;
 
-  switch(x) {
+  switch (x) {
     case 12:
       assert(false);
       break;
@@ -31,7 +31,7 @@ test('matching case', function() {
 test('default case', function() {
   var y = 'not handled';
 
-  switch(y) {
+  switch (y) {
     case 'a':
       assert(false);
       break;
@@ -52,7 +52,7 @@ test('default case', function() {
 test('fall-through cases and missing breaks', function() {
   var z = 'cat';
 
-  switch(z) {
+  switch (z) {
     case 'cat':
     case 'dog':
       counter++;
@@ -66,7 +66,7 @@ test('fall-through cases and missing breaks', function() {
 test('cases that follow default are checked first', function() {
   var z = 'cat';
 
-  switch(z) {
+  switch (z) {
     case 'dog':
       assert(false);
       break;

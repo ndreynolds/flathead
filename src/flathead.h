@@ -43,8 +43,8 @@
 #define JSUNDEF()      fh_new_val(T_UNDEF)
 #define JSNUM(x)       fh_new_number((x),0,0,0)
 #define JSNAN()        fh_new_number(0,1,0,0)
-#define JSINF(n)       fh_new_number(INFINITY,0,1,0)
-#define JSNINF(n)      fh_new_number(-INFINITY,0,1,1)
+#define JSINF()        fh_new_number(INFINITY,0,1,0)
+#define JSNINF()       fh_new_number(-INFINITY,0,1,1)
 #define JSOBJ()        fh_new_object()
 #define JSARR()        fh_new_array()
 #define JSFUNC(x)      fh_new_function(x)
@@ -148,6 +148,8 @@ typedef struct {
   bool opt_interactive;
   bool opt_print_tokens;
   bool opt_print_ast;
+  bool opt_keep_history_file;
+  const char *opt_history_filename;
 
   const char *script_name;
 
@@ -249,7 +251,7 @@ fh_state * fh_new_global_state();
 eval_state * fh_new_state(int, int);
 
 js_val * fh_get_arg(js_args *, int);
-unsigned int fh_arg_len(js_args*);
+unsigned fh_arg_len(js_args*);
 
 js_val * fh_eval_file(FILE *, js_val *);
 js_val * fh_eval_string(char *, js_val *);

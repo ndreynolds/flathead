@@ -27,8 +27,6 @@ js_val * obj_proto_to_locale_string(js_val *, js_args *, eval_state *);
 js_val * obj_proto_to_string(js_val *, js_args *, eval_state *);
 js_val * obj_proto_value_of(js_val *, js_args *, eval_state *);
 
-js_val * obj_or_throw(js_val *, eval_state *, const char *);
-js_prop_flags flags_from_descriptor(js_val *);
 js_val * bootstrap_object(void);
 
 #endif

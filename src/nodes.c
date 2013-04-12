@@ -1,7 +1,7 @@
 /*
  * nodes.c -- AST node definitions and traversal helpers
  *
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,10 +23,11 @@
 #include "nodes.h"
 
 ast_node *
-alloc_node()
+node_alloc()
 {
   // Allocate and return a new node
-  struct ast_node *node = malloc(sizeof(struct ast_node));
+  struct ast_node *node = malloc(sizeof(ast_node));
+  memset(node, 0, sizeof(ast_node));
   node->type = NODE_UNKNOWN;
   node->sub_type = NODE_UNKNOWN;
   node->visited = false;
@@ -34,10 +35,10 @@ alloc_node()
 }
 
 ast_node *
-new_node(enum ast_node_type type, ast_node *e1, ast_node *e2, ast_node *e3, 
+node_new(enum ast_node_type type, ast_node *e1, ast_node *e2, ast_node *e3, 
          double x, char *s, int line, int column)
 {
-  ast_node *node = alloc_node();
+  ast_node *node = node_alloc();
 
   // Assign expression subtypes
   if (type == NODE_UNARY_POST || type == NODE_UNARY_PRE) {
@@ -69,31 +70,31 @@ new_node(enum ast_node_type type, ast_node *e1, ast_node *e2, ast_node *e3,
 }
 
 ast_node *
-pop_node(ast_node *node)
+node_pop(ast_node *node)
 {
   if (node->e2 != NULL && !node->e2->visited)
-    return pop_node(node->e2);
+    return node_pop(node->e2);
   node->visited = true;
   return node->e1;
 }
 
 bool
-empty_node(ast_node *node)
+node_empty(ast_node *node)
 {
   return node->visited;
 }
 
 void
-rewind_node(ast_node *node)
+node_rewind(ast_node *node)
 {
   // Unset visited on a node linked list.
   if (!node->e1) return;
   node->visited = false;
-  if (node->e2 != NULL) rewind_node(node->e2);
+  if (node->e2 != NULL) node_rewind(node->e2);
 }
 
 int
-count_node(ast_node *node)
+node_count(ast_node *node)
 {
   int count = 0;
   ast_node *head = node;
@@ -104,18 +105,11 @@ count_node(ast_node *node)
   return count;
 }
 
-void
-print_indent(int indent) 
-{
-  int i;
-  for (i = 0; i < indent; i++) printf(" ");
-}
-
 void 
-print_node(ast_node *node, bool rec, int depth)
+node_print(ast_node *node, bool rec, int depth)
 {
-  print_indent(depth); 
-  switch(node->type) {
+  if (depth) printf("%*s", depth, " ");
+  switch (node->type) {
     case NODE_ARG_LST:     printf("argument list"); break;
     case NODE_ARR:         printf("array literal"); break;
     case NODE_ASGN:        printf("assignment"); break;
@@ -180,10 +174,9 @@ print_node(ast_node *node, bool rec, int depth)
   printf("\n");
   if (!rec) return;
   if (node->sval) {
-    print_indent(depth+2);
-    printf("%s\n", node->sval);
+    printf("%*s%s\n", depth+2, " ", node->sval);
   }
-  if (node->e1 != NULL) print_node(node->e1, rec, depth + 2);
-  if (node->e2 != NULL) print_node(node->e2, rec, depth + 2);
-  if (node->e3 != NULL) print_node(node->e3, rec, depth + 2);
+  if (node->e1 != NULL) node_print(node->e1, rec, depth + 2);
+  if (node->e2 != NULL) node_print(node->e2, rec, depth + 2);
+  if (node->e3 != NULL) node_print(node->e3, rec, depth + 2);
 }

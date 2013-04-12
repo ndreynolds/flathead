@@ -4,6 +4,9 @@
 
 #include "Object.h"
 
+static js_prop_flags flags_from_descriptor(js_val *desc);
+static js_val * obj_or_throw(js_val *, eval_state *, const char *);
+
 
 // new Object([value])
 js_val *
@@ -264,7 +267,7 @@ obj_proto_value_of(js_val *instance, js_args *args, eval_state *state)
   return instance;
 }
 
-js_val *
+static js_val *
 obj_or_throw(js_val *maybe_obj, eval_state *state, const char *name)
 {
   if (!maybe_obj || !IS_OBJ(maybe_obj))
@@ -272,7 +275,7 @@ obj_or_throw(js_val *maybe_obj, eval_state *state, const char *name)
   return maybe_obj;
 }
 
-js_prop_flags
+static js_prop_flags
 flags_from_descriptor(js_val *desc)
 {
   js_prop_flags flags = 0;

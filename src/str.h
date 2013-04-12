@@ -20,7 +20,7 @@
 #define STR_H 
 
 char * fh_str_concat(char *, char *);
-char * fh_str_slice(char *, int, int);
+char * fh_str_slice(char *, unsigned, unsigned);
 char * fh_str_replace(char *, char *, char *, int);
 
 #endif

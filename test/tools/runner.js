@@ -15,7 +15,7 @@ var commander = require('commander'),
 // Python style string formatting
 var format = function(str) {
   var args = _.toArray(arguments).slice(1);
-  while(args.length) {
+  while (args.length) {
     if (!/%s/.test(str)) return str;
     str = str.replace(/%s/, args.shift());
   }
@@ -52,6 +52,7 @@ TestRunner.run = function() {
     .option('-a, --args-tpl [string]', 'template for arguments to pass to exec', String)
     .option('-t, --timeout [ms]',      'kill test execution after', Number)
     .option('-q, --quiet',             'only display failed tests', Boolean)
+    .option('--allow-stderr',          'only fail by exit code, allow stderr', Boolean)
     .parse(process.argv)
     .name = 'test';
 
@@ -70,6 +71,7 @@ _.extend(TestRunner.prototype, {
     dir: null,
     argsTpl: '[test]',
     timeout: 2000,
+    allowStderr: false,
     quiet: false,
     files: []
   },
@@ -132,9 +134,11 @@ _.extend(TestRunner.prototype, {
   runScript: function(fileName, onSuccess, onFailure) {
     var args = this.options.argsTpl.replace('[test]', fileName);
     var cmd = [this.options.exec, args].join(' ');
+    var this_ = this;
     exec(cmd, {timeout: this.options.timeout}, function(err, stdout, stderr) {
+      var allowStderr = this_.options.allowStderr;
       fileName = fileName.split('/')[fileName.split('/').length - 1];
-      return (err || stderr) ?
+      return (err || (stderr && !allowStderr)) ?
         onFailure(fileName, err, stderr) :
         onSuccess(fileName);
     });

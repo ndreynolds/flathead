@@ -13,13 +13,69 @@
 
 #include "Array.h"
 
-// Pointer to the comparison function that the merge sort will call.
-int (*arr_cmp_func)(js_prop *, js_prop *);
 
-// Little bit of evil to allow sorting to work with user defined function
-// without needing to pass the func & state through so many calls.
-js_val *arr_js_cmp_func;
-eval_state *arr_js_cmp_state;
+// ---------------------------------------------------------------------------- 
+// Merge Sort (implements Array#sort)
+// ---------------------------------------------------------------------------- 
+
+static int (*cmp_func)(js_prop *, js_prop *);   // Current Array#sort cmp func
+static js_val *js_cmp_func;                     // JavaScript-defined cmp func
+static eval_state *js_cmp_state;                // Eval state of JS cmp func
+
+static void 
+merge(js_prop **left, js_prop **right, 
+          unsigned long l_len, unsigned long r_len, js_prop **out)
+{
+  unsigned long i, j, k;
+  for (i = j = k = 0; i < l_len && j < r_len; )
+    out[k++] = cmp_func(left[i], right[j]) ? left[i++] : right[j++];
+
+  while (i < l_len) out[k++] = left[i++];
+  while (j < r_len) out[k++] = right[j++];
+}
+ 
+static void 
+recur(js_prop **arr, js_prop **tmp, unsigned long len)
+{
+  long l = len / 2;
+  if (len <= 1) return;
+
+  recur(tmp, arr, l);
+  recur(tmp + l, arr + l, len - l);
+
+  merge(tmp, tmp + l, l, len - l, arr);
+}
+ 
+static void 
+merge_sort(js_prop **arr, unsigned long len)
+{
+  js_prop **tmp = malloc(sizeof(js_prop *) * len);
+  memcpy(tmp, arr, sizeof(js_prop *) * len);
+
+  recur(arr, tmp, len);
+
+  free(tmp);
+}
+
+static int
+cmp(js_prop *a, js_prop *b)
+{
+  return strcmp(TO_STR(a->ptr)->string.ptr, TO_STR(b->ptr)->string.ptr) < 0;
+}
+
+static int
+cmp_js(js_prop *a, js_prop *b)
+{
+  eval_state *state = js_cmp_state;
+  js_args *args = fh_new_args(a->ptr, b->ptr, 0);
+  js_val *result = fh_call(state->ctx, JSUNDEF(), state, js_cmp_func, args);
+  return TO_BOOL(result)->number.val > 0;
+}
+
+
+// ---------------------------------------------------------------------------- 
+// Array Constructor
+// ---------------------------------------------------------------------------- 
 
 // new Array(element0, element1, ..., elementN)
 // new Array(arrayLength)
@@ -49,6 +105,11 @@ arr_new(js_val *instance, js_args *args, eval_state *state)
   return arr;
 }
 
+
+// ---------------------------------------------------------------------------- 
+// Array Methods
+// ---------------------------------------------------------------------------- 
+
 // Array.isArray(obj)
 js_val *
 arr_is_array(js_val *instance, js_args *args, eval_state *state)
@@ -56,6 +117,11 @@ arr_is_array(js_val *instance, js_args *args, eval_state *state)
   js_val *obj = ARG(args, 0);
   return JSBOOL(IS_ARR(obj));
 }
+
+
+// ---------------------------------------------------------------------------- 
+// Array Prototype
+// ---------------------------------------------------------------------------- 
 
 // Array.prototype.pop()
 js_val *
@@ -167,14 +233,14 @@ arr_proto_sort(js_val *instance, js_args *args, eval_state *state)
   if (len == 0)
     return instance;
 
-  js_val *cmp_func = ARG(args, 0);
-  if (IS_FUNC(cmp_func)) {
-    arr_cmp_func = arr_cmp_js;
-    arr_js_cmp_func = cmp_func;
-    arr_js_cmp_state = state;
+  js_val *maybe_cmp_func = ARG(args, 0);
+  if (IS_FUNC(maybe_cmp_func)) {
+    cmp_func = cmp_js;
+    js_cmp_func = maybe_cmp_func;
+    js_cmp_state = state;
   }
   else {
-    arr_cmp_func = arr_cmp;
+    cmp_func = cmp;
   }
 
   js_val *sorted = JSARR();
@@ -192,7 +258,7 @@ arr_proto_sort(js_val *instance, js_args *args, eval_state *state)
   }
 
   // Do a merge sort of the js_prop pointers array.
-  arr_merge_sort(prop_lst, i);
+  merge_sort(prop_lst, i);
 
   // Rebuild the hashmap (using a donor array).
   for (j = 0; j < i; j++) {
@@ -346,11 +412,39 @@ arr_proto_concat(js_val *instance, js_args *args, eval_state *state)
   return concat;
 }
 
+static js_val *
+do_join(js_val *arr, js_val *sep)
+{
+  js_val *result = JSSTR("");
+
+  if (IS_UNDEF(sep)) sep = JSSTR(",");
+  sep = TO_STR(sep);
+
+  bool first = true;
+  js_val *el;
+  js_val *strval;
+  unsigned long i;
+
+  for (i = 0; i < arr->object.length; i++) {
+    el = fh_get(arr, JSNUMKEY(i)->string.ptr);
+
+    if (!first)
+      result = JSSTR(fh_str_concat(result->string.ptr, sep->string.ptr));
+    else
+      first = false;
+
+    strval = IS_UNDEF(el) || IS_NULL(el) ? JSSTR("") : TO_STR(el);
+    result = JSSTR(fh_str_concat(result->string.ptr, strval->string.ptr));
+  }
+
+  return result;
+}
+
 // Array.prototype.join(separator)
 js_val *
 arr_proto_join(js_val *instance, js_args *args, eval_state *state)
 {
-  return arr_do_join(instance, ARG(args, 0));
+  return do_join(instance, ARG(args, 0));
 }
 
 // Array.prototype.slice(begin[, end])
@@ -401,7 +495,7 @@ arr_proto_slice(js_val *instance, js_args *args, eval_state *state)
 js_val *
 arr_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 {
-  return arr_do_join(instance, JSSTR(","));
+  return do_join(instance, JSSTR(","));
 }
 
 // Array.prototype.indexOf(searchElement[, fromIndex])
@@ -646,84 +740,6 @@ arr_proto_reduce_right(js_val *instance, js_args *args, eval_state *state)
   } while (i--);
 
   return reduction;
-}
-
-void 
-arr_merge(js_prop **left, js_prop **right, 
-          unsigned long l_len, unsigned long r_len, js_prop **out)
-{
-  unsigned long i, j, k;
-  for (i = j = k = 0; i < l_len && j < r_len; )
-    out[k++] = arr_cmp_func(left[i], right[j]) ? left[i++] : right[j++];
-
-  while (i < l_len) out[k++] = left[i++];
-  while (j < r_len) out[k++] = right[j++];
-}
- 
-void 
-arr_recur(js_prop **arr, js_prop **tmp, unsigned long len)
-{
-  long l = len / 2;
-  if (len <= 1) return;
-
-  arr_recur(tmp, arr, l);
-  arr_recur(tmp + l, arr + l, len - l);
-
-  arr_merge(tmp, tmp + l, l, len - l, arr);
-}
- 
-void 
-arr_merge_sort(js_prop **arr, unsigned long len)
-{
-  js_prop **tmp = malloc(sizeof(js_prop *) * len);
-  memcpy(tmp, arr, sizeof(js_prop *) * len);
-
-  arr_recur(arr, tmp, len);
-
-  free(tmp);
-}
-
-int
-arr_cmp(js_prop *a, js_prop *b)
-{
-  return strcmp(TO_STR(a->ptr)->string.ptr, TO_STR(b->ptr)->string.ptr) < 0;
-}
-
-int
-arr_cmp_js(js_prop *a, js_prop *b)
-{
-  eval_state *state = arr_js_cmp_state;
-  js_args *args = fh_new_args(a->ptr, b->ptr, 0);
-  js_val *result = fh_call(state->ctx, JSUNDEF(), state, arr_js_cmp_func, args);
-  return TO_BOOL(result)->number.val > 0;
-}
-
-js_val *
-arr_do_join(js_val *arr, js_val *sep)
-{
-  js_val *result = JSSTR("");
-
-  if (IS_UNDEF(sep)) sep = JSSTR(",");
-  sep = TO_STR(sep);
-
-  bool first = true;
-  js_val *el;
-  js_val *strval;
-  unsigned long i;
-
-  for (i = 0; i < arr->object.length; i++) {
-    el = fh_get(arr, JSNUMKEY(i)->string.ptr);
-
-    if (!first)
-      result = JSSTR(fh_str_concat(result->string.ptr, sep->string.ptr));
-    else
-      first = false;
-
-    strval = IS_UNDEF(el) || IS_NULL(el) ? JSSTR("") : TO_STR(el);
-    result = JSSTR(fh_str_concat(result->string.ptr, strval->string.ptr));
-  }
-
-  return result;
 }
 
 js_val *

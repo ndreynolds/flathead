@@ -24,6 +24,7 @@ js_val * math_round(js_val *, js_args *, eval_state *);
 js_val * math_sin(js_val *, js_args *, eval_state *);
 js_val * math_sqrt(js_val *, js_args *, eval_state *);
 js_val * math_tan(js_val *, js_args *, eval_state *);
+
 js_val * bootstrap_math(void);
 
 #endif

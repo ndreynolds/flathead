@@ -30,15 +30,7 @@ typedef struct gc_arena {
   js_val *slots;
 } gc_arena;
 
-gc_arena * fh_new_arena(void);
-gc_arena * fh_get_arena(void);
-js_val * fh_global(void);
 js_val * fh_malloc(bool);
-
 void fh_gc(void);
-void fh_gc_debug(void);
-void fh_gc_mark(js_val *);
-void fh_gc_sweep(gc_arena *);
-void fh_gc_free_val(js_val *);
 
 #endif
