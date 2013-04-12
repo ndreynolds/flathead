@@ -1,7 +1,7 @@
 /*
  * runtime.h -- Bootstrap global object and friends 
  * 
- * Copyright (c) 2012 Nick Reynolds
+ * Copyright (c) 2012-2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -34,6 +34,7 @@ js_val * glboal_parse_int(js_val *, js_args *, eval_state *);
 js_val * global_eval(js_val *, js_args *, eval_state *);
 js_val * global_gc(js_val *, js_args *, eval_state *);
 
+int fh_load_file(char *);
 void fh_attach_prototype(js_val *, js_val *);
 js_val * fh_bootstrap(void);
 

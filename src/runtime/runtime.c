@@ -81,7 +81,6 @@ js_val *
 global_eval(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *code = TO_STR(ARG(args, 0));
-  code->string.ptr[code->string.length] = '\0';
   return fh_eval_string(code->string.ptr, state->ctx);
 }
 
@@ -101,17 +100,33 @@ js_val *
 global_load(js_val *instance, js_args *args, eval_state *state)
 {
   unsigned int i;
-  js_val *name;
   for (i = 0; i < ARGLEN(args); i++) {
-    name = TO_STR(ARG(args, i));
-    if (access(name->string.ptr, R_OK) == -1)
+    if (fh_load_file(TO_STR(ARG(args, i))->string.ptr) == -1)
       fh_error(state, E_ERROR, "File could not be read");
-
-    FILE *file = fopen(name->string.ptr, "r");
-    fh_eval_file(file, fh->global);
-    fclose(file);
   }
   return JSUNDEF();
+}
+
+int
+fh_load_file(char *name)
+{
+  if (access(name, R_OK) == -1)
+    return -1;
+
+  FILE *file = fopen(name, "r");
+
+  fseek(file, 0, SEEK_END); 
+  unsigned size = ftell(file);
+  fseek(file, 0, SEEK_SET);
+
+  char *fcontent = malloc(size);
+  fread(fcontent, 1, size, file); 
+  fclose(file);
+
+  fcontent[size] = '\0';
+  fh_eval_string(fcontent, fh->global);
+  free(fcontent);
+  return 0;
 }
 
 // Helper function that attaches a given prototype to all properties of the
