@@ -136,6 +136,9 @@ fh_new_function(struct ast_node *node)
   val->object.bound_args = NULL;
   val->proto = fh->function_proto;
 
+  // Set the function length. Native functions must do this manually.
+  fh_set_len(val, (node && node->e1) ? count_node(node->e1) : 0);
+
   return val;
 }
 

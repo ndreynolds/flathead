@@ -10,6 +10,11 @@ var assertEquals = function(a, b) {
   assert(a === b);
 };
 
+var assertIsFunction = function(test, length) {
+  assert(test instanceof Function);
+  assertEquals(test.length, length);
+};
+
 var test = function(name, f) {
   f();
 };
@@ -23,7 +28,18 @@ assert(Function);
 assert(typeof Function === 'function');
 
 test('Constructor', function() {
-  // TODO
+  assertIsFunction(new Function,                            0);
+  assertIsFunction(new Function(),                          0);
+  assertIsFunction(new Function('return 42;'),              0);
+  assertIsFunction(new Function('a', 'return a;'),          1);
+  assertIsFunction(new Function('a', 'b', 'return a + b;'), 2);
+  assertIsFunction(new Function('a', 'b', 'c', 'd', '42;'), 4);
+
+  assertEquals(undefined, (new Function)());
+  assertEquals(undefined, new Function()());
+  assertEquals(42,        new Function('return 42;')());
+  assertEquals(42,        new Function('a', 'return a;')(42));
+  assertEquals(42,        new Function('a', 'b', 'return a + b;')(21, 21));
 });
 
 

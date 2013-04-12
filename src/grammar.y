@@ -1170,14 +1170,17 @@ fh_eval_file(FILE *file, js_val *ctx)
   if (fh->opt_print_ast) 
     print_node(root, true, 0);
 
-  js_val *res = fh_eval(ctx, root);
-  return res;
+  return fh_eval(ctx, root);
 }
 
 js_val *
 fh_eval_string(char *string, js_val *ctx)
 {
-  void *buffer = yy_scan_string(string);
+  // Save the current interactive setting and set it to false.
+  bool tmp = fh->opt_interactive;
+  fh->opt_interactive = false;
+
+  YY_BUFFER_STATE buffer = yy_scan_string(string);
   yyparse();
 
   if (fh->opt_print_ast) 
@@ -1185,6 +1188,7 @@ fh_eval_string(char *string, js_val *ctx)
 
   js_val *res = fh_eval(ctx, root);
   yy_delete_buffer(buffer);
+  fh->opt_interactive = tmp;
   return res;
 }
 
@@ -1243,7 +1247,8 @@ main(int argc, char **argv)
       if (!setjmp(fh->jmpbuf))
         DEBUG(fh_eval_file(source, fh->global));
     }
-  } else {
+  } 
+  else {
     fh_eval_file(source, fh->global);
   }
 

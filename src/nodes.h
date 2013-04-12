@@ -95,6 +95,7 @@ ast_node * new_node(enum ast_node_type, ast_node *, ast_node *, ast_node *, doub
 ast_node * pop_node(ast_node *);
 void rewind_node(ast_node *);
 bool empty_node(ast_node *);
+int count_node(ast_node *);
 
 void print_indent(int); 
 void print_node(ast_node *, bool, int);

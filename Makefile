@@ -81,7 +81,7 @@ malloc-debug: LIBS += -lefence
 malloc-debug: debug
 
 
-lex.yy.c:
+lex.yy.c: lex.yy.h
 	$(LEX) --header-file=lex.yy.h $(LEX_FLAGS) $(LEX_FILE)
 
 lex.yy.o: lex.yy.c $(LEX_FILE)

@@ -87,9 +87,21 @@ void
 rewind_node(ast_node *node)
 {
   // Unset visited on a node linked list.
-  if (node->e1 == 0) return;
+  if (!node->e1) return;
   node->visited = false;
   if (node->e2 != NULL) rewind_node(node->e2);
+}
+
+int
+count_node(ast_node *node)
+{
+  int count = 0;
+  ast_node *head = node;
+  while (head) {
+    if (head->e1) count++;
+    head = head->e2;
+  }
+  return count;
 }
 
 void

@@ -8,11 +8,36 @@
 js_val *
 func_new(js_val *instance, js_args *args, eval_state *state)
 {
-  // TODO: No clue how this is going to work. Need to generate
-  // nodes for the args, which can be manual, but also the func
-  // body, which we'll need the parser's help with.
-  fh_error(state, E_ERROR, "The Function constructor is not yet implemented");
-  UNREACHABLE();
+  unsigned arglen = ARGLEN(args);
+  unsigned i = 0;
+  char *arg_lst = NULL;
+  char *tmp;
+
+  for (i = 0; arglen > 0 && i < (arglen - 1); i++) {
+    if (!arg_lst) {
+      arg_lst = TO_STR(ARG(args, i))->string.ptr;
+    }
+    else {
+      tmp = arg_lst;
+      arg_lst = fh_str_concat(arg_lst, ", ");
+      free(tmp);
+      tmp = arg_lst;
+      arg_lst = fh_str_concat(arg_lst, TO_STR(ARG(args, i))->string.ptr);
+      free(tmp);
+    }
+  }
+
+  if (arglen <= 1)
+    arg_lst = "";
+
+  char *body = arglen > 0 ? TO_STR(ARG(args, i))->string.ptr : "";
+  char *fmt = "(function(%s) { %s });";
+
+  int size = snprintf(NULL, 0, fmt, arg_lst, body) + 1;
+  char *func_def = malloc(size);
+  snprintf(func_def, size, fmt, arg_lst, body);
+
+  return fh_eval_string(func_def, state->ctx);
 }
 
 // Function.prototype.apply(thisValue[, argsArray])
@@ -24,8 +49,8 @@ func_proto_apply(js_val *instance, js_args *args, eval_state *state)
   js_args *func_args = malloc(sizeof(js_args));
   js_args *func_args_head = func_args;
 
-  int len = arr->object.length;
-  int i;
+  unsigned len = arr->object.length;
+  unsigned i;
 
   for (i = 0; i < len; i++) {
     func_args->arg = fh_get(arr, JSNUMKEY(i)->string.ptr);
