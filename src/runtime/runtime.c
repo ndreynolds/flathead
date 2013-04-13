@@ -160,13 +160,14 @@ load_file(char *name)
   FILE *file = fopen(name, "r");
 
   fseek(file, 0, SEEK_END); 
-  unsigned size = ftell(file) + 1;
+  unsigned size = ftell(file);
   fseek(file, 0, SEEK_SET);
 
-  char *fcontent = malloc(size);
+  char *fcontent = malloc(size + 1);
   size_t result = fread(fcontent, 1, size, file); 
   fclose(file);
-  if (result == size)
+
+  if (result != size)
     return -1;
 
   fcontent[size] = '\0';
