@@ -122,6 +122,10 @@ L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext);
 [_\$A-Za-z][_\$0-9A-Za-z]*   { yylval.val = yytext; 
                                return TOKEN("IDENT", IDENT); }
 
+    /* octals */
+0[0-7]+                      { yylval.floatval = strtol(yytext, NULL, 8);
+                               return TOKEN("OCT", NUMBER); }
+
     /* integers */
 {D}+({E})?                   { yylval.floatval = atof(yytext); 
                                return TOKEN("INT", NUMBER); }
