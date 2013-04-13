@@ -1147,9 +1147,11 @@ fh_get_input(char *buf, int size)
 
     add_history(buf);
 
+    // Use the file 
     if (fh->opt_keep_history_file) {
-      history_truncate_file(fh->opt_history_filename, 1000);
       write_history(fh->opt_history_filename);
+      history_truncate_file(fh->opt_history_filename, 1000);
+      clear_history();
     }
 
     // Poor man's ASI:
