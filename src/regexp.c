@@ -16,7 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef fh_no_regexp
+#ifndef FH_NO_REGEXP
 #include <pcre.h>
 #endif
 
@@ -28,12 +28,12 @@ const int regexp_vector_len = 30;
 
 
 /* Gateway to the PCRE library. Compiles a regular expression pattern and
- * returns matches. When compiled with fh_no_regexp, this function is still
+ * returns matches. When compiled with FH_NO_REGEXP, this function is still
  * available, but will throw an error when called. */
 int *
 fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
 {
-#ifndef fh_no_regexp
+#ifndef FH_NO_REGEXP
   const char *error;
   int rc;
   int error_offset;
@@ -72,7 +72,7 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
 int 
 fh_regexp_ncaptures(char *pattern)
 {
-#ifndef fh_no_regexp
+#ifndef FH_NO_REGEXP
   const char *error;
   int error_offset;
   int options = PCRE_JAVASCRIPT_COMPAT;

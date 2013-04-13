@@ -44,13 +44,13 @@ fh_print_startup()
          " / _// / _ `/ __/ _ \\/ -_) _ `/ _  /    \n"
          "/_/ /_/\\_,_/\\__/_//_/\\__/\\_,_/\\_,_/ \n");
   printf(ANSI_RESET);
-  printf("\nVersion %s (<ctrl-d> to quit)          \n", VERSION);
+  printf("\nVersion %s (<ctrl-d> to quit)          \n", FH_VERSION);
 }
 
 void
 fh_print_version()
 {
-  printf("%s\n", VERSION);
+  printf("%s\n", FH_VERSION);
 }
 
 void

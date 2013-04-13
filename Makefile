@@ -37,12 +37,12 @@ LEX_FILE = src/lexer.l
 
 TEST_FLAGS = --dir test
 
-VERSION = 0.6
+VERSION = $(shell grep -o '\d.\d.\d' src/version.h)
 
 # Build flags, usage: make debug=on
 
 ifeq ($(debug), on)
-  CFLAGS += -Dfh_debug
+  CFLAGS += -DFH_DEBUG
 endif
 
 ifdef hashfn
@@ -50,21 +50,21 @@ ifdef hashfn
 endif
 
 ifeq ($(gcprofile), on)
-  CFLAGS += -Dfh_gc_profile
+  CFLAGS += -DFH_GC_PROFILE
 endif
 
 ifneq ($(gcexpose), off)
-  CFLAGS += -Dfh_gc_expose
+  CFLAGS += -DFH_GC_EXPOSE
 endif
 
 ifeq ($(readline), off)
-  CFLAGS += -Dfh_no_repl
+  CFLAGS += -DFH_NO_REPL
 else
   LIBS += -lreadline
 endif
 
 ifeq ($(regexp), off)
-  CFLAGS += -Dfh_no_regexp
+  CFLAGS += -DFH_NO_REGEXP
 else
   LIBS += -lpcre
 endif

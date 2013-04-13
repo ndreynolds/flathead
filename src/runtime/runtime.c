@@ -259,11 +259,11 @@ fh_bootstrap()
   DEF(global, "eval",       JSNFUNC(global_eval, 1));
 
   // Extras
-  DEF(global, "FH_VERSION", JSSTR(VERSION));
+  DEF(global, "FH_VERSION", JSSTR(FH_VERSION));
   DEF(global, "load",       JSNFUNC(global_load, 1));
   DEF(global, "print",      JSNFUNC(console_log, 1));
 
-#ifdef fh_gc_expose
+#ifdef FH_GC_EXPOSE
   DEF(global, "gc", JSNFUNC(global_gc, 0));
 #endif
 

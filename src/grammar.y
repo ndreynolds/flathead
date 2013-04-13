@@ -24,7 +24,7 @@
   #include <getopt.h>
   #include <setjmp.h>
 
-#ifndef fh_no_repl
+#ifndef FH_NO_REPL
   #include <readline/readline.h>
   #include <readline/history.h>
 #endif
@@ -1127,7 +1127,7 @@ fh_get_input(char *buf, int size)
 {
   // For the REPL:
   if (fh->opt_interactive) {
-#ifdef fh_no_repl
+#ifdef FH_NO_REPL
     fprintf(stderr, "Error: REPL not available. Build with readline.");
     exit(1);
 #else

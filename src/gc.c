@@ -116,7 +116,7 @@ fh_malloc(bool first_attempt)
 static void
 fh_gc_debug()
 {
-#ifdef fh_gc_profile
+#ifdef FH_GC_PROFILE
 
   gc_state state = fh->gc_state;
   long clockt = clock() / (CLOCKS_PER_SEC / 1000);
