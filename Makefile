@@ -81,7 +81,7 @@ malloc-debug: LIBS += -lefence
 malloc-debug: debug
 
 
-lex.yy.c: lex.yy.h $(LEX_FILE)
+lex.yy.c: $(LEX_FILE)
 	$(LEX) --header-file=lex.yy.h $(LEX_FLAGS) $(LEX_FILE)
 
 lex.yy.o: lex.yy.c $(LEX_FILE)
@@ -100,7 +100,7 @@ linker: $(OBJ_FILES)
 	@$(CC) -c $(CFLAGS) $< -o $@
 
 clean:
-	rm -rf y.* lex.yy.c y.tab.c y.tab.h $(OUT_FILE) $(OBJ_FILES)
+	rm -rf y.* lex.yy.? y.tab.? $(OUT_FILE) $(OBJ_FILES)
 
 install:
 	cp $(OUT_FILE) /usr/local/bin/

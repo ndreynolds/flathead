@@ -33,8 +33,6 @@
 #include "lib/RegExp.h"
 #include "lib/Error.h"
 
-static int load_file(char *);
-
 
 // isNaN(value)
 js_val *
@@ -153,6 +151,30 @@ global_gc(js_val *instance, js_args *args, eval_state *state)
   return JSUNDEF();
 }
 
+static int
+load_file(char *name)
+{
+  if (access(name, R_OK) == -1)
+    return -1;
+
+  FILE *file = fopen(name, "r");
+
+  fseek(file, 0, SEEK_END); 
+  unsigned size = ftell(file) + 1;
+  fseek(file, 0, SEEK_SET);
+
+  char *fcontent = malloc(size);
+  size_t result = fread(fcontent, 1, size, file); 
+  fclose(file);
+  if (result == size)
+    return -1;
+
+  fcontent[size] = '\0';
+  fh_eval_string(fcontent, fh->global);
+  free(fcontent);
+  return 0;
+}
+
 // load(filename)
 //
 // Execute the file with the given name in the global scope. Compatible
@@ -166,28 +188,6 @@ global_load(js_val *instance, js_args *args, eval_state *state)
       fh_error(state, E_ERROR, "File could not be read");
   }
   return JSUNDEF();
-}
-
-static int
-load_file(char *name)
-{
-  if (access(name, R_OK) == -1)
-    return -1;
-
-  FILE *file = fopen(name, "r");
-
-  fseek(file, 0, SEEK_END); 
-  unsigned size = ftell(file);
-  fseek(file, 0, SEEK_SET);
-
-  char *fcontent = malloc(size + 1);
-  fread(fcontent, 1, size, file); 
-  fclose(file);
-
-  fcontent[size] = '\0';
-  fh_eval_string(fcontent, fh->global);
-  free(fcontent);
-  return 0;
 }
 
 // Helper function that attaches a given prototype to all properties of the
