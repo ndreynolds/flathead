@@ -18,6 +18,8 @@
 
 #include <math.h>
 #include <unistd.h>
+#include <ctype.h>
+
 #include "runtime.h"
 #include "lib/console.h"
 #include "lib/Math.h"
@@ -50,25 +52,82 @@ global_is_finite(js_val *instance, js_args *args, eval_state *state)
   return JSBOOL(!(num->number.is_nan || num->number.is_inf));
 }
 
+/* Returns the numeric value (0-35) of a given alphanumeric character, or 36
+ * if the character is not alphanumeric. */
+static unsigned
+radix_val(char x)
+{
+  if (x >= '0' && x <= '9') return x - '0';
+  if (x >= 'a' && x <= 'z') return 10 + (x - 'a');
+  if (x >= 'A' && x <= 'Z') return 10 + (x - 'A');
+  return 36;
+}
+
+static char *
+slice_with_free(char *input, unsigned start, unsigned end)
+{
+  char *tmp = input;
+  input = fh_str_slice(input, start, end);
+  free(tmp);
+  return input;
+}
+
 // parseInt(string[, radix])
 js_val *
 global_parse_int(js_val *instance, js_args *args, eval_state *state)
 {
-  js_val *to_parse = TO_STR(ARG(args, 0));
-  js_val *radix_arg = ARG(args, 1);
-  
-  // FIXME: determine radix based on start of string
-  int radix = IS_NUM(radix_arg) ? radix_arg->number.val : 10;
-  char *ep;
-  long l;
+  char *input = TO_STR(ARG(args, 0))->string.ptr;
+  js_val *radix = TO_INT32(ARG(args, 1));
 
-  l = strtol(to_parse->string.ptr, &ep, radix);
-  if (*ep != 0) {
-    js_val *num = TO_NUM(to_parse);
-    return IS_NAN(num) ? JSNAN() : JSNUM(floor(num->number.val));
+  int sign = 1;
+  unsigned len = strlen(input);
+  unsigned offset = 0;
+
+  while (isspace(input[offset]) && offset < len)
+    offset++;
+  char *s = fh_str_slice(input, offset, len);
+  len = strlen(s);
+  if (len > 0 && s[0] == '-')
+    sign = -1;
+  if (len > 0 && (s[0] == '-' || s[0] == '+')) {
+    s = slice_with_free(s, 1, len);
+    len = strlen(s);
   }
 
-  return JSNUM((int)l);
+  bool strip_prefix = true;
+  unsigned r = 10;
+  if (radix->number.val != 0) {
+    if (radix->number.val < 2 || radix->number.val > 32)
+      return JSNAN();
+    if (radix->number.val != 16)
+      strip_prefix = false;
+    r = radix->number.val;
+  }
+
+  if (strip_prefix) {
+    if (len >= 2 && s[0] == '0' && (s[1] == 'X' || s[1] == 'x')) {
+      s = slice_with_free(s, 2, len);
+      len = strlen(s);
+      r = 16;
+    }
+  }
+
+  for (offset = 0; offset < len; offset++)
+    if (radix_val(s[offset]) > r) break;
+
+  if (offset == 0)
+    return JSNAN();
+  else {
+    s = slice_with_free(s, 0, offset);
+    len = strlen(s);
+  }
+
+  double sum = 0;
+  unsigned i;
+  for (i = 0; i < len; i++)
+    sum += radix_val(s[i]) * pow(r, len - i - 1);
+
+  return JSNUM(sign * sum);
 }
 
 // parseFloat(string)
@@ -200,6 +259,7 @@ fh_bootstrap()
   DEF(global, "eval",       JSNFUNC(global_eval, 1));
 
   // Extras
+  DEF(global, "FH_VERSION", JSSTR(VERSION));
   DEF(global, "load",       JSNFUNC(global_load, 1));
   DEF(global, "print",      JSNFUNC(console_log, 1));
 

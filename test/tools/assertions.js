@@ -14,6 +14,10 @@
 
   root.assertFalse = function(a) { assert(!a); };
 
+  root.assertNaN = function(x) {
+    assert(isNaN(x) && x !== undefined);
+  };
+
   root.assertEquals = function(a, b) {
     if (a !== b)
       console.log(a + ' !== ' + b);
@@ -46,6 +50,15 @@
     assertEquals(r.ignoreCase, cmp.ignoreCase);
   };
 
+  root.assertIsFunction = function(test, length) {
+    assert(test instanceof Function);
+    assertEquals(test.length, length);
+  };
+
+  root.assertIsObject = function(test) {
+    assert(test instanceof Object);
+  };
+
   root.assertBetween = function(x, min, max) {
     assert(x > min && x < max); // exclusive
   };
@@ -61,5 +74,11 @@
     f();
   };
 
+  // Test implementation-specific behavior.
+  root.testIfFlathead = function(f) {
+    if (this.FH_VERSION) f();
+  };
+
   root.assertionsLoaded = true;
+
 })();

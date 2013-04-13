@@ -3,31 +3,7 @@
 // Test methods and properties on the global object.
 // Make sure everyone's on board. Check built-ins for presence and length.
 
-
-var assert = console.assert;
-
-var assertNaN = function(x) {
-  assert(isNaN(x) && x !== undefined);
-};
-
-var assertEquals = function(a, b) {
-  if (a !== b)
-    console.log(a + ' !== ' + b);
-  assert(a === b);
-};
-
-var assertIsFunction = function(test, length) {
-  assert(test instanceof Function);
-  assertEquals(test.length, length);
-};
-
-var assertIsObject = function(test) {
-  assert(test instanceof Object);
-};
-
-var test = function(name, f) {
-  f();
-};
+(this.load || require)((this.load ? 'test' : '.') + '/tools/assertions.js');
 
 
 test('global functions', function() {
@@ -50,27 +26,14 @@ test('global functions', function() {
   });
 
   test('parseInt(string, radix)', function() {
+    // See also: test_parseint.js
     assertIsFunction(parseInt, 2);
 
-    // without radix
-    assertEquals(42, parseInt("42"));
     assertEquals(3,  parseInt("3.14"));
+    assertEquals(0x12, parseInt('0x12', 16));
+    assertEquals(15, parseInt(021, 8));
     assertNaN(parseInt("Not a number"));
-
-    // with radix
-    assertEquals(15, parseInt(" 0xF", 16));
-    assertEquals(15, parseInt(" F", 16));
-    assertEquals(15, parseInt("17", 8));
-    // FIXME: assertEquals(15, parseInt(021, 8));
-    assertEquals(15, parseInt("015", 10));
-    assertEquals(15, parseInt(15.99, 10));
-    // FIXME: assertEquals(15, parseInt("FXX123", 16));
-    assertEquals(15, parseInt("1111", 2));
-    // FIXME: assertEquals(15, parseInt("15*3", 10));
-    // FIXME: assertEquals(15, parseInt("15e2", 10));
-    // FIXME: assertEquals(15, parseInt("15px", 10));
-    assertEquals(15, parseInt("12", 13));
-    assertNaN(parseInt("Not a number", 10));
+    assertNaN(parseInt(Infinity));
   });
 
   test('parseFloat(string)', function() {
