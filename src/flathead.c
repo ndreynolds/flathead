@@ -195,8 +195,22 @@ fh_new_prop(js_prop_flags flags)
   return prop;
 }
 
-static unsigned int statetrace[8][2];
-static unsigned char current;
+void
+fh_pop_state()
+{
+  if (fh->statetrace) {
+    eval_state *pop = fh->statetrace;
+    fh->statetrace = pop->parent;
+    free(pop);
+  }
+}
+
+void
+fh_push_state(eval_state *state)
+{
+  state->parent = fh->statetrace;
+  fh->statetrace = state;
+}
 
 eval_state *
 fh_new_state(int line, int column)
@@ -205,12 +219,10 @@ fh_new_state(int line, int column)
 
   state->line = line;
   state->column = column;
-  statetrace[current & 7][0] = line;
-  statetrace[current & 7][1] = column;
-  current++;
 
   state->ctx = NULL;
   state->this = NULL;
+  state->parent = NULL;
   state->construct = false;
 
   return state;
@@ -299,6 +311,7 @@ fh_to_primitive(js_val *val, js_type hint)
     if (fh_is_callable(maybe_func)) {
       state = fh_new_state(0, 0);
       args = fh_new_args(0, 0, 0);
+      fh_push_state(state);
       res = fh_call(fh->global, val, state, maybe_func, args);
       if (!IS_OBJ(res)) return res;
     }
@@ -472,16 +485,17 @@ fh_error(eval_state *state, js_error_type type, const char *tpl, ...)
   va_end(ap);
   fprintf(stderr, "\n");
 
-  if (state != NULL)
-    fprintf(stderr, "  at %s:%u:%u\n", fh->script_name, state->line, state->column);
-
-  unsigned char i;
-  for (i = 0; i < sizeof statetrace / sizeof statetrace[0]; i++, current++) {
+  while (state != NULL) {
     fprintf(stderr, "  at %s:%u:%u\n", 
-        fh->script_name, statetrace[current & 7][0], statetrace[current & 7][1]);
+        fh->script_name, state->line, state->column);
+    if (!state->parent) break;
+    state = state->parent;
   }
-  if (fh->opt_interactive)
+
+  if (fh->opt_interactive) {
+    fh->statetrace = NULL;
     longjmp(fh->jmpbuf, 1); 
+  }
   exit(1);
 }
 

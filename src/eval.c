@@ -103,6 +103,7 @@ ident(js_val *ctx, ast_node *id)
   js_prop *prop = fh_get_prop_rec(ctx, id->sval);
   if (!prop) {
     eval_state *state = fh_new_state(id->line, id->column);
+    fh_push_state(state);
     fh_error(state, E_REFERENCE, "%s is not defined", id->sval);
   }
   return prop->ptr;
@@ -671,6 +672,18 @@ forin_stmt(js_val *ctx, ast_node *node)
 
 
 // ----------------------------------------------------------------------------
+// Try/Catch
+// ----------------------------------------------------------------------------
+
+static js_val *
+try_stmt(js_val *ctx, ast_node *node)
+{
+  // TODO: Exception handling
+  return fh_eval(ctx, node->e1);
+}
+
+
+// ----------------------------------------------------------------------------
 // Function Application
 // ----------------------------------------------------------------------------
 
@@ -750,6 +763,8 @@ call_exp(js_val *ctx, ast_node *call)
     return fh_get_proto(maybe_func, str_from_node(ctx, call->e2)->string.ptr);
 
   eval_state *state= fh_new_state(call->line, call->column);
+  fh_push_state(state);
+
   state->ctx = ctx;
   if (!IS_FUNC(maybe_func))
     fh_error(state, E_TYPE, "%s is not a function", fh_typeof(maybe_func));
@@ -771,6 +786,8 @@ fh_call(js_val *ctx, js_val *this, eval_state *state, js_val *func, js_args *arg
   state->ctx = ctx;
   state->this = this;
 
+  js_val *res;
+
   if (func->object.native) {
     // Native functions are C functions referenced by pointer.
     js_native_function *native = func->object.nativefn;
@@ -781,12 +798,16 @@ fh_call(js_val *ctx, js_val *this, eval_state *state, js_val *func, js_args *arg
     if (instance && IS_OBJ(instance) && instance->object.primitive)
       instance = instance->object.primitive;
 
-    return native(instance, args, state);
+    res = native(instance, args, state);
+  }
+  else {
+    node_rewind(func->object.node);
+    js_val *func_scope = setup_call_env(ctx, this, func, args);
+    res = fh_eval(func_scope, func->object.node->e2);
   }
 
-  node_rewind(func->object.node);
-  js_val *func_scope = setup_call_env(ctx, this, func, args);
-  return fh_eval(func_scope, func->object.node->e2);
+  fh_pop_state();
+  return res;
 }
 
 
@@ -812,6 +833,7 @@ new_exp(js_val *ctx, ast_node *exp)
   }
 
   eval_state *state= fh_new_state(exp->line, exp->column);
+  fh_push_state(state);
   state->construct = true;
 
   if (!IS_FUNC(ctr))
@@ -1021,6 +1043,7 @@ fh_eval(js_val *ctx, ast_node *node)
     case NODE_RETURN:      return return_stmt(ctx, node);
     case NODE_VAR_DEC:     return var_dec(ctx, node, false);
     case NODE_BREAK:       return break_stmt();
+    case NODE_TRY_STMT:    return try_stmt(ctx, node);
     case NODE_IF:          return if_stmt(ctx, node);
     case NODE_TERN:        return if_stmt(ctx, node);
     case NODE_BLOCK:       return fh_eval(ctx, node->e1);
@@ -1035,11 +1058,12 @@ fh_eval(js_val *ctx, ast_node *node)
     case NODE_FORIN:       forin_stmt(ctx, node); break;
     case NODE_EMPT_STMT:   break;
 
-    default:
-      fh_error(
-        fh_new_state(node->line, node->column), E_SYNTAX,
-        "Unsupported syntax type (%d)", node->type
-      );
+    default: 
+    {
+      eval_state *state = fh_new_state(node->line, node->column);
+      fh_push_state(state);
+      fh_error(state, E_SYNTAX, "Unsupported syntax type (%d)", node->type);
+    }
   }
 
   return JSUNDEF();

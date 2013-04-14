@@ -1117,6 +1117,7 @@ void
 yyerror(const char *s) 
 {
   eval_state *state = fh_new_state(yylloc.first_line, yylloc.first_column);
+  fh_push_state(state);
   // Trim the "syntax error: " prefix so we can use fh_error.
   fh_error(state, E_SYNTAX, strlen(s) >= 14 ? s + 14 : s);
 }

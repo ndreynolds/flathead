@@ -88,7 +88,6 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 
-struct js_args;
 struct js_val;
 struct ast_node;
 struct gc_arena;
@@ -154,18 +153,21 @@ typedef struct {
 
   jmp_buf jmpbuf;                   // used to handle errors within REPL
 
+  struct eval_state *statetrace;
+
   struct js_val *function_proto;    // cache prototype pointers
   struct js_val *object_proto;
   struct js_val *array_proto;
   struct js_val *global;
 } fh_state;
 
-typedef struct {
+typedef struct eval_state {
   int line;
   int column;
   bool construct;
   struct js_val *ctx;
   struct js_val *this;
+  struct eval_state *parent;
 } eval_state;
 
 typedef struct {
@@ -247,7 +249,10 @@ js_val * fh_new_regexp(char *);
 js_args * fh_new_args(js_val *, js_val *, js_val *);
 js_prop * fh_new_prop(js_prop_flags);
 fh_state * fh_new_global_state();
+
 eval_state * fh_new_state(int, int);
+void fh_push_state(eval_state *);
+void fh_pop_state();
 
 js_val * fh_get_arg(js_args *, int);
 unsigned fh_arg_len(js_args*);
