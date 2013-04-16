@@ -706,7 +706,7 @@ setup_call_env(js_val *ctx, js_val *this, js_val *func, js_args *args)
     fh_set(scope, func_node->sval, func);
 
   // Set up the (array-like) arguments object.
-  int i, arglen = ARGLEN(args);
+  unsigned i, arglen = ARGLEN(args);
   for (i = 0; i < arglen; i++)
     fh_set(arguments, JSNUMKEY(i)->string.ptr, ARG(args, i));
   fh_set_class(arguments, "Arguments");
@@ -832,7 +832,7 @@ new_exp(js_val *ctx, ast_node *exp)
     args = fh_new_args(0, 0, 0);
   }
 
-  eval_state *state= fh_new_state(exp->line, exp->column);
+  eval_state *state = fh_new_state(exp->line, exp->column);
   fh_push_state(state);
   state->construct = true;
 

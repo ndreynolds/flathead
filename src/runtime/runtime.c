@@ -170,9 +170,12 @@ load_file(char *name)
   if (result != size)
     return -1;
 
+  char *prev_script = fh->script_name;
+  fh->script_name = name;
   fcontent[size] = '\0';
   fh_eval_string(fcontent, fh->global);
   free(fcontent);
+  fh->script_name = prev_script;
   return 0;
 }
 

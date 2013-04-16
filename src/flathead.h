@@ -149,11 +149,9 @@ typedef struct {
   bool opt_keep_history_file;
   const char *opt_history_filename;
 
-  const char *script_name;
-
   jmp_buf jmpbuf;                   // used to handle errors within REPL
-
-  struct eval_state *statetrace;
+  char *script_name;
+  struct eval_state *callstack;
 
   struct js_val *function_proto;    // cache prototype pointers
   struct js_val *object_proto;
@@ -167,6 +165,8 @@ typedef struct eval_state {
   bool construct;
   struct js_val *ctx;
   struct js_val *this;
+  char *caller_info;
+  char *script_name;
   struct eval_state *parent;
 } eval_state;
 
@@ -194,7 +194,7 @@ typedef struct {
 } js_number;
 
 typedef struct {
-  long length;
+  unsigned long length;
   char *ptr;
 } js_string;
 

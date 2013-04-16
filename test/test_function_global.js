@@ -97,7 +97,7 @@ test('Function#apply(thisValue[, argsArray])', function() {
   assertEquals(21, fib.apply(null, [8]));
   assertEquals(21, fib.apply(undefined, [8]));
   assertEquals(24, getX.apply(thisValue, []));
-  assertEquals(99, getY.call(thisValue));
+  assertEquals(99, getY.apply(thisValue));
   assertThis.apply(this, [this]);
   assertThis.apply(thisValue, [thisValue]);
 });

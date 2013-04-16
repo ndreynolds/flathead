@@ -198,9 +198,9 @@ fh_new_prop(js_prop_flags flags)
 void
 fh_pop_state()
 {
-  if (fh->statetrace) {
-    eval_state *pop = fh->statetrace;
-    fh->statetrace = pop->parent;
+  if (fh->callstack) {
+    eval_state *pop = fh->callstack;
+    fh->callstack = pop->parent;
     free(pop);
   }
 }
@@ -208,17 +208,20 @@ fh_pop_state()
 void
 fh_push_state(eval_state *state)
 {
-  state->parent = fh->statetrace;
-  fh->statetrace = state;
+  state->parent = fh->callstack;
+  fh->callstack = state;
 }
 
 eval_state *
 fh_new_state(int line, int column)
 {
   eval_state *state = malloc(sizeof(eval_state));
+  memset(state, 0, sizeof(eval_state));
 
   state->line = line;
   state->column = column;
+  state->caller_info = NULL;
+  state->script_name = fh->script_name;
 
   state->ctx = NULL;
   state->this = NULL;
@@ -486,14 +489,18 @@ fh_error(eval_state *state, js_error_type type, const char *tpl, ...)
   fprintf(stderr, "\n");
 
   while (state != NULL) {
-    fprintf(stderr, "  at %s:%u:%u\n", 
-        fh->script_name, state->line, state->column);
+    if (state->caller_info)
+      fprintf(stderr, "  at %s (%s:%u:%u)\n", 
+          state->caller_info, state->script_name, state->line, state->column);
+    else
+      fprintf(stderr, "  at %s:%u:%u\n", 
+          state->script_name, state->line, state->column);
     if (!state->parent) break;
     state = state->parent;
   }
 
   if (fh->opt_interactive) {
-    fh->statetrace = NULL;
+    fh->callstack = NULL;
     longjmp(fh->jmpbuf, 1); 
   }
   exit(1);
@@ -580,7 +587,7 @@ fh_arg_len(js_args *args)
 
   // Although arrays can be up to 2^32 - 1 in length, we limit
   // the number of arguments to 2^16 - 1 (UINT_MAX).
-  unsigned int i = 0;
+  unsigned i = 0;
   while (i < UINT_MAX)
   {
     if (args->arg != NULL) i++;

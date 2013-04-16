@@ -100,6 +100,7 @@
   #define NEW_WITH(exp,stmt)         NEW_NODE(NODE_WITH_STMT,exp,stmt,0,0,0)
 
   void yyerror(const char *);
+  int yycolumn;
   int yydebug;
   int fh_get_input(char *, int);
   ast_node *root;
@@ -1193,6 +1194,10 @@ fh_eval_string(char *string, js_val *ctx)
   bool tmp = fh->opt_interactive;
   fh->opt_interactive = false;
 
+  eval_state *prior_state = fh_new_state(yylloc.first_line, yylloc.last_line);
+  yycolumn = 0;
+  yylineno = 0;
+
   YY_BUFFER_STATE buffer = yy_scan_string(string);
   yyparse();
 
@@ -1202,6 +1207,8 @@ fh_eval_string(char *string, js_val *ctx)
   js_val *res = fh_eval(ctx, root);
   yy_delete_buffer(buffer);
   fh->opt_interactive = tmp;
+  yylineno = prior_state->line;
+  yycolumn = prior_state->column;
   return res;
 }
 
@@ -1261,9 +1268,8 @@ main(int argc, char **argv)
         DEBUG(fh_eval_file(source, fh->global));
     }
   } 
-  else {
+  else
     fh_eval_file(source, fh->global);
-  }
 
   return 0;
 }

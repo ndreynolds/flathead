@@ -45,8 +45,9 @@ js_val *
 str_proto_char_at(js_val *instance, js_args *args, eval_state *state)
 {
   int index = TO_NUM(ARG(args, 0))->number.val;
+  int len = instance->string.length;
 
-  if (index < 0 || index >= instance->string.length)
+  if (index < 0 || index >= len)
     return JSSTR("");
   char *str = malloc(2);
   sprintf(str, "%c", instance->string.ptr[index]);
