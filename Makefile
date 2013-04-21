@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Wno-unused-parameter -O4 -std=c99 -pedantic -D_XOPEN_SOURCE
+CFLAGS = -Wall -Wextra -Wno-unused-parameter -O3 -std=c99 -pedantic -D_XOPEN_SOURCE
 
 YACC = bison
 YACC_FLAGS = -y -d -t -v
