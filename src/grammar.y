@@ -1196,7 +1196,7 @@ fh_eval_string(char *string, js_val *ctx)
 
   eval_state *prior_state = fh_new_state(yylloc.first_line, yylloc.last_line);
   yycolumn = 0;
-  yylineno = 0;
+  yylineno = 1;
 
   YY_BUFFER_STATE buffer = yy_scan_string(string);
   yyparse();
