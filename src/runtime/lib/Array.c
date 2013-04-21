@@ -67,9 +67,7 @@ static int
 cmp_js(js_prop *a, js_prop *b)
 {
   js_args *args = fh_new_args(a->ptr, b->ptr, 0);
-  eval_state *call_state = fh_new_state(js_cmp_state->line, js_cmp_state->column);
-  fh_push_state(call_state);
-  js_val *result = fh_call(js_cmp_state->ctx, JSUNDEF(), call_state, js_cmp_func, args);
+  js_val *result = fh_call(js_cmp_state->ctx, JSUNDEF(), js_cmp_func, args);
   return TO_BOOL(result)->number.val > 0;
 }
 
@@ -97,11 +95,11 @@ arr_new(js_val *instance, js_args *args, eval_state *state)
   }
 
   // Create array of elements
-
-  unsigned int i; // num of args will be less than UINT_MAX
-  for (i = 0; i < ARGLEN(args); i++) {
+  
+  unsigned i; // num of args will be less than UINT_MAX
+  for (i = 0; i < ARGLEN(args); i++) 
     fh_set(arr, JSNUMKEY(i)->string.ptr, ARG(args, i));
-  }
+
   fh_set_len(arr, i);
   return arr;
 }
@@ -131,7 +129,7 @@ arr_proto_pop(js_val *instance, js_args *args, eval_state *state)
   unsigned long len = instance->object.length;
   if (len == 0) return JSUNDEF();
 
-  js_val *key = JSNUMKEY(len-1);
+  js_val *key = JSNUMKEY(len - 1);
   js_val *popped = fh_get(instance, key->string.ptr);
 
   fh_del_prop(instance, key->string.ptr);
@@ -144,8 +142,8 @@ js_val *
 arr_proto_push(js_val *instance, js_args *args, eval_state *state)
 {
   unsigned long len = instance->object.length;
-  unsigned int nargs = ARGLEN(args);
-  unsigned int i;
+  unsigned nargs = ARGLEN(args);
+  unsigned i;
   for (i = 0; i < nargs; i++) {
     js_val *key = JSNUMKEY(len);
     fh_set(instance, key->string.ptr, ARG(args, i));
@@ -164,11 +162,12 @@ arr_proto_reverse(js_val *instance, js_args *args, eval_state *state)
   unsigned long i = 0, j = len - 1;
   js_val *tmp;
   js_prop *iprop, *jprop;
+  char *ik, *jk;
 
   // While i & j converge, swap the values they point to.
   while (i < j) {
-    char *ik = JSNUMKEY(i++)->string.ptr;
-    char *jk = JSNUMKEY(j--)->string.ptr;
+    ik = JSNUMKEY(i++)->string.ptr;
+    jk = JSNUMKEY(j--)->string.ptr;
 
     iprop = fh_get_prop(instance, ik);
     jprop = fh_get_prop(instance, jk);
@@ -206,12 +205,10 @@ arr_proto_shift(js_val *instance, js_args *args, eval_state *state)
   // Shift off first element, but then we have to rename all the keys.
   
   unsigned long len = instance->object.length;
-  if (len == 0) 
-    return JSUNDEF();
+  if (len == 0) return JSUNDEF();
 
-  char *key = "0";
-  js_val *shifted = fh_get(instance, key);
-  fh_del_prop(instance, key);
+  js_val *shifted = fh_get(instance, "0");
+  fh_del_prop(instance, "0");
 
   unsigned long i;
   for (i = 1; i < len; i++) {
@@ -231,8 +228,7 @@ js_val *
 arr_proto_sort(js_val *instance, js_args *args, eval_state *state)
 {
   unsigned long len = instance->object.length;
-  if (len == 0)
-    return instance;
+  if (len == 0) return instance;
 
   js_val *maybe_cmp_func = ARG(args, 0);
   if (IS_FUNC(maybe_cmp_func)) {
@@ -344,7 +340,7 @@ js_val *
 arr_proto_unshift(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *newarr = JSARR();
-  unsigned int nargs = ARGLEN(args);
+  unsigned nargs = ARGLEN(args);
   unsigned long len = instance->object.length;
 
   unsigned long i = 0, j = 0;
@@ -373,7 +369,7 @@ arr_proto_unshift(js_val *instance, js_args *args, eval_state *state)
 js_val *
 arr_proto_concat(js_val *instance, js_args *args, eval_state *state)
 {
-  unsigned int nargs = ARGLEN(args);
+  unsigned nargs = ARGLEN(args);
   unsigned long len = instance->object.length;
   js_val *concat = JSARR();
   js_val *key;
@@ -566,15 +562,12 @@ arr_proto_filter(js_val *instance, js_args *args, eval_state *state)
 
   js_val *ikey, *jkey, *val, *result;
   js_args *cbargs;
-  eval_state *call_state;
   unsigned long i = 0, j = 0;
   for (; i < len; i++) {
     ikey = JSNUMKEY(i);
     val = fh_get(instance, ikey->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
-    call_state = fh_new_state(state->line, state->column);
-    fh_push_state(call_state);
-    result = fh_call(state->ctx, this, state, callback, cbargs);
+    result = fh_call(state->ctx, this, callback, cbargs);
     if (TO_BOOL(result)->boolean.val) {
       jkey = JSNUMKEY(j++);
       fh_set(filtered, jkey->string.ptr, fh_get(instance, ikey->string.ptr));
@@ -595,15 +588,12 @@ arr_proto_for_each(js_val *instance, js_args *args, eval_state *state)
 
   js_val *key, *val;
   js_args *cbargs;
-  eval_state *call_state;
   unsigned long i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
-    call_state = fh_new_state(state->line, state->column);
-    fh_push_state(call_state);
-    fh_call(state->ctx, this, state, callback, cbargs);
+    fh_call(state->ctx, this, callback, cbargs);
   }
 
   return JSUNDEF();
@@ -619,15 +609,12 @@ arr_proto_every(js_val *instance, js_args *args, eval_state *state)
 
   js_val *key, *val, *result;
   js_args *cbargs;
-  eval_state *call_state;
   unsigned long i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
-    call_state = fh_new_state(state->line, state->column);
-    fh_push_state(call_state);
-    result = fh_call(state->ctx, this, state, callback, cbargs);
+    result = fh_call(state->ctx, this, callback, cbargs);
     if (!TO_BOOL(result)->boolean.val)
       return JSBOOL(0);
   }
@@ -646,15 +633,12 @@ arr_proto_map(js_val *instance, js_args *args, eval_state *state)
 
   js_val *key, *val, *result;
   js_args *cbargs;
-  eval_state *call_state;
   unsigned long i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
-    call_state = fh_new_state(state->line, state->column);
-    fh_push_state(call_state);
-    result = fh_call(state->ctx, this, state, callback, cbargs);
+    result = fh_call(state->ctx, this, callback, cbargs);
     fh_set(map, key->string.ptr, result);
   }
 
@@ -672,15 +656,12 @@ arr_proto_some(js_val *instance, js_args *args, eval_state *state)
 
   js_val *key, *val, *result;
   js_args *cbargs;
-  eval_state *call_state;
   unsigned long i;
   for (i = 0; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(val, JSNUM(i), instance);
-    call_state = fh_new_state(state->line, state->column);
-    fh_push_state(call_state);
-    result = fh_call(state->ctx, this, state, callback, cbargs);
+    result = fh_call(state->ctx, this, callback, cbargs);
     if (TO_BOOL(result)->boolean.val)
       return JSBOOL(1);
   }
@@ -709,14 +690,11 @@ arr_proto_reduce(js_val *instance, js_args *args, eval_state *state)
 
   js_val *key, *val;
   js_args *cbargs;
-  eval_state *call_state;
   for (; i < len; i++) {
     key = JSNUMKEY(i);
     val = fh_get(instance, key->string.ptr);
     cbargs = fh_new_args(reduction, val, JSNUM(i));
-    call_state = fh_new_state(state->line, state->column);
-    fh_push_state(call_state);
-    reduction = fh_call(state->ctx, JSUNDEF(), state, callback, cbargs);
+    reduction = fh_call(state->ctx, JSUNDEF(), callback, cbargs);
   }
 
   return reduction;
@@ -740,25 +718,19 @@ arr_proto_reduce_right(js_val *instance, js_args *args, eval_state *state)
 
     reduction = fh_get(instance, JSNUMKEY(i)->string.ptr);
 
-    if (len == 1)
-      return reduction;
+    if (len == 1) return reduction;
     
     i--;
   }
-  else {
-    if (len == 0)
-      return reduction;
-  }
+  else
+    if (len == 0) return reduction;
 
   js_val *val;
   js_args *cbargs;
-  eval_state *call_state;
   do {
     val = fh_get(instance, JSNUMKEY(i)->string.ptr);
     cbargs = fh_new_args(reduction, val, JSNUM(i));
-    call_state = fh_new_state(state->line, state->column);
-    fh_push_state(call_state);
-    reduction = fh_call(state->ctx, JSUNDEF(), state, callback, cbargs);
+    reduction = fh_call(state->ctx, JSUNDEF(), callback, cbargs);
   } while (i--);
 
   return reduction;

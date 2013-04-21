@@ -11,7 +11,7 @@
 js_val *
 console_log(js_val *instance, js_args *args, eval_state *state)
 {
-  unsigned int i;
+  unsigned i;
   for (i = 0; i < ARGLEN(args); i++)
     fh_debug(stdout, ARG(args, i), 0, 1);
   return JSUNDEF();
@@ -21,7 +21,7 @@ console_log(js_val *instance, js_args *args, eval_state *state)
 js_val *
 console_error(js_val *instance, js_args *args, eval_state *state)
 {
-  unsigned int i;
+  unsigned i;
   for (i = 0; i < ARGLEN(args); i++)
     fh_debug(stderr, ARG(args, i), 0, 1);
   return JSUNDEF();
@@ -31,7 +31,7 @@ console_error(js_val *instance, js_args *args, eval_state *state)
 js_val *
 console_info(js_val *instance, js_args *args, eval_state *state)
 {
-  unsigned int i;
+  unsigned i;
   for (i = 0; i < ARGLEN(args); i++)
     fh_debug_verbose(stdout, ARG(args, i), 0);
   return JSUNDEF();

@@ -70,7 +70,7 @@ str_proto_concat(js_val *instance, js_args *args, eval_state *state)
 
   js_val *arg;
   char *tmp;
-  unsigned int i;
+  unsigned i;
   for (i = 0; i < ARGLEN(args); i++) {
     arg = TO_STR(ARG(args, i));
     tmp = new->string.ptr;

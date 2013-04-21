@@ -186,7 +186,7 @@ load_file(char *name)
 js_val *
 global_load(js_val *instance, js_args *args, eval_state *state)
 {
-  unsigned int i;
+  unsigned i;
   for (i = 0; i < ARGLEN(args); i++) {
     if (load_file(TO_STR(ARG(args, i))->string.ptr) == -1)
       fh_error(state, E_ERROR, "File could not be read");

@@ -47,9 +47,9 @@
 #define JSOBJ()        fh_new_object()
 #define JSARR()        fh_new_array()
 #define JSFUNC(x)      fh_new_function(x)
-#define JSNFUNC(x,n)   fh_new_native_function(x,n)
+#define JSNFUNC(x,n)   fh_new_native_function((x),(n))
 #define JSRE(x)        fh_new_regexp(x)
-#define JSNUMKEY(x)    fh_cast(JSNUM((x)), T_STRING)
+#define JSNUMKEY(x)    fh_cast(JSNUM(x), T_STRING)
 
 #define IS_STR(x)      ((x)->type == T_STRING)
 #define IS_NUM(x)      ((x)->type == T_NUMBER)

@@ -64,9 +64,7 @@ func_proto_apply(js_val *instance, js_args *args, eval_state *state)
     }
   }
 
-  eval_state *call_state = fh_new_state(state->line, state->column);
-  fh_push_state(call_state);
-  return fh_call(state->ctx, this, call_state, instance, func_args_head);
+  return fh_call(state->ctx, this, instance, func_args_head);
 }
 
 // Function.prototype.apply(thisValue[, arg1[, arg2[, ...]]])
@@ -95,9 +93,7 @@ func_proto_call(js_val *instance, js_args *args, eval_state *state)
   if (args->next)
     args = args->next;
 
-  eval_state *call_state = fh_new_state(state->line, state->column);
-  fh_push_state(call_state);
-  return fh_call(state->ctx, this, state, instance, args);
+  return fh_call(state->ctx, this, instance, args);
 }
 
 // Function.prototype.isGenerator()

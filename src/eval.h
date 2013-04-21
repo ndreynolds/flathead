@@ -27,7 +27,7 @@
                            ((a)->type == (t2) && (b)->type == (t1)))
 
 js_val * fh_eval(js_val *, ast_node *);
-js_val * fh_call(js_val *, js_val *, eval_state *, js_val *, js_args *);
+js_val * fh_call(js_val *, js_val *, js_val *, js_args *);
 js_val * fh_eq(js_val *, js_val *, bool);
 
 #endif

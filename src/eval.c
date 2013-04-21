@@ -763,7 +763,6 @@ call_exp(js_val *ctx, ast_node *call)
     return fh_get_proto(maybe_func, str_from_node(ctx, call->e2)->string.ptr);
 
   eval_state *state= fh_new_state(call->line, call->column);
-  fh_push_state(state);
 
   state->ctx = ctx;
   if (!IS_FUNC(maybe_func))
@@ -774,19 +773,20 @@ call_exp(js_val *ctx, ast_node *call)
   js_val *this = maybe_func->object.bound_this ? 
     maybe_func->object.bound_this : fh_get(ctx, "this");
 
-  return fh_call(ctx, this, state, maybe_func, args);
+  fh_push_state(state);
+  js_val *res = fh_call(ctx, this, maybe_func, args);
+  fh_pop_state();
+  return res;
 }
 
-js_val *
-fh_call(js_val *ctx, js_val *this, eval_state *state, js_val *func, js_args *args)
+static js_val *
+call(js_val *ctx, js_val *this, js_val *func, eval_state *state, js_args *args)
 {
   if (IS_UNDEF(this) || IS_NULL(this)) 
     this = fh->global;
 
   state->ctx = ctx;
   state->this = this;
-
-  js_val *res;
 
   if (func->object.native) {
     // Native functions are C functions referenced by pointer.
@@ -798,15 +798,25 @@ fh_call(js_val *ctx, js_val *this, eval_state *state, js_val *func, js_args *arg
     if (instance && IS_OBJ(instance) && instance->object.primitive)
       instance = instance->object.primitive;
 
-    res = native(instance, args, state);
-  }
-  else {
-    node_rewind(func->object.node);
-    js_val *func_scope = setup_call_env(ctx, this, func, args);
-    res = fh_eval(func_scope, func->object.node->e2);
+    return native(instance, args, state);
   }
 
+  node_rewind(func->object.node);
+  js_val *func_scope = setup_call_env(ctx, this, func, args);
+  return fh_eval(func_scope, func->object.node->e2);
+}
+
+js_val *
+fh_call(js_val *ctx, js_val *this, js_val *func, js_args *args)
+{
+  int line = func->object.native ? 0 : func->object.node->line;
+  int column = func->object.native ? 0 : func->object.node->column;
+  eval_state *state = fh_new_state(line, column);
+
+  fh_push_state(state);
+  js_val *res = call(ctx, this, func, state, args);
   fh_pop_state();
+
   return res;
 }
 
@@ -833,7 +843,6 @@ new_exp(js_val *ctx, ast_node *exp)
   }
 
   eval_state *state = fh_new_state(exp->line, exp->column);
-  fh_push_state(state);
   state->construct = true;
 
   if (!IS_FUNC(ctr))
@@ -841,7 +850,9 @@ new_exp(js_val *ctx, ast_node *exp)
 
   js_val *res, *obj = JSOBJ(), *proto = fh_get(ctr, "prototype");
 
-  res = fh_call(ctx, obj, state, ctr, args); 
+  fh_push_state(state);
+  res = call(ctx, obj, ctr, state, args); 
+  fh_pop_state();
   res = IS_OBJ(res) ? res : obj;
 
   // Automatically set the prototype to use the constructor's "prototype"
