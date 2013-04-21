@@ -151,6 +151,16 @@ global_gc(js_val *instance, js_args *args, eval_state *state)
   return JSUNDEF();
 }
 
+// print()
+js_val *
+global_print(js_val *instance, js_args *args, eval_state *state)
+{
+  unsigned i;
+  for (i = 0; i < ARGLEN(args); i++)
+    fh_debug(stdout, fh_to_primitive(ARG(args, i), T_STRING), 0, 1);
+  return JSUNDEF();
+}
+
 static int
 load_file(char *name)
 {
@@ -265,7 +275,7 @@ fh_bootstrap()
   // Extras
   DEF(global, "FH_VERSION", JSSTR(FH_VERSION));
   DEF(global, "load",       JSNFUNC(global_load, 1));
-  DEF(global, "print",      JSNFUNC(console_log, 1));
+  DEF(global, "print",      JSNFUNC(global_print, 1));
 
 #ifdef FH_GC_EXPOSE
   DEF(global, "gc", JSNFUNC(global_gc, 0));

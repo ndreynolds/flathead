@@ -130,6 +130,8 @@ fh_debug(FILE *stream, js_val *val, int indent, bool newline)
         debug_arr(stream, val, indent);
       else if (IS_FUNC(val))
         cfprintf(stream, ANSI_BLUE, "[Function]");
+      else if (IS_DATE(val))
+        fh_debug(stream, fh_to_primitive(val, 0), indent, false);
       else
         debug_obj(stream, val, indent, false);
       break;

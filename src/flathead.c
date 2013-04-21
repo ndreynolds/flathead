@@ -300,14 +300,17 @@ fh_to_primitive(js_val *val, js_type hint)
   // We'll look for the 'valueOf' and 'toString' props, using the hint to
   // determine that order, and return with the result of calling the first of
   // them that is callable, or a type error otherwise.
-  //
-  // TODO: handle Date special case
 
   js_val *maybe_func, *res;
   js_args *args;
   char *types[2] = {"valueOf", "toString"};
-  int i, reverse = hint == T_STRING;
+  int reverse = hint == T_STRING;
 
+  // Without a hint, objects default to Number, except Date 
+  if (hint == 0 && IS_DATE(val))
+    reverse = true;
+
+  int i; 
   for (i = reverse; i <= 1 && i >= 0; reverse ? i-- : i++) {
     maybe_func = fh_get_proto(val, types[i]);
     if (fh_is_callable(maybe_func)) {

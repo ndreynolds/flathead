@@ -60,6 +60,7 @@
 #define IS_FUNC(x)     ((x)->type == T_OBJECT && STREQ((x)->object.class, "Function"))
 #define IS_ARR(x)      ((x)->type == T_OBJECT && STREQ((x)->object.class, "Array"))
 #define IS_REGEXP(x)   ((x)->type == T_OBJECT && STREQ((x)->object.class, "RegExp"))
+#define IS_DATE(x)     ((x)->type == T_OBJECT && STREQ((x)->object.class, "Date"))
 #define IS_NAN(x)      ((x)->type == T_NUMBER && (x)->number.is_nan)
 #define IS_INF(x)      ((x)->type == T_NUMBER && (x)->number.is_inf)
 
@@ -106,7 +107,7 @@ typedef enum {
 } ctl_signal;
 
 typedef enum {
-  T_NUMBER,
+  T_NUMBER = 1,
   T_STRING,
   T_BOOLEAN,
   T_OBJECT,
