@@ -487,7 +487,7 @@ fh_error(eval_state *state, js_error_type type, const char *tpl, ...)
 
   while (state != NULL) {
     if (state->caller_info)
-      fprintf(stderr, "  at %s (%s:%u:%u)\n", 
+      fprintf(stderr, "  at %s in %s:%u:%u\n", 
           state->caller_info, state->script_name, state->line, state->column);
     else
       fprintf(stderr, "  at %s:%u:%u\n", 

@@ -752,34 +752,6 @@ build_args(js_val *ctx, ast_node *args_node)
 }
 
 static js_val *
-call_exp(js_val *ctx, ast_node *call)
-{
-  js_val *maybe_func = fh_eval(ctx, call->e1);
-
-  // Special treatment for:
-  //   CallExpression [ Expression ] 
-  //   CallExpression . Identifier
-  if (call->e2->type != NODE_ARG_LST)
-    return fh_get_proto(maybe_func, str_from_node(ctx, call->e2)->string.ptr);
-
-  eval_state *state= fh_new_state(call->line, call->column);
-
-  state->ctx = ctx;
-  if (!IS_FUNC(maybe_func))
-    fh_error(state, E_TYPE, "%s is not a function", fh_typeof(maybe_func));
-  js_args *args = build_args(ctx, call->e2);
-
-  // Check for a bound this (see Function#bind)
-  js_val *this = maybe_func->object.bound_this ? 
-    maybe_func->object.bound_this : fh_get(ctx, "this");
-
-  fh_push_state(state);
-  js_val *res = fh_call(ctx, this, maybe_func, args);
-  fh_pop_state();
-  return res;
-}
-
-static js_val *
 call(js_val *ctx, js_val *this, js_val *func, eval_state *state, js_args *args)
 {
   if (IS_UNDEF(this) || IS_NULL(this)) 
@@ -792,6 +764,7 @@ call(js_val *ctx, js_val *this, js_val *func, eval_state *state, js_args *args)
     // Native functions are C functions referenced by pointer.
     js_native_function *native = func->object.nativefn;
     js_val *instance = func->object.instance;
+    state->caller_info = "(built-in function)";
 
     // new Number, new Boolean, etc. return wrapper objects. 
     // Here we resolve the wrapper to the value it wraps.
@@ -802,8 +775,42 @@ call(js_val *ctx, js_val *this, js_val *func, eval_state *state, js_args *args)
   }
 
   node_rewind(func->object.node);
+
+  if (func->object.node->e3 && func->object.node->e3->sval)
+    state->caller_info = func->object.node->e3->sval;
+  else
+    state->caller_info = "(anonymous function)";
+
   js_val *func_scope = setup_call_env(ctx, this, func, args);
   return fh_eval(func_scope, func->object.node->e2);
+}
+
+static js_val *
+call_exp(js_val *ctx, ast_node *node)
+{
+  js_val *maybe_func = fh_eval(ctx, node->e1);
+
+  // Special treatment for:
+  //   CallExpression [ Expression ] 
+  //   CallExpression . Identifier
+  if (node->e2->type != NODE_ARG_LST)
+    return fh_get_proto(maybe_func, str_from_node(ctx, node->e2)->string.ptr);
+
+  eval_state *state = fh_new_state(node->line, node->column);
+
+  state->ctx = ctx;
+  if (!IS_FUNC(maybe_func))
+    fh_error(state, E_TYPE, "%s is not a function", fh_typeof(maybe_func));
+  js_args *args = build_args(ctx, node->e2);
+
+  // Check for a bound this (see Function#bind)
+  js_val *this = maybe_func->object.bound_this ? 
+    maybe_func->object.bound_this : fh_get(ctx, "this");
+
+  fh_push_state(state);
+  js_val *res = call(ctx, this, maybe_func, state, args);
+  fh_pop_state();
+  return res;
 }
 
 js_val *
