@@ -1,7 +1,7 @@
 /*
- * eval.h -- AST-walker
+ * args.h -- singly linked list used internally to represent arguments 
  *
- * Copyright (c) 2012-2013 Nick Reynolds
+ * Copyright (c) 2013 Nick Reynolds
  *  
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,19 +16,19 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef EVAL_H
-#define EVAL_H
+#ifndef ARGS_H
+#define ARGS_H
 
-#include "flathead.h"
-#include "nodes.h"
-#include "args.h"
+struct js_val;
 
-#define T_BOTH(a,b,t)     ((a)->type == (t) && (b)->type == (t))
-#define T_XOR(a,b,t1,t2)  (((a)->type == (t1) && (b)->type == (t2)) || \
-                           ((a)->type == (t2) && (b)->type == (t1)))
+typedef struct js_args {
+  struct js_val *arg;
+  struct js_args *next;
+} js_args;
 
-js_val * fh_eval(js_val *, ast_node *);
-js_val * fh_call(js_val *, js_val *, js_val *, js_args *);
-js_val * fh_eq(js_val *, js_val *, bool);
+js_args * args_new();
+void args_append(js_args *, struct js_val *);
+struct js_val * args_get(js_args *, int);
+unsigned args_len(js_args *);
 
 #endif

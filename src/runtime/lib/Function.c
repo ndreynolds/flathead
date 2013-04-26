@@ -47,24 +47,13 @@ func_proto_apply(js_val *instance, js_args *args, eval_state *state)
   js_val *this = ARG(args, 0);
   js_val *arr = ARG(args, 1);
 
-  js_args *func_args = malloc(sizeof(js_args));
-  js_args *func_args_head = func_args;
-  func_args->arg = NULL;
-  func_args->next = NULL;
+  js_args *func_args = args_new();
 
-  unsigned long len = arr->object.length;
   unsigned long i;
+  for (i = 0; i < arr->object.length; i++)
+    args_append(func_args, fh_get(arr, JSNUMKEY(i)->string.ptr));
 
-  for (i = 0; i < len; i++) {
-    func_args->arg = fh_get(arr, JSNUMKEY(i)->string.ptr);
-    func_args->next = NULL;
-    if (i < len - 1) {
-      func_args->next = malloc(sizeof(js_args));
-      func_args = func_args->next;
-    }
-  }
-
-  return fh_call(state->ctx, this, instance, func_args_head);
+  return fh_call(state->ctx, this, instance, func_args);
 }
 
 // Function.prototype.apply(thisValue[, arg1[, arg2[, ...]]])

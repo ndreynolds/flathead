@@ -25,7 +25,7 @@ LEX_FLAGS =
 
 LIBS = -I/usr/local/include -I/usr/include -L/usr/local/lib -L/usr/lib -lm
 OBJ_FILES = y.tab.o lex.yy.o src/eval.o src/str.o src/regexp.o src/cli.o \
-src/nodes.o src/flathead.o src/debug.o src/gc.o src/props.o \
+src/nodes.o src/args.o src/flathead.o src/debug.o src/gc.o src/props.o \
 src/runtime/runtime.o src/runtime/lib/Math.o src/runtime/lib/RegExp.o \
 src/runtime/lib/Error.o src/runtime/lib/String.o src/runtime/lib/console.o \
 src/runtime/lib/Function.o src/runtime/lib/Object.o src/runtime/lib/Boolean.o \

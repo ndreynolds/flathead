@@ -177,7 +177,8 @@ str_proto_match(js_val *instance, js_args *args, eval_state *state)
 
   bool global = fh_get_proto(regexp, "global")->boolean.val;
   if (!global) {
-    exec_args = fh_new_args(instance, NULL, NULL);
+    exec_args = args_new();
+    args_append(exec_args, instance);
     return regexp_proto_exec(regexp, exec_args, state);
   }
 
@@ -189,7 +190,8 @@ str_proto_match(js_val *instance, js_args *args, eval_state *state)
   js_val *result, *match_str;
 
   while (last_match) {
-    exec_args = fh_new_args(instance, NULL, NULL);
+    exec_args = args_new();
+    args_append(exec_args, instance);
     result = regexp_proto_exec(regexp, exec_args, state);
     if (IS_NULL(result)) {
       last_match = false;

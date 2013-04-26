@@ -24,6 +24,7 @@
 #include "str.h"
 #include "gc.h"
 #include "eval.h"
+#include "args.h"
 
 
 // ----------------------------------------------------------------------------
@@ -258,26 +259,6 @@ fh_new_global_state()
   return state;
 }
 
-js_args *
-fh_new_args(js_val *arg1, js_val *arg2, js_val *arg3)
-{
-  js_args *args = malloc(sizeof(js_args));
-
-  args->arg = arg1;
-  args->next = NULL;
-  if (arg2) {
-    args->next = malloc(sizeof(js_args));
-    args->next->arg = arg2;
-    args->next->next = NULL;
-  }
-  if (arg3) {
-    args->next->next = malloc(sizeof(js_args));
-    args->next->next->arg = arg3;
-    args->next->next->next = NULL;
-  }
-
-  return args;
-}
 
 
 // ----------------------------------------------------------------------------
@@ -314,7 +295,7 @@ fh_to_primitive(js_val *val, js_type hint)
   for (i = reverse; i <= 1 && i >= 0; reverse ? i-- : i++) {
     maybe_func = fh_get_proto(val, types[i]);
     if (fh_is_callable(maybe_func)) {
-      args = fh_new_args(0, 0, 0);
+      args = args_new();
       res = fh_call(fh->global, val, maybe_func, args);
       if (!IS_OBJ(res)) return res;
     }
@@ -566,39 +547,6 @@ fh_try_get_proto(char *type)
   return NULL;
 }
   
-js_val *
-fh_get_arg(js_args *args, int n)
-{
-  int i;
-  for (i = 0; i <= n; i++) {
-    if (i == n) 
-      return args->arg != NULL ? args->arg : JSUNDEF();
-    if (args->next == NULL) 
-      break;
-    args = args->next;
-  }
-  return JSUNDEF();
-}
-
-unsigned int
-fh_arg_len(js_args *args)
-{
-  if (args == NULL) return 0;
-
-  // Although arrays can be up to 2^32 - 1 in length, we limit
-  // the number of arguments to 2^16 - 1 (UINT_MAX).
-  unsigned i = 0;
-  while (i < UINT_MAX)
-  {
-    if (args->arg != NULL) i++;
-    if (args->next == NULL) break;
-    args = args->next;
-  }
-  if (i == UINT_MAX)
-    fh_error(NULL, E_RANGE, "too many arguments");
-  return i;
-}
-
 void
 fh_set_len(js_val *val, unsigned long len)
 {

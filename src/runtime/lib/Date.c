@@ -1021,7 +1021,8 @@ date_proto_set_year(js_val *instance, js_args *args, eval_state *state)
   int y = TO_NUM(ARG(args, 0))->number.val;
   if (y >= 0 && y <= 99)
     y += 1900;
-  js_args *new_args = fh_new_args(JSNUM(y), 0, 0);
+  js_args *new_args = args_new();
+  args_append(new_args, JSNUM(y));
 
   // Same procedure as setFullYear, but with no additional parameters
   instance->number.val = utc_time(time_clip(make_date_from_args(new_args, t, 0, 1)));

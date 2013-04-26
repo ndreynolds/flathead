@@ -26,6 +26,7 @@
 #include "../debug.h"
 #include "../eval.h"
 #include "../gc.h"
+#include "../args.h"
 
 js_val * global_is_nan(js_val *, js_args *, eval_state *);
 js_val * global_is_finite(js_val *, js_args *, eval_state *);

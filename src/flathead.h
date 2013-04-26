@@ -73,11 +73,11 @@
 #define TO_INT32(x)    fh_to_int32(x)
 #define TO_UINT32(x)   fh_to_uint32(x)
 
-#define ARG(args,n)    fh_get_arg((args), (n))
-#define ARGLEN(args)   fh_arg_len(args)
+#define ARG(args,n)    args_get((args), (n))
+#define ARGLEN(args)   args_len(args)
 
 #define STREQ(a,b)     (strcmp((a),(b)) == 0)
-#define OBJ_ITER(o,p)  js_prop *_tmp; HASH_ITER(hh,(o)->map,p,_tmp)
+#define OBJ_ITER(o,p)  js_prop *_tmp; HASH_ITER(hh,(o)->map,(p),_tmp)
 
 #define DEF(o,k,v)     fh_set_prop((o),(k),(v),P_BUILTIN)
 #define DEF2(o,k,v,f)  fh_set_prop((o),(k),(v),(f))
@@ -90,6 +90,7 @@
 
 
 struct js_val;
+struct js_args;
 struct ast_node;
 struct gc_arena;
 
@@ -181,12 +182,6 @@ typedef struct {
   UT_hash_handle hh;
 } js_prop;
 
-typedef struct js_args {
-  struct js_val *arg;
-  struct js_args *next;
-  struct eval_state *eval_state;
-} js_args;
-
 typedef struct {
   double val;
   bool is_nan;
@@ -207,7 +202,7 @@ typedef struct {
  * applicable), the arguments as values in linked-list format, and the evaluation
  * state, which contains information that may be used for error reporting.
  */
-typedef struct js_val * (js_native_function)(struct js_val *, js_args *, eval_state *); 
+typedef struct js_val * (js_native_function)(struct js_val *, struct js_args *, eval_state *); 
 
 typedef struct {
   bool native;
@@ -247,16 +242,12 @@ js_val * fh_new_function(struct ast_node *);
 js_val * fh_new_native_function(js_native_function, int);
 js_val * fh_new_regexp(char *);
 
-js_args * fh_new_args(js_val *, js_val *, js_val *);
 js_prop * fh_new_prop(js_prop_flags);
 fh_state * fh_new_global_state();
 
 eval_state * fh_new_state(int, int);
 void fh_push_state(eval_state *);
 void fh_pop_state();
-
-js_val * fh_get_arg(js_args *, int);
-unsigned fh_arg_len(js_args*);
 
 js_val * fh_eval_file(FILE *, js_val *);
 js_val * fh_eval_string(char *, js_val *);
