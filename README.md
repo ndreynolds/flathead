@@ -109,6 +109,7 @@ There's also:
 The Docket
 ----------
 - Try statements (`try`, `catch`, `finally`)
+- With statement (`with`)
 - Labels (e.g. `loop1: ...; continue loop1;`)
 - Automatic Semicolon Insertion
 - Unicode
