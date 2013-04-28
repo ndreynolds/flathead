@@ -238,7 +238,7 @@ fh_parse_error(char * val)
 {
   eval_state *state = fh_new_state(yylloc.first_line, yylloc.first_column);
   fh_push_state(state);
-  fh_error(state, E_PARSE, "unexpected '%s'", val);
+  fh_throw(state, fh_new_error("ParseError", "unexpected '%s'", val));
 }
 
 // Wrap token returns for debugging.

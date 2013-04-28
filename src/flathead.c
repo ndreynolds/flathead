@@ -182,6 +182,25 @@ fh_new_regexp(char *re)
   return val;
 }
 
+js_val *
+fh_new_error(char *name, const char *tpl, ...)
+{
+  js_val *val = fh_new_val(T_OBJECT);
+  val->proto = fh_try_get_proto("Error");
+  fh_set_class(val, "Error");
+
+  va_list ap;
+  va_start(ap, tpl);
+  size_t size = vsnprintf(NULL, 0, tpl, ap);
+  char *msg = malloc(size + 1);
+  vsprintf(msg, tpl, ap);
+  va_end(ap);
+
+  fh_set(val, "name", JSSTR(name));
+  fh_set(val, "message", JSSTR(msg));
+  return val;
+}
+
 js_prop *
 fh_new_prop(js_prop_flags flags)
 {
@@ -260,7 +279,6 @@ fh_new_global_state()
 }
 
 
-
 // ----------------------------------------------------------------------------
 // Value Checks & Casting
 // ----------------------------------------------------------------------------
@@ -300,7 +318,7 @@ fh_to_primitive(js_val *val, js_type hint)
       if (!IS_OBJ(res)) return res;
     }
   }
-  fh_error(NULL, E_TYPE, "cannot convert to primitive");
+  fh_throw(NULL, fh_new_error(E_TYPE, "cannot convert %s to primitive", fh_typeof(val)));
   UNREACHABLE();
 }
 
@@ -400,7 +418,7 @@ js_val *
 fh_to_object(js_val *val)
 {
   if (IS_UNDEF(val) || IS_NULL(val))
-    fh_error(NULL, E_TYPE, "cannot convert to object");
+    fh_throw(NULL, fh_new_error(E_TYPE, "cannot convert %s to object", fh_typeof(val)));
   if (IS_OBJ(val)) 
     return val;
 
@@ -450,24 +468,9 @@ fh_cast(js_val *val, js_type type)
 // ----------------------------------------------------------------------------
 
 void
-fh_error(eval_state *state, js_error_type type, const char *tpl, ...)
+fh_throw(eval_state *state, js_val *error)
 {
-  char *name = type == E_TYPE      ? "TypeError" : 
-               type == E_SYNTAX    ? "SyntaxError" :
-               type == E_EVAL      ? "EvalError" :
-               type == E_RANGE     ? "RangeError" :
-               type == E_ASSERTION ? "AssertionError" :
-               type == E_REFERENCE ? "ReferenceError" :
-               type == E_PARSE     ? "ParseError" :
-                                     "Error";
-
-  fprintf(stderr, "%s: ", name);
-
-  va_list ap;
-  va_start(ap, tpl);
-  vfprintf(stderr, tpl, ap);
-  va_end(ap);
-  fprintf(stderr, "\n");
+  fprintf(stderr, "%s\n", TO_STR(fh_to_primitive(error, T_STRING))->string.ptr);
 
   while (state != NULL) {
     if (state->caller_info)
@@ -515,7 +518,7 @@ js_val *
 fh_has_instance(js_val *func, js_val *val)
 {
   if (!IS_FUNC(func))
-    fh_error(NULL, E_TYPE, "");
+    fh_throw(NULL, fh_new_error(E_TYPE, "%s is not a function", fh_typeof(func)));
   js_val *fproto = fh_get(func, "prototype");
   if (!IS_UNDEF(fproto) && IS_OBJ(val)) {
     js_val *proto = val->proto;

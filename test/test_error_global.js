@@ -44,6 +44,39 @@ test('Constructor', function() {
   assertEquals('Error code 0x32CC', e3.message);
 });
 
+test('Other Constructors', function() {
+  assertEquals('object',         typeof new EvalError);
+  assertEquals('EvalError',      (new EvalError).name);
+  assertEquals('',               (new EvalError).message);
+  assertEquals('test',           (new EvalError('test')).message);
+
+  assertEquals('object',         typeof new RangeError);
+  assertEquals('RangeError',     (new RangeError).name);
+  assertEquals('',               (new RangeError).message);
+  assertEquals('test',           (new RangeError('test')).message);
+
+  console.log('hola');
+  assertEquals('object',         typeof new ReferenceError);
+  assertEquals('ReferenceError', (new ReferenceError).name);
+  assertEquals('',               (new ReferenceError).message);
+  assertEquals('test',           (new ReferenceError('test')).message);
+
+  assertEquals('object',         typeof new SyntaxError);
+  assertEquals('SyntaxError',    (new SyntaxError).name);
+  assertEquals('',               (new SyntaxError).message);
+  assertEquals('test',           (new SyntaxError('test')).message);
+
+  assertEquals('object',         typeof new TypeError);
+  assertEquals('TypeError',      (new TypeError).name);
+  assertEquals('',               (new TypeError).message);
+  assertEquals('test',           (new TypeError('test')).message);
+
+  assertEquals('object',         typeof new URIError);
+  assertEquals('URIError',       (new URIError).name);
+  assertEquals('',               (new URIError).message);
+  assertEquals('test',           (new URIError('test')).message);
+});
+
 
 // ----------------------------------------------------------------------------
 // Error Prototype

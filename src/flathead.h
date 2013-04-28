@@ -73,6 +73,14 @@
 #define TO_INT32(x)    fh_to_int32(x)
 #define TO_UINT32(x)   fh_to_uint32(x)
 
+#define E_ERROR        "Error"
+#define E_EVAL         "EvalError"
+#define E_RANGE        "RangeError"     
+#define E_REFERENCE    "ReferenceError"
+#define E_SYNTAX       "SyntaxError"
+#define E_TYPE         "TypeError"
+#define E_URI          "URIError" 
+
 #define ARG(args,n)    args_get((args), (n))
 #define ARGLEN(args)   args_len(args)
 
@@ -115,17 +123,6 @@ typedef enum {
   T_NULL,
   T_UNDEF
 } js_type;
-
-typedef enum {
-  E_TYPE,
-  E_SYNTAX,
-  E_EVAL,
-  E_RANGE,
-  E_REFERENCE,
-  E_ASSERTION,
-  E_PARSE,
-  E_ERROR
-} js_error_type;
 
 typedef enum {
   P_NONE    = 0x00, 
@@ -241,6 +238,7 @@ js_val * fh_new_array();
 js_val * fh_new_function(struct ast_node *);
 js_val * fh_new_native_function(js_native_function, int);
 js_val * fh_new_regexp(char *);
+js_val * fh_new_error(char *, const char *, ...);
 
 js_prop * fh_new_prop(js_prop_flags);
 fh_state * fh_new_global_state();
@@ -269,7 +267,7 @@ js_val * fh_has_property(js_val *, char *);
 char * fh_typeof(js_val *);
 void fh_set_len(js_val *, unsigned long);
 void fh_set_class(js_val *, char *);
-void fh_error(eval_state *, js_error_type, const char *, ...);
+void fh_throw(eval_state *, js_val *);
 
 extern fh_state *fh;
 

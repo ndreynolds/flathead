@@ -104,7 +104,7 @@ ident(js_val *ctx, ast_node *id)
   if (!prop) {
     eval_state *state = fh_new_state(id->line, id->column);
     fh_push_state(state);
-    fh_error(state, E_REFERENCE, "%s is not defined", id->sval);
+    fh_throw(state, fh_new_error(E_REFERENCE, "%s is not defined", id->sval));
   }
   return prop->ptr;
 }
@@ -682,6 +682,15 @@ try_stmt(js_val *ctx, ast_node *node)
   return fh_eval(ctx, node->e1);
 }
 
+static js_val *
+throw_stmt(js_val *ctx, ast_node *exp)
+{
+  eval_state *state = fh_new_state(exp->line, exp->column);
+  js_val *val = fh_eval(ctx, exp);
+  fh_throw(state, val);
+  return JSUNDEF();
+}
+
 
 // ----------------------------------------------------------------------------
 // Function Application
@@ -797,7 +806,7 @@ call_exp(js_val *ctx, ast_node *node)
 
   state->ctx = ctx;
   if (!IS_FUNC(maybe_func))
-    fh_error(state, E_TYPE, "%s is not a function", fh_typeof(maybe_func));
+    fh_throw(state, fh_new_error(E_TYPE, "%s is not a function", fh_typeof(maybe_func)));
   js_args *args = build_args(ctx, node->e2);
 
   // Check for a bound this (see Function#bind)
@@ -850,7 +859,7 @@ new_exp(js_val *ctx, ast_node *exp)
   state->construct = true;
 
   if (!IS_FUNC(ctr))
-    fh_error(state, E_TYPE, "%s is not a function", fh_typeof(ctr));
+    fh_throw(state, fh_new_error(E_TYPE, "%s is not a function", fh_typeof(ctr)));
 
   js_val *res, *obj = JSOBJ(), *proto = fh_get(ctr, "prototype");
 
@@ -978,13 +987,17 @@ bin_exp(js_val *ctx, ast_node *node)
   if (STREQ(op, "<=")) return lt_op(a, b, true);
   if (STREQ(op, ">=")) return gt_op(a, b, true);
   if (STREQ(op, "instanceof")) {
-    if (!IS_FUNC(b))
-      fh_error(NULL, E_TYPE, "Expecting a function in 'instanceof' check");
+    if (!IS_FUNC(b)) {
+      char *fmt = "Expecting a function in 'instanceof' check, got %s";
+      fh_throw(NULL, fh_new_error(E_TYPE, fmt, fh_typeof(b)));
+    }
     return fh_has_instance(b, a);
   }
   if (STREQ(op, "in")) {
-    if (!IS_OBJ(b))
-      fh_error(NULL, E_TYPE, "Expecting an object with 'in' operator");
+    if (!IS_OBJ(b)) {
+      char *fmt = "Expecting an object with 'in' operator, got %s";
+      fh_throw(NULL, fh_new_error(E_TYPE, fmt, fh_typeof(b)));
+    }
     return fh_has_property(b, TO_STR(a)->string.ptr);
   }
 
@@ -1059,6 +1072,7 @@ fh_eval(js_val *ctx, ast_node *node)
     case NODE_VAR_DEC:     return var_dec(ctx, node, false);
     case NODE_BREAK:       return break_stmt();
     case NODE_TRY_STMT:    return try_stmt(ctx, node);
+    case NODE_THROW:       return throw_stmt(ctx, node->e1);
     case NODE_IF:          return if_stmt(ctx, node);
     case NODE_TERN:        return if_stmt(ctx, node);
     case NODE_BLOCK:       return fh_eval(ctx, node->e1);
@@ -1077,7 +1091,7 @@ fh_eval(js_val *ctx, ast_node *node)
     {
       eval_state *state = fh_new_state(node->line, node->column);
       fh_push_state(state);
-      fh_error(state, E_SYNTAX, "Unsupported syntax type (%d)", node->type);
+      fh_throw(state, fh_new_error(E_SYNTAX, "Unsupported syntax type (%d)", node->type));
     }
   }
 

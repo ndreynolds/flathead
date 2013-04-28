@@ -1120,7 +1120,7 @@ yyerror(const char *s)
   eval_state *state = fh_new_state(yylloc.first_line, yylloc.first_column);
   fh_push_state(state);
   // Trim the "syntax error: " prefix so we can use fh_error.
-  fh_error(state, E_SYNTAX, strlen(s) >= 14 ? s + 14 : s);
+  fh_throw(state, fh_new_error(E_SYNTAX, strlen(s) >= 14 ? s + 14 : s));
 }
 
 // This is our replacement function when we redefine YY_INPUT
@@ -1142,7 +1142,7 @@ fh_get_input(char *buf, int size)
     if (!line)
       return 0;
     if ((int)strlen(line) > size - 3) {
-      fh_error(NULL, E_ERROR, "input line too long");
+      fh_throw(NULL, fh_new_error(E_ERROR, "input line too long"));
       return 0;
     }
     strcpy(buf, line);
@@ -1166,10 +1166,10 @@ fh_get_input(char *buf, int size)
   // For file or stdin:
   else {
     if (!yyin)
-      fh_error(NULL, E_ERROR, "invalid input file");
+      fh_throw(NULL, fh_new_error(E_ERROR, "invalid input file"));
     int result = fread(buf, sizeof(char), size, yyin);
     if (result == 0 && ferror(yyin))
-      fh_error(NULL, E_ERROR, "error while reading input file");
+      fh_throw(NULL, fh_new_error(E_ERROR, "error while reading input file"));
     return result;
   }
   return strlen(buf);

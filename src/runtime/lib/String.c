@@ -31,7 +31,7 @@ str_new(js_val *instance, js_args *args, eval_state *state)
 js_val *
 str_from_char_code(js_val *instance, js_args *args, eval_state *state)
 {
-  fh_error(state, E_EVAL, "Unicode is not supported");
+  fh_throw(state, fh_new_error(E_ERROR, "Unicode is not supported"));
   UNREACHABLE();
 }
 
@@ -58,7 +58,7 @@ str_proto_char_at(js_val *instance, js_args *args, eval_state *state)
 js_val *
 str_proto_char_code_at(js_val *instance, js_args *args, eval_state *state)
 {
-  fh_error(state, E_EVAL, "Unicode is not supported");
+  fh_throw(state, fh_new_error(E_ERROR, "Unicode is not supported"));
   UNREACHABLE();
 }
 

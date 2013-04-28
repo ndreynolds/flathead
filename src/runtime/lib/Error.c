@@ -24,7 +24,7 @@ js_val *
 error_eval_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
-  fh_set_class(err, "EvalError");
+  fh_set(err, "name", JSSTR(E_EVAL));
   return err;
 }
 
@@ -33,7 +33,7 @@ js_val *
 error_range_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
-  fh_set_class(err, "RangeError");
+  fh_set(err, "name", JSSTR(E_RANGE));
   return err;
 }
 
@@ -42,7 +42,7 @@ js_val *
 error_ref_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
-  fh_set_class(err, "ReferenceError");
+  fh_set(err, "name", JSSTR(E_REFERENCE));
   return err;
 }
 
@@ -51,7 +51,7 @@ js_val *
 error_syntax_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
-  fh_set_class(err, "SyntaxError");
+  fh_set(err, "name", JSSTR(E_SYNTAX));
   return err;
 }
 
@@ -60,7 +60,7 @@ js_val *
 error_type_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
-  fh_set_class(err, "TypeError");
+  fh_set(err, "name", JSSTR(E_TYPE));
   return err;
 }
 
@@ -69,7 +69,7 @@ js_val *
 error_uri_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
-  fh_set_class(err, "URIError");
+  fh_set(err, "name", JSSTR(E_URI));
   return err;
 }
 
@@ -78,7 +78,8 @@ js_val *
 error_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 {
   if (!IS_OBJ(instance))
-    fh_error(state, E_TYPE, "Error.prototype.toString called on a non-object");
+    fh_throw(state, 
+        fh_new_error(E_TYPE, "Error.prototype.toString called on non-object"));
 
   js_val *name_prop = fh_get_proto(instance, "name");
   js_val *msg_prop = fh_get_proto(instance, "message");

@@ -43,9 +43,10 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
     options |= PCRE_CASELESS;
 
   pcre *regexp = pcre_compile(pattern, options, &error, &error_offset, NULL);
-  if (!regexp)
-    fh_error(NULL, E_SYNTAX, "Invalid Regular Expression:\n  %s at offset %d", 
-             error, error_offset);
+  if (!regexp) {
+    char *fmt = "Invalid Regular Expression:\n  %s at offset %d";
+    fh_throw(NULL, fh_new_error(E_SYNTAX, fmt, error, error_offset));
+  }
 
   rc = pcre_exec(regexp, NULL, str, strlen(str), offset, 0, 
                  output_vector, regexp_vector_len);
@@ -78,9 +79,10 @@ fh_regexp_ncaptures(char *pattern)
   int options = PCRE_JAVASCRIPT_COMPAT;
   int captures;
   pcre *regexp = pcre_compile(pattern, options, &error, &error_offset, NULL);
-  if (!regexp)
-    fh_error(NULL, E_SYNTAX, "Invalid Regular Expression:\n  %s at offset %d", 
-             error, error_offset);
+  if (!regexp) {
+    char *fmt = "Invalid Regular Expression:\n  %s at offset %d";
+    fh_throw(NULL, fh_new_error(E_SYNTAX, fmt, error, error_offset));
+  }
   pcre_fullinfo(regexp, NULL, PCRE_INFO_CAPTURECOUNT, &captures);
   return captures;
 #else

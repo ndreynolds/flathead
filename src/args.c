@@ -68,6 +68,6 @@ args_len(js_args *args)
     args = args->next;
   }
   if (i >= UINT_MAX)
-    fh_error(NULL, E_RANGE, "too many arguments");
+    fh_throw(NULL, fh_new_error(E_RANGE, "too many arguments"));
   return i;
 }

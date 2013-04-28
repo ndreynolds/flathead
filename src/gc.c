@@ -109,7 +109,8 @@ fh_malloc(bool first_attempt)
     fh_gc();
     return fh_malloc(false);
   } 
-  fh_error(NULL, E_ERROR, "process out of memory");
+  fprintf(stderr, "Error: process out of memory");
+  exit(EXIT_FAILURE);
   UNREACHABLE();
 }
 

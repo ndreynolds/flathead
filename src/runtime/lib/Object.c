@@ -271,7 +271,7 @@ static js_val *
 obj_or_throw(js_val *maybe_obj, eval_state *state, const char *name)
 {
   if (!maybe_obj || !IS_OBJ(maybe_obj))
-    fh_error(state, E_TYPE, "Object.%s called on a non-object", name);
+    fh_throw(state, fh_new_error(E_TYPE, "Object.%s called on a non-object", name));
   return maybe_obj;
 }
 

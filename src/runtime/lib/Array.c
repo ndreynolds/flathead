@@ -90,7 +90,7 @@ arr_new(js_val *instance, js_args *args, eval_state *state)
     double len = ARG(args, 0)->number.val;
     // Must be positive integer less than 2^32 - 1
     if (len < 0 || len >= ULONG_MAX || fmod(len, 1) != 0)
-      fh_error(state, E_RANGE, "Invalid array length");
+      fh_throw(state, fh_new_error(E_RANGE, "Invalid array length"));
 
     fh_set_len(arr, len);
     return arr;
@@ -692,14 +692,14 @@ arr_proto_reduce(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *callback = ARG(args, 0);
   if (!IS_FUNC(callback))
-    fh_error(state, E_TYPE, "%s is not a function", fh_typeof(callback));
+    fh_throw(state, fh_new_error(E_TYPE, "%s is not a function", fh_typeof(callback)));
 
   js_val *reduction = ARG(args, 1);
   unsigned long i = 0, len = instance->object.length;
 
   if (IS_UNDEF(reduction)) {
     if (len == 0)
-      fh_error(state, E_RANGE, "Reduce of empty array with no initial value");
+      fh_throw(state, fh_new_error(E_RANGE, "Reduce of empty array with no initial value"));
 
     reduction = fh_get(instance, "0");
     i = 1;
@@ -726,7 +726,7 @@ arr_proto_reduce_right(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *callback = ARG(args, 0);
   if (!IS_FUNC(callback))
-    fh_error(state, E_TYPE, "%s is not a function", fh_typeof(callback));
+    fh_throw(state, fh_new_error(E_TYPE, "%s is not a function", fh_typeof(callback)));
 
   js_val *reduction = ARG(args, 1);
   unsigned long len = instance->object.length;
@@ -734,7 +734,7 @@ arr_proto_reduce_right(js_val *instance, js_args *args, eval_state *state)
 
   if (IS_UNDEF(reduction)) {
     if (len == 0)
-      fh_error(state, E_RANGE, "Reduce of empty array with no initial value");
+      fh_throw(state, fh_new_error(E_RANGE, "Reduce of empty array with no initial value"));
 
     reduction = fh_get(instance, JSNUMKEY(i)->string.ptr);
 

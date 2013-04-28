@@ -29,7 +29,7 @@ number_proto_to_exponential(js_val *instance, js_args *args, eval_state *state)
 
   if (digits->type != T_UNDEF) {
     if (digits->number.val < 0 || digits->number.val > 20)
-      fh_error(state, E_RANGE, "fractionDigits must be between 0 and 20");
+      fh_throw(state, fh_new_error(E_RANGE, "fractionDigits must be between 0 and 20"));
   }
 
   double x, m;
@@ -86,7 +86,7 @@ number_proto_to_precision(js_val *instance, js_args *args, eval_state *state)
 
   int digits = floor(precision->number.val + 0.5);
   if (digits < 1 || digits > 100)
-    fh_error(state, E_RANGE, "precision must be between 1 and 100");
+    fh_throw(state, fh_new_error(E_RANGE, "precision must be between 1 and 100"));
 
   int size = snprintf(NULL, 0, "%.*g", digits, instance->number.val);
   char *str = malloc(size + 1);

@@ -24,7 +24,7 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
   if (ARGLEN(args) <= 1)
     return regexp;
   if (!IS_STR(flags))
-    fh_error(state, E_TYPE, "Invalid flags supplied to RegExp constructor");
+    fh_throw(state, fh_new_error(E_TYPE, "Invalid flags supplied to RegExp constructor"));
   int i, n;
   for (i = 0, n = strlen(flags->string.ptr); i < n; i++) {
     switch (flags->string.ptr[i]) {

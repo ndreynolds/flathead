@@ -28,7 +28,7 @@ fh_get(js_val *obj, char *name)
 {
   // We can't read properties from undefined.
   if (obj->type == T_UNDEF)
-    fh_error(NULL, E_TYPE, "Cannot read property '%s' of undefined", name);
+    fh_throw(NULL, fh_new_error(E_TYPE, "Cannot read property '%s' of undefined", name));
 
   // But we'll happily return undefined if a property doesn't exist.
   js_prop *prop = fh_get_prop(obj, name);

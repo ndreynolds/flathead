@@ -44,7 +44,7 @@ console_assert(js_val *instance, js_args *args, eval_state *state)
   // Non-standard, found in new Webkit builds and Firebug
   if (TO_BOOL(ARG(args, 0))->boolean.val)
     return JSUNDEF();
-  fh_error(state, E_ASSERTION, "assertion failed");
+  fh_throw(state, fh_new_error("AssertionError", "assertion failed"));
   UNREACHABLE();
 }
 
