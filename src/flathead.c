@@ -190,10 +190,18 @@ fh_new_error(char *name, const char *tpl, ...)
   fh_set_class(val, "Error");
 
   va_list ap;
+
+  // Multiple va_list traversals
+  // First figure out size
   va_start(ap, tpl);
   size_t size = vsnprintf(NULL, 0, tpl, ap);
+  va_end(ap);
+
   char *msg = malloc(size + 1);
-  vsprintf(msg, tpl, ap);
+
+  // Now build the error message
+  va_start(ap, tpl);
+  vsnprintf(msg, size + 1, tpl, ap);
   va_end(ap);
 
   fh_set(val, "name", JSSTR(name));
