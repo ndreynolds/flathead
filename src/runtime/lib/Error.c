@@ -25,6 +25,7 @@ error_eval_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
   fh_set(err, "name", JSSTR(E_EVAL));
+  err->proto = fh_try_get_proto(E_EVAL);
   return err;
 }
 
@@ -34,6 +35,7 @@ error_range_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
   fh_set(err, "name", JSSTR(E_RANGE));
+  err->proto = fh_try_get_proto(E_RANGE);
   return err;
 }
 
@@ -43,6 +45,7 @@ error_ref_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
   fh_set(err, "name", JSSTR(E_REFERENCE));
+  err->proto = fh_try_get_proto(E_REFERENCE);
   return err;
 }
 
@@ -52,6 +55,7 @@ error_syntax_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
   fh_set(err, "name", JSSTR(E_SYNTAX));
+  err->proto = fh_try_get_proto(E_SYNTAX);
   return err;
 }
 
@@ -61,6 +65,7 @@ error_type_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
   fh_set(err, "name", JSSTR(E_TYPE));
+  err->proto = fh_try_get_proto(E_TYPE);
   return err;
 }
 
@@ -70,6 +75,7 @@ error_uri_new(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *err = error_new(instance, args, state);
   fh_set(err, "name", JSSTR(E_URI));
+  err->proto = fh_try_get_proto(E_URI);
   return err;
 }
 
@@ -92,7 +98,7 @@ error_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 }
 
 js_val *
-bootstrap_error()
+bootstrap_error(js_val *global)
 {
   js_val *error = JSNFUNC(error_new, 1);
   js_val *prototype = JSOBJ();
@@ -104,6 +110,7 @@ bootstrap_error()
   // Properties
   DEF(error, "prototype", prototype);
 
+  
   // Error.prototype
   // ---------------
   
@@ -116,6 +123,52 @@ bootstrap_error()
   DEF(prototype, "toString", JSNFUNC(error_proto_to_string, 0));
 
   fh_attach_prototype(prototype, fh->function_proto);
+
+
+  // Other Error constructors
+  // ------------------------
+
+  // EvalError
+  js_val *error_eval = JSNFUNC(error_eval_new, 1);
+  js_val *error_eval_proto = JSOBJ();
+  error_eval_proto->proto = prototype;
+  DEF(error_eval, "prototype", error_eval_proto);
+  DEF(global, "EvalError", error_eval);
+
+  // RangeError
+  js_val *error_range = JSNFUNC(error_range_new, 1);
+  js_val *error_range_proto = JSOBJ();
+  error_range_proto->proto = prototype;
+  DEF(error_range, "prototype", error_range_proto);
+  DEF(global, "RangeError", error_range);
+
+  // ReferenceError
+  js_val *error_ref = JSNFUNC(error_ref_new, 1);
+  js_val *error_ref_proto = JSOBJ();
+  error_ref_proto->proto = prototype;
+  DEF(error_ref, "prototype", error_ref_proto);
+  DEF(global, "ReferenceError", error_ref);
+  
+  // SyntaxError
+  js_val *error_syntax = JSNFUNC(error_syntax_new, 1);
+  js_val *error_syntax_proto = JSOBJ();
+  error_syntax_proto->proto = prototype;
+  DEF(error_syntax, "prototype", error_syntax_proto);
+  DEF(global, "SyntaxError", error_syntax);
+
+  // TypeError
+  js_val *error_type = JSNFUNC(error_type_new, 1);
+  js_val *error_type_proto = JSOBJ();
+  error_type_proto->proto = prototype;
+  DEF(error_type, "prototype", error_type_proto);
+  DEF(global, "TypeError", error_type);
+
+  // URIError
+  js_val *error_uri = JSNFUNC(error_uri_new, 1);
+  js_val *error_uri_proto = JSOBJ();
+  error_uri_proto->proto = prototype;
+  DEF(error_uri, "prototype", error_uri_proto);
+  DEF(global, "URIError", error_uri);
 
   return error;
 }

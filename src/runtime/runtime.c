@@ -230,7 +230,7 @@ fh_bootstrap()
   DEF(global, "Boolean",  bootstrap_boolean());
   DEF(global, "Date",     bootstrap_date());
   DEF(global, "RegExp",   bootstrap_regexp());
-  DEF(global, "Error",    bootstrap_error());
+  DEF(global, "Error",    bootstrap_error(global));
   DEF(global, "Math",     bootstrap_math());
   DEF(global, "console",  bootstrap_console());
 
@@ -247,14 +247,6 @@ fh_bootstrap()
   DEF(global, "Infinity",  JSINF());
   DEF(global, "undefined", JSUNDEF());
   DEF(global, "this",      global);
-
-  // Other Error constructors
-  DEF(global, "EvalError",      JSNFUNC(error_eval_new, 1));
-  DEF(global, "RangeError",     JSNFUNC(error_range_new, 1));
-  DEF(global, "ReferenceError", JSNFUNC(error_ref_new, 1));
-  DEF(global, "SyntaxError",    JSNFUNC(error_syntax_new, 1));
-  DEF(global, "TypeError",      JSNFUNC(error_type_new, 1));
-  DEF(global, "URIError",       JSNFUNC(error_uri_new, 1));
 
   // These aren't currently optimized, just here for compatibility's sake.
   DEF(global, "Float32Array", JSNFUNC(arr_new, 1));

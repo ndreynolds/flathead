@@ -16,6 +16,6 @@ js_val * error_uri_new(js_val *, js_args *, eval_state *);
 
 js_val * error_proto_to_string(js_val *, js_args *, eval_state *);
 
-js_val * bootstrap_error(void);
+js_val * bootstrap_error(js_val *);
 
 #endif

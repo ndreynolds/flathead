@@ -678,14 +678,32 @@ forin_stmt(js_val *ctx, ast_node *node)
 static js_val *
 try_stmt(js_val *ctx, ast_node *node)
 {
-  // TODO: Exception handling
-  return fh_eval(ctx, node->e1);
+  eval_state *state = fh_new_state(node->line, node->column);
+  state->catch = true;
+  state->ctx = ctx;
+  fh_push_state(state);
+
+  // Try
+  if (!setjmp(state->jmp))
+    return fh_eval(ctx, node->e1);
+  // Catch
+  else {
+    fh_set(ctx, node->e2->e1->sval, fh_get(ctx, "FH_LAST_ERROR")); 
+    return fh_eval(ctx, node->e2->e2);
+  }
+
+  // Finally
+  if (node->e3)
+    fh_eval(ctx, node->e3);
+
+  return JSUNDEF();
 }
 
 static js_val *
 throw_stmt(js_val *ctx, ast_node *exp)
 {
   eval_state *state = fh_new_state(exp->line, exp->column);
+  fh_push_state(state);
   js_val *val = fh_eval(ctx, exp);
   fh_throw(state, val);
   return JSUNDEF();

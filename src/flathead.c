@@ -255,6 +255,7 @@ fh_new_state(int line, int column)
   state->this = NULL;
   state->parent = NULL;
   state->construct = false;
+  state->catch = false;
 
   return state;
 }
@@ -478,6 +479,23 @@ fh_cast(js_val *val, js_type type)
 void
 fh_throw(eval_state *state, js_val *error)
 {
+  // Search the callstack for a catch
+  eval_state *tmp = state;
+  while(tmp != NULL) {
+    if (tmp->catch) {
+      fh_set(tmp->ctx, "FH_LAST_ERROR", error); 
+
+      // Pop all frames up to and including the catch.
+      while (fh->callstack != tmp)
+        fh_pop_state();
+      fh_pop_state();
+
+      longjmp(tmp->jmp, 1);
+      UNREACHABLE();
+    }
+    tmp = state->parent;
+  }
+
   fprintf(stderr, "%s\n", TO_STR(fh_to_primitive(error, T_STRING))->string.ptr);
 
   while (state != NULL) {
@@ -491,9 +509,10 @@ fh_throw(eval_state *state, js_val *error)
     state = state->parent;
   }
 
+  // Catch errors within REPL: clear callstack and start over.
   if (fh->opt_interactive) {
     fh->callstack = NULL;
-    longjmp(fh->jmpbuf, 1); 
+    longjmp(fh->repl_jmp, 1); 
   }
   exit(1);
 }

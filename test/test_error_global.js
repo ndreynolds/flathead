@@ -75,6 +75,30 @@ test('Other Constructors', function() {
   assertEquals('URIError',       (new URIError).name);
   assertEquals('',               (new URIError).message);
   assertEquals('test',           (new URIError('test')).message);
+
+  assert((new EvalError) instanceof EvalError);
+  assert((new EvalError) instanceof Error);
+  assert((new EvalError) instanceof Object);
+
+  assert((new RangeError) instanceof RangeError);
+  assert((new RangeError) instanceof Error);
+  assert((new RangeError) instanceof Object);
+
+  assert((new ReferenceError) instanceof ReferenceError);
+  assert((new ReferenceError) instanceof Error);
+  assert((new ReferenceError) instanceof Object);
+
+  assert((new SyntaxError) instanceof SyntaxError);
+  assert((new SyntaxError) instanceof Error);
+  assert((new SyntaxError) instanceof Object);
+
+  assert((new TypeError) instanceof TypeError);
+  assert((new TypeError) instanceof Error);
+  assert((new TypeError) instanceof Object);
+
+  assert((new URIError) instanceof URIError);
+  assert((new URIError) instanceof Error);
+  assert((new URIError) instanceof Object);
 });
 
 

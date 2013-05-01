@@ -1264,7 +1264,7 @@ main(int argc, char **argv)
       // Normally errors cause the program to exit, but we'd like the REPL to
       // continue. Use setjmp here and longjmp in `fh_error` to simulate
       // exception handling.
-      if (!setjmp(fh->jmpbuf))
+      if (!setjmp(fh->repl_jmp))
         DEBUG(fh_eval_file(source, fh->global));
     }
   } 

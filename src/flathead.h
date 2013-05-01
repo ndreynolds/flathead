@@ -148,7 +148,7 @@ typedef struct {
   bool opt_keep_history_file;
   const char *opt_history_filename;
 
-  jmp_buf jmpbuf;                   // used to handle errors within REPL
+  jmp_buf repl_jmp;                   // used to handle errors within REPL
   char *script_name;
   struct eval_state *callstack;
 
@@ -161,11 +161,13 @@ typedef struct {
 typedef struct eval_state {
   int line;
   int column;
-  bool construct;
-  struct js_val *ctx;
-  struct js_val *this;
   char *caller_info;
   char *script_name;
+  bool construct;
+  bool catch;
+  struct js_val *ctx;
+  struct js_val *this;
+  jmp_buf jmp;
   struct eval_state *parent;
 } eval_state;
 
@@ -217,11 +219,15 @@ typedef struct {
   js_native_function *nativefn;
 } js_object;
 
+/* TODO: Store non-objects more efficiently. A lot of space is currenlty wasted
+ * for JS primitives. `js_val` should only store a pointer to the `js_obj`.
+ * Maybe the GC can keep separate heaps for objects and values. */
+
 typedef struct js_val {
   js_number number;
   js_string string;
   js_boolean boolean;
-  js_object object;   // TODO: make this a pointer (too big as is)
+  js_object object;   
   js_type type;
   ctl_signal signal;
   struct js_val *proto;
