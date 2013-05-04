@@ -447,6 +447,7 @@ date_verify_format(char *str, char *fmt)
   // Within the format string:
   //  a - any alphabetic character
   //  d - any digit character
+  //  ? - any character
   //
   // Everything else is taken literally.
   
@@ -454,12 +455,10 @@ date_verify_format(char *str, char *fmt)
   for (i = 0, n = strlen(str); i < n; i++) {
     char c = str[i], f = fmt[i];
 
-    if (f == 'a' && !isalpha(c)) 
-      return false;
-    if (f == 'd' && !isdigit(c)) 
-      return false;
-    if (f != 'a' && f != 'd' && c != f)
-      return false;
+    if (f == '?') continue;
+    if (f == 'a' && !isalpha(c)) return false;
+    if (f == 'd' && !isdigit(c)) return false;
+    if (f != 'a' && f != 'd' && c != f) return false;
   }
 
   return true;
@@ -498,17 +497,20 @@ date_parse_iso(char *str, double *t)
 static bool
 date_parse_loc(char *str, double *t)
 {
-  // FIXME: Incorrect assumptions being made:
-  //
-  // - Assumes TZ abbreviation is always 3 letters (not true!)
-  // - Assumes this is a local time (could be another TZ)
+  // FIXME: Assumes this is a local time (could be another TZ)
+  // TODO: Add wildcards to format verifier to simplify this
   
   // Wed Oct 12 1984 12:31:19 GMT-0400 (EDT)
-  char *fmt = "aaa aaa dd dddd dd:dd:dd GMT-dddd (aaa)";
+  char *fmt_tz2 = "aaa aaa dd dddd dd:dd:dd GMT?dddd (aa)";
+  char *fmt_tz3 = "aaa aaa dd dddd dd:dd:dd GMT?dddd (aaa)";
+  char *fmt_tz4 = "aaa aaa dd dddd dd:dd:dd GMT?dddd (aaaa)";
+  char *fmt_tz5 = "aaa aaa dd dddd dd:dd:dd GMT?dddd (aaaaa)";
 
   // Verify the format
-  if (!date_verify_format(str, fmt))
-    return false;
+  if (!(date_verify_format(str, fmt_tz2) || 
+        date_verify_format(str, fmt_tz3) || 
+        date_verify_format(str, fmt_tz4) ||
+        date_verify_format(str, fmt_tz5))) return false;
 
   char *mname = fh_str_slice(str, 4, 7);
   int date = atoi(fh_str_slice(str, 8, 10));
@@ -873,7 +875,7 @@ date_proto_get_utc_seconds(js_val *instance, js_args *args, eval_state *state)
 js_val *
 date_proto_get_year(js_val *instance, js_args *args, eval_state *state)
 {
-  int y = year_from_time(instance->number.val);
+  int y = year_from_time(local_time(instance->number.val));
   return JSNUM(y - 1900);
 }
 
