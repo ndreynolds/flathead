@@ -1,0 +1,5 @@
+language: c 
+compiler:
+  - clang
+  - gcc
+script: npm install && make && make test
