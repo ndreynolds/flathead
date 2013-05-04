@@ -2,6 +2,8 @@ Flathead
 ========
 Flathead is a tiny, portable JavaScript (ECMA-262) interpreter written in C.
 
+[![Build Status](https://travis-ci.org/ndreynolds/flathead.png?branch=master)](https://travis-ci.org/ndreynolds/flathead)
+
 ![Flathead's REPL](http://ndreynolds.com/img/flathead.png)
 
 The interpreter does a direct evaluation of the parse tree—it does not

@@ -2,4 +2,4 @@ language: c
 compiler:
   - clang
   - gcc
-script: npm install && make && make TEST_FLAGS="-d test -t 5000" test
+script: npm install && make && make test
