@@ -493,7 +493,7 @@ fh_throw(eval_state *state, js_val *error)
       longjmp(tmp->jmp, 1);
       UNREACHABLE();
     }
-    tmp = state->parent;
+    tmp = tmp->parent;
   }
 
   fprintf(stderr, "%s\n", TO_STR(fh_to_primitive(error, T_STRING))->string.ptr);

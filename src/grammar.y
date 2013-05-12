@@ -1119,7 +1119,7 @@ yyerror(const char *s)
 {
   eval_state *state = fh_new_state(yylloc.first_line, yylloc.first_column);
   fh_push_state(state);
-  // Trim the "syntax error: " prefix so we can use fh_error.
+  // Trim the "syntax error: " prefix so we can use `fh_throw`.
   fh_throw(state, fh_new_error(E_SYNTAX, strlen(s) >= 14 ? s + 14 : s));
 }
 
@@ -1262,7 +1262,7 @@ main(int argc, char **argv)
     fh_print_startup();
     while (true) {
       // Normally errors cause the program to exit, but we'd like the REPL to
-      // continue. Use setjmp here and longjmp in `fh_error` to simulate
+      // continue. Use setjmp here and longjmp in `fh_throw` to simulate
       // exception handling.
       if (!setjmp(fh->repl_jmp))
         DEBUG(fh_eval_file(source, fh->global));

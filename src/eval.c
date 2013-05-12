@@ -685,16 +685,16 @@ try_stmt(js_val *ctx, ast_node *node)
 
   // Try
   if (!setjmp(state->jmp))
-    return fh_eval(ctx, node->e1);
+    fh_eval(ctx, node->e1);
   // Catch
   else {
     fh_set(ctx, node->e2->e1->sval, fh_get(ctx, "FH_LAST_ERROR")); 
-    return fh_eval(ctx, node->e2->e2);
+    fh_eval(ctx, node->e2->e2);
   }
 
   // Finally
-  if (node->e3)
-    fh_eval(ctx, node->e3);
+  if (node->e3 && node->e3->e1)
+    fh_eval(ctx, node->e3->e1);
 
   return JSUNDEF();
 }
