@@ -63,7 +63,7 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
   
   return output_vector;
 #else
-  fh_error(NULL, E_ERROR, "Regular expressions are not available");
+  fh_throw(NULL, fh_new_error(E_ERROR, "Regular expressions are not available"));
   UNREACHABLE();
 #endif
 }
@@ -86,7 +86,7 @@ fh_regexp_ncaptures(char *pattern)
   pcre_fullinfo(regexp, NULL, PCRE_INFO_CAPTURECOUNT, &captures);
   return captures;
 #else
-  fh_error(NULL, E_ERROR, "Regular expressions are not available");
+  fh_throw(NULL, fh_new_error(E_ERROR, "Regular expressions are not available"));
   UNREACHABLE();
 #endif
 }
