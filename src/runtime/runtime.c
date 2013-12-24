@@ -177,8 +177,11 @@ load_file(char *name)
   size_t result = fread(fcontent, 1, size, file); 
   fclose(file);
 
-  if (result != size)
+  if (result != size) {
+    if (fcontent != NULL)
+      free(fcontent);
     return -1;
+  }
 
   char *prev_script = fh->script_name;
   fh->script_name = name;
