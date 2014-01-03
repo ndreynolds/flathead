@@ -110,12 +110,9 @@ E                            [Ee][+-]?{D}+
 
     /* LITERALS */
 
-    /* double-quoted strings */
+    /* single-/double-quoted strings */
+L?'(\\.|[^\\'])*'           |
 L?\"(\\.|[^\\"])*\"          { yylval.val = fh_extract_string(yytext); 
-                               return TOKEN("STR", STRING); }
-
-    /* single-quoted strings */
-L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext); 
                                return TOKEN("STR", STRING); }
 
     /* identifiers */
