@@ -26,8 +26,7 @@ ast_node *
 node_alloc()
 {
   // Allocate and return a new node
-  struct ast_node *node = malloc(sizeof(ast_node));
-  memset(node, 0, sizeof(ast_node));
+  struct ast_node *node = calloc(1, sizeof(*node));
   node->type = NODE_UNKNOWN;
   node->sub_type = NODE_UNKNOWN;
   node->visited = false;
