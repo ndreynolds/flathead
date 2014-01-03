@@ -259,8 +259,6 @@ fh_token(char *name, int token)
 char *
 fh_extract_string(char *src)
 {
-  char *dest = malloc((strlen(src) - 1) * sizeof(char));
-  int len = strlen(src);
-  snprintf(dest, len - 1, "%.*s\n", len - 2, src + 1);
-  return dest;
+  src[strlen(src) - 1] = '\0';
+  return src + 1;
 }
