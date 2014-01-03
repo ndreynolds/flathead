@@ -132,7 +132,7 @@ L?\"(\\.|[^\\"]+)*\"          { yylval.val = fh_extract_string(yytext);
                                return TOKEN("HEX", NUMBER); }
 
     /* floats */
-{D}+\.{D}+({E})?             { yylval.floatval = atof(yytext); 
+({D}+\.{D}*|\.{D}+)({E})?    { yylval.floatval = atof(yytext); 
                                return TOKEN("FLOAT", NUMBER); }
 
     /* regexps */
