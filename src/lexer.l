@@ -136,7 +136,7 @@ L?\"(\\.|[^\\"]+)*\"          { yylval.val = fh_extract_string(yytext);
                                return TOKEN("FLOAT", NUMBER); }
 
     /* regexps */
-L?\/([^\*\n\/\\]|\\.|\\\/)([^\n\/\\]|\\.|\\\/)*\/([imgy]{0,4}) { 
+L?\/([^*/\n\\]+|\\.)([^/\n\\]+|\\.)*\/([gimy]{0,4}) { 
                                /* FIXME: This is incomplete */
                                if (prev_token == NUMBER     ||
                                    prev_token == STRING     ||
