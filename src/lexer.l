@@ -51,8 +51,8 @@
 
 %x ML_COMMENT
 
-D                            [0-9]
-H                            [a-fA-F0-9]
+D                            [[:digit:]]
+H                            [[:xdigit:]]
 E                            [Ee][+-]?{D}+
 
 
