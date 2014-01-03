@@ -93,7 +93,7 @@ E                            [Ee][+-]?{D}+
     /* COMMENTS */
 
     /* single-line */
-[/][/].*                     ; /* ignore comments */
+\/\/.*                     ; /* ignore comments */
 
 
     /* multi-line (taken from the Flex manual) */
@@ -111,12 +111,12 @@ E                            [Ee][+-]?{D}+
     /* LITERALS */
 
     /* single-/double-quoted strings */
-L?'(\\.|[^\\'])*'           |
-L?\"(\\.|[^\\"])*\"          { yylval.val = fh_extract_string(yytext); 
+L?'(\\.|[^\\']+)*'           |
+L?\"(\\.|[^\\"]+)*\"          { yylval.val = fh_extract_string(yytext); 
                                return TOKEN("STR", STRING); }
 
     /* identifiers */
-[_\$A-Za-z][_\$0-9A-Za-z]*   { yylval.val = yytext; 
+[_\$A-Za-z]+[_\$0-9A-Za-z]*   { yylval.val = yytext; 
                                return TOKEN("IDENT", IDENT); }
 
     /* octals */
@@ -189,7 +189,7 @@ L?\/([^\*\n\/\\]|\\.|\\\/)([^\n\/\\]|\\.|\\\/)*\/([imgy]{0,4}) {
 
     /* WHITESPACE & TABS */
 
-[ \t\v\f]                    ;
+[ \t\v\f]+                    ;
 
 
     /* NEWLINES */
