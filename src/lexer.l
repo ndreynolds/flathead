@@ -51,8 +51,8 @@
 
 %x ML_COMMENT
 
-D                            [0-9]
-H                            [a-fA-F0-9]
+D                            [[:digit:]]
+H                            [[:xdigit:]]
 E                            [Ee][+-]?{D}+
 
 
@@ -93,7 +93,7 @@ E                            [Ee][+-]?{D}+
     /* COMMENTS */
 
     /* single-line */
-[/][/].*                     ; /* ignore comments */
+\/\/.*                       ; /* ignore comments */
 
 
     /* multi-line (taken from the Flex manual) */
@@ -110,16 +110,13 @@ E                            [Ee][+-]?{D}+
 
     /* LITERALS */
 
-    /* double-quoted strings */
-L?\"(\\.|[^\\"])*\"          { yylval.val = fh_extract_string(yytext); 
-                               return TOKEN("STR", STRING); }
-
-    /* single-quoted strings */
-L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext); 
+    /* single-/double-quoted strings */
+L?'(\\.|[^\\']+)*'           |
+L?\"(\\.|[^\\"]+)*\"         { yylval.val = fh_extract_string(yytext); 
                                return TOKEN("STR", STRING); }
 
     /* identifiers */
-[_\$A-Za-z][_\$0-9A-Za-z]*   { yylval.val = yytext; 
+[_\$A-Za-z]+[_\$0-9A-Za-z]*  { yylval.val = yytext; 
                                return TOKEN("IDENT", IDENT); }
 
     /* octals */
@@ -135,11 +132,11 @@ L?'(\\.|[^\\'])*'            { yylval.val = fh_extract_string(yytext);
                                return TOKEN("HEX", NUMBER); }
 
     /* floats */
-{D}+\.{D}+({E})?             { yylval.floatval = atof(yytext); 
+({D}+\.{D}*|\.{D}+)({E})?    { yylval.floatval = atof(yytext); 
                                return TOKEN("FLOAT", NUMBER); }
 
     /* regexps */
-L?\/([^\*\n\/\\]|\\.|\\\/)([^\n\/\\]|\\.|\\\/)*\/([imgy]{0,4}) { 
+L?\/([^*/\n\\]+|\\.)([^/\n\\]+|\\.)*\/([gimy]{0,4}) { 
                                /* FIXME: This is incomplete */
                                if (prev_token == NUMBER     ||
                                    prev_token == STRING     ||
@@ -192,7 +189,7 @@ L?\/([^\*\n\/\\]|\\.|\\\/)([^\n\/\\]|\\.|\\\/)*\/([imgy]{0,4}) {
 
     /* WHITESPACE & TABS */
 
-[ \t\v\f]                    ;
+[ \t\v\f]+                   ;
 
 
     /* NEWLINES */
@@ -259,8 +256,6 @@ fh_token(char *name, int token)
 char *
 fh_extract_string(char *src)
 {
-  char *dest = malloc((strlen(src) - 1) * sizeof(char));
-  int len = strlen(src);
-  snprintf(dest, len - 1, "%.*s\n", len - 2, src + 1);
-  return dest;
+  src[strlen(src) - 1] = '\0';
+  return src + 1;
 }
