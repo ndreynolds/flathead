@@ -167,6 +167,7 @@ typedef struct eval_state {
   bool catch;
   struct js_val *ctx;
   struct js_val *this;
+  struct js_val *scope;
   jmp_buf jmp;
   struct eval_state *parent;
 } eval_state;
@@ -206,6 +207,7 @@ typedef struct js_val * (js_native_function)(struct js_val *, struct js_args *, 
 typedef struct {
   bool native;
   bool generator;
+  bool provide_this;
   bool extensible;            // [[Extensible]]
   char class[10];             // [[Class]]
   struct js_val *primitive;   // [[PrimitiveValue]]
@@ -232,6 +234,7 @@ typedef struct js_val {
   ctl_signal signal;
   struct js_val *proto;
   bool marked;
+  bool flagged; 
   js_prop *map;
 } js_val;
 
@@ -269,6 +272,7 @@ js_val * fh_to_object(js_val *);
 js_val * fh_cast(js_val *, js_type);
 
 js_val * fh_has_instance(js_val *, js_val *);
+js_val * fh_implicit_this_value(js_val *obj);
 js_val * fh_has_property(js_val *, char *);
 char * fh_typeof(js_val *);
 void fh_set_len(js_val *, unsigned long);

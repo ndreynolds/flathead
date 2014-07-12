@@ -21,7 +21,7 @@ var z = '99 Luftballons';
 
 // use the method on global, if exposed.
 if (typeof gc !== 'undefined') {
-  gc();
+  gc.run();
 }
 // ...or trigger it the old-fashioned way with a big loop.
 else {

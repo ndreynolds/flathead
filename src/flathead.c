@@ -40,6 +40,7 @@ fh_new_val(js_type type)
   val->type = type;
   val->signal = S_NONE;
   val->proto = NULL;
+  val->marked = false;
 
   return val;
 }
@@ -71,6 +72,7 @@ fh_new_string(char *x)
   js_val *val = fh_new_val(T_STRING);
 
   val->string.ptr = malloc((strlen(x) + 1) * sizeof(char));
+  val->string.ptr[strlen(x)] = '\0';
   strcpy(val->string.ptr, x);
   fh_set_len(val, strlen(x));
   val->proto = fh_try_get_proto("String");
@@ -99,6 +101,11 @@ fh_new_object()
   val->object.extensible = false;
   val->object.parent = NULL;
   val->object.primitive = NULL;
+  val->object.bound_this = NULL;
+  val->object.bound_args = NULL;
+  val->object.scope = NULL;
+  val->object.instance = NULL;
+  val->object.node = NULL;
   val->proto = fh->object_proto;
 
   return val;
@@ -129,6 +136,7 @@ fh_new_function(struct ast_node *node)
   fh_set(val, "caller", JSNULL());
 
   val->object.native = false;
+  val->object.provide_this = false;
   val->object.generator = false;
   val->object.node = node;
   val->object.scope = NULL;
@@ -198,6 +206,7 @@ fh_new_error(char *name, const char *tpl, ...)
   va_end(ap);
 
   char *msg = malloc(size + 1);
+  msg[size] = '\0';
 
   // Now build the error message
   va_start(ap, tpl);
@@ -253,6 +262,7 @@ fh_new_state(int line, int column)
 
   state->ctx = NULL;
   state->this = NULL;
+  state->scope = NULL;
   state->parent = NULL;
   state->construct = false;
   state->catch = false;
@@ -275,6 +285,7 @@ fh_new_global_state()
   state->global = NULL;
   state->function_proto = NULL;
   state->object_proto = NULL;
+  state->callstack = NULL;
 
   state->script_name = "main";
 
@@ -414,6 +425,7 @@ fh_to_string(js_val *val)
       fmt = "%g";
     int size = snprintf(NULL, 0, fmt, val->number.val) + 1;
     char *num = malloc(size);
+    num[size] = '\0';
     snprintf(num, size, fmt, val->number.val);
     return JSSTR(num);
   }
@@ -428,17 +440,23 @@ fh_to_object(js_val *val)
 {
   if (IS_UNDEF(val) || IS_NULL(val))
     fh_throw(NULL, fh_new_error(E_TYPE, "cannot convert %s to object", fh_typeof(val)));
-  if (IS_OBJ(val)) 
+  if (IS_OBJ(val))
     return val;
 
   js_val *obj = JSOBJ();
   obj->object.primitive = val;
-  if (IS_BOOL(val))
+  if (IS_BOOL(val)) {
     fh_set_class(obj, "Boolean");
-  if (IS_NUM(val))
+    obj->proto = fh_try_get_proto("Boolean");
+  }
+  if (IS_NUM(val)) {
     fh_set_class(obj, "Number");
-  if (IS_STR(val))
+    obj->proto = fh_try_get_proto("Number");
+  }
+  if (IS_STR(val)) {
     fh_set_class(obj, "String");
+    obj->proto = fh_try_get_proto("String");
+  }
   return obj;
 }
 
@@ -559,6 +577,12 @@ fh_has_instance(js_val *func, js_val *val)
 }
 
 js_val *
+fh_implicit_this_value(js_val *obj)
+{
+  return obj->object.provide_this ? obj->object.bound_this : JSUNDEF();
+}
+
+js_val *
 fh_has_property(js_val *obj, char *prop)
 {
   js_val *val = fh_get_proto(obj, prop);
@@ -568,6 +592,14 @@ fh_has_property(js_val *obj, char *prop)
 js_val *
 fh_try_get_proto(char *type)
 {
+  // Try to avoid a lookup.
+  if (STREQ(type, "Function") && fh->function_proto)
+    return fh->function_proto;
+  if (STREQ(type, "Object") && fh->object_proto)
+    return fh->object_proto;
+  if (STREQ(type, "Array") && fh->array_proto)
+    return fh->array_proto;
+
   js_val *global = fh->global;
   if (global != NULL) {
     js_val *obj = fh_get(global, type);

@@ -15,16 +15,15 @@ var zero = function() {
 // ----------------------------------------------------------------------------
 
 test('properties', function() {
-  // Just sanity checks, acutal precision should be the same as the cmath
-  // constants used internally.
-  assertClose(2.718, Math.E, 0.001);
-  assertClose(0.693, Math.LN2, 0.001);
-  assertClose(2.303, Math.LN10, 0.001);
-  assertClose(1.443, Math.LOG2E, 0.001);
-  assertClose(0.434, Math.LOG10E, 0.001);
-  assertClose(3.14159, Math.PI, 0.00001);
-  assertClose(0.707, Math.SQRT1_2, 0.001);
-  assertClose(1.414, Math.SQRT2, 0.001);
+  // Just sanity checks, see Math.c
+  assertClose(2.718,   Math.E,       0.001);
+  assertClose(0.693,   Math.LN2,     0.001);
+  assertClose(2.303,   Math.LN10,    0.001);
+  assertClose(1.443,   Math.LOG2E,   0.001);
+  assertClose(0.434,   Math.LOG10E,  0.001);
+  assertClose(3.14159, Math.PI,      0.00001);
+  assertClose(0.707,   Math.SQRT1_2, 0.001);
+  assertClose(1.414,   Math.SQRT2,   0.001);
 });
 
 // ----------------------------------------------------------------------------

@@ -27,7 +27,7 @@ typedef struct gc_arena {
   int num_slots;
   int used_slots;
   bool freelist[SLOTS_PER_ARENA];
-  js_val *slots;
+  js_val slots[SLOTS_PER_ARENA];
 } gc_arena;
 
 js_val * fh_malloc(bool);

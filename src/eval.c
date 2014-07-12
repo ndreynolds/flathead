@@ -88,6 +88,7 @@ member_exp(js_val *ctx, ast_node *member)
     int i = member->e1->val, len = parent->string.length;
     if (i < len && i >= 0) {
       char *str = malloc(sizeof(char) + 1);
+      str[1] = '\0';
       sprintf(str, "%c", parent->string.ptr[i]);
       return JSSTR(str);
     }
@@ -466,10 +467,10 @@ switch_stmt(js_val *ctx, ast_node *node)
   js_val *val, *result, *test = fh_eval(ctx, node->e1);
 
   ast_node *current,
-       *caseblock = node->e2,
-       *clauses_a = caseblock->e1, 
-       *defaultclause = caseblock->e2, 
-       *clauses_b = caseblock->e3;
+           *caseblock = node->e2,
+           *clauses_a = caseblock->e1, 
+           *defaultclause = caseblock->e2, 
+           *clauses_b = caseblock->e3;
 
   bool matched = false;
 
@@ -806,6 +807,7 @@ call(js_val *ctx, js_val *this, js_val *func, eval_state *state, js_args *args)
     state->caller_info = "(anonymous function)";
 
   js_val *func_scope = setup_call_env(ctx, this, func, args);
+  state->scope = func_scope;
   return fh_eval(func_scope, func->object.node->e2);
 }
 

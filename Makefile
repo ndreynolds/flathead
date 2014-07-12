@@ -15,7 +15,7 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 CC = gcc
-CFLAGS = -Wall -Wextra -Wno-unused-parameter -O3 -std=c99 -pedantic -D_XOPEN_SOURCE
+CFLAGS = -dD -Wall -Wextra -Wno-unused-parameter -O3 -std=c99 -pedantic -D_XOPEN_SOURCE
 
 YACC = bison
 YACC_FLAGS = -y -d -t -v
@@ -28,8 +28,9 @@ OBJ_FILES = y.tab.o lex.yy.o src/eval.o src/str.o src/regexp.o src/cli.o \
 src/nodes.o src/args.o src/flathead.o src/debug.o src/gc.o src/props.o \
 src/runtime/runtime.o src/runtime/lib/Math.o src/runtime/lib/RegExp.o \
 src/runtime/lib/Error.o src/runtime/lib/String.o src/runtime/lib/console.o \
-src/runtime/lib/Function.o src/runtime/lib/Object.o src/runtime/lib/Boolean.o \
-src/runtime/lib/Number.o src/runtime/lib/Date.o src/runtime/lib/Array.o
+src/runtime/lib/gc.o src/runtime/lib/Function.o src/runtime/lib/Object.o \
+src/runtime/lib/Boolean.o src/runtime/lib/Number.o src/runtime/lib/Date.o \
+src/runtime/lib/Array.o
 
 OUT_FILE = bin/flat
 YACC_FILE = src/grammar.y
@@ -76,8 +77,8 @@ all: default
 debug: CFLAGS += -g -O0
 debug: clean default
 
-malloc-debug: CC = gcc-4.7
-malloc-debug: LIBS += -lefence
+malloc-debug: CC = gcc-4.9
+malloc-debug: LIBS += -lduma
 malloc-debug: debug
 
 

@@ -127,6 +127,7 @@ fh_set_prop(js_val *obj, char *name, js_val *val, js_prop_flags flags)
   if (new) {
     prop->name = malloc((strlen(name) + 1) * sizeof(char));
     strcpy(prop->name, name);
+    prop->name[strlen(name)] = '\0';
     HASH_ADD_KEYPTR(hh, obj->map, prop->name, strlen(prop->name), prop);
   }
 }

@@ -22,6 +22,22 @@
 #include "gc.h"
 #include "debug.h"
 
+#ifdef FH_GC_PROFILE
+#define GC_PRINT(indent, ...) printf("%*s", indent, ""); printf(__VA_ARGS__)
+#define GC_DEBUG(indent, val) fh_debug(stdout, val, indent, true)
+#else
+#define GC_PRINT(indent, ...) 
+#define GC_DEBUG(indent, val)
+#endif
+
+#ifdef FH_GC_PROFILE_VERBOSE
+#define GC_PRINT_VERBOSE(indent, ...) GC_PRINT(indent, ...)
+#define GC_DEBUG_VERBOSE(indent, val) GC_DEBUG(indent, val)
+#else
+#define GC_PRINT_VERBOSE(indent, ...) 
+#define GC_DEBUG_VERBOSE(indent, val) 
+#endif
+
 /* GC Overview
  *
  * Bi-color, non-incremental, mark & sweep, stop-the-world garbage collection.
@@ -66,13 +82,10 @@
 static gc_arena *
 fh_new_arena()
 {
-  size_t arena_size = sizeof(js_val) * SLOTS_PER_ARENA;
-  js_val *slots = malloc(arena_size);
   gc_arena *arena = malloc(sizeof(gc_arena));
 
   arena->num_slots = SLOTS_PER_ARENA;
   arena->used_slots = 0;
-  arena->slots = slots;
 
   memset(arena->freelist, 0, sizeof(arena->freelist));
   return arena;
@@ -96,13 +109,18 @@ fh_get_arena()
 js_val *
 fh_malloc(bool first_attempt)
 {
+  if (fh->gc_state != GC_STATE_NONE) {
+    fprintf(stderr, "Error: politely refusing to allocate during garbage collection");
+    exit(EXIT_FAILURE);
+  }
+
   gc_arena *arena = fh_get_arena();
   int i;
   for (i = 0; i < arena->num_slots; i++) {
     if (!arena->freelist[i]) {
       arena->freelist[i] = true;
       arena->used_slots++;
-      return &(arena->slots[i]);
+      return &arena->slots[i];
     }
   }
   if (first_attempt) {
@@ -147,11 +165,11 @@ fh_gc_debug()
   }
 
   printf(
-    "  %ld slots | %ld/%ld used slots | %ld/%ld vacant slots | %ld usage (bytes) | %d runs\n",
+    "  %ld slots | %ld/%ld used slots | %ld/%ld vacant slots | %ld usage KB | %d runs\n",
     total_slots,
     used_slots, total_slots,
     total_slots - used_slots, total_slots,
-    total_slots * sizeof(js_val),
+    (total_slots * sizeof(js_val)) / 1000,
     fh->gc_runs
   );
 
@@ -159,27 +177,54 @@ fh_gc_debug()
 }
 
 static void
-fh_gc_mark(js_val *val)
+fh_gc_debug_arena(gc_arena *arena) 
 {
-  if (!val || val->marked) return;
+#ifdef FH_GC_PROFILE_VERBOSE
+  for (int i = 0; i < arena->num_slots; i++) {
+    printf("slot[%4d]: (USED %d) (MARKED %d)\n", i, arena->freelist[i], arena->freelist[i] && arena->slots[i].marked);
+  }
+#endif
+}
+
+static void
+fh_gc_mark(js_val *val, int depth)
+{
+  if (val && val->flagged)
+    puts("Attempting to mark flagged val");
+
+  if (!val || val->marked) return; 
 
   val->marked = true;
 
-  fh_gc_mark(val->proto);
+  GC_DEBUG_VERBOSE(depth, val);
+
+  GC_PRINT_VERBOSE(depth, "Marking prototype\n");
+  fh_gc_mark(val->proto, depth + 1);
 
   if (IS_OBJ(val)) {
-    fh_gc_mark(val->object.primitive);
-    fh_gc_mark(val->object.bound_this);
-    fh_gc_mark(val->object.scope);
-    fh_gc_mark(val->object.instance);
-    fh_gc_mark(val->object.parent);
+    GC_PRINT_VERBOSE(depth, "Marking primitive\n");
+    fh_gc_mark(val->object.primitive, depth + 1);
+
+    GC_PRINT_VERBOSE(depth, "Marking bound this\n");
+    fh_gc_mark(val->object.bound_this, depth + 1);
+
+    GC_PRINT_VERBOSE(depth, "Marking scope\n");
+    fh_gc_mark(val->object.scope, depth + 1);
+
+    GC_PRINT_VERBOSE(depth, "Marking instance\n");
+    fh_gc_mark(val->object.instance, depth + 1);
+
+    GC_PRINT_VERBOSE(depth, "Marking parent\n");
+    fh_gc_mark(val->object.parent, depth + 1);
   }
 
   if (val->map) {
     js_prop *prop;
     OBJ_ITER(val, prop) {
-      if (prop->ptr && !prop->circular)
-        fh_gc_mark(prop->ptr);
+      if (prop->ptr && !prop->circular) {
+        GC_PRINT_VERBOSE(depth, "Marking %s\n", prop->name);
+        fh_gc_mark(prop->ptr, depth + 1);
+      }
     }
   }
 }
@@ -191,7 +236,6 @@ fh_gc_free_val(js_val *val)
   //
   // Note we're not freeing the values pointed at, only the pointers to them
   // and the hashtable overhead.
-  /*
   if (val->map) {
     js_prop *prop, *tmp;
     HASH_ITER(hh, val->map, prop, tmp) {
@@ -199,7 +243,6 @@ fh_gc_free_val(js_val *val)
       if (prop != NULL) free(prop);
     }
   }
-  */
 
   // Free any strings (dynamically alloc-ed outside slots)
   if (IS_STR(val) && val->string.ptr != NULL) {
@@ -212,16 +255,20 @@ fh_gc_free_val(js_val *val)
 static void
 fh_gc_sweep(gc_arena *arena)
 {
-  int i;
   js_val val;
-  for (i = 0; i < SLOTS_PER_ARENA; i++) {
+  int sweeped_count = 0;
+  for (int i = 0; i < arena->num_slots; i++) {
+    if (!arena->freelist[i]) return;
     val = arena->slots[i];
     if (!val.marked) {
+      if (val.flagged) puts("GC: freeing flagged val");
       arena->freelist[i] = false;
       fh_gc_free_val(&val);
       arena->used_slots--;
+      sweeped_count++;
+    } else {
+      arena->slots[i].marked = false;
     }
-    val.marked = false;
   }
 }
 
@@ -230,13 +277,22 @@ fh_gc()
 {
   gc_arena *arena = fh_get_arena();
 
+  fh_gc_debug_arena(arena);
+
   // Start
   fh->gc_state = GC_STATE_STARTING;
   fh_gc_debug();
 
   // Mark
   fh->gc_state = GC_STATE_MARK;
-  fh_gc_mark(fh->global);
+  fh_gc_mark(fh->global, 0);
+  if (fh->callstack) {
+    eval_state *top = fh->callstack; 
+    while (top) {
+      fh_gc_mark(top->scope, 0);
+      top = top->parent;
+    }
+  }
   fh_gc_debug();
 
   // Sweep
@@ -247,4 +303,6 @@ fh_gc()
   // Stop
   fh->gc_state = GC_STATE_NONE;
   fh_gc_debug();
+
+  fh_gc_debug_arena(arena);
 }

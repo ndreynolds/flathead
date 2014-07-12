@@ -22,6 +22,7 @@
 
 #include "runtime.h"
 #include "lib/console.h"
+#include "lib/gc.h"
 #include "lib/Math.h"
 #include "lib/Object.h"
 #include "lib/Function.h"
@@ -143,14 +144,6 @@ global_eval(js_val *instance, js_args *args, eval_state *state)
   return fh_eval_string(code->string.ptr, state->ctx);
 }
 
-// gc()
-js_val *
-global_gc(js_val *instance, js_args *args, eval_state *state)
-{
-  fh_gc();
-  return JSUNDEF();
-}
-
 // print()
 js_val *
 global_print(js_val *instance, js_args *args, eval_state *state)
@@ -233,6 +226,9 @@ fh_bootstrap()
   DEF(global, "Error",    bootstrap_error(global));
   DEF(global, "Math",     bootstrap_math());
   DEF(global, "console",  bootstrap_console());
+#ifdef FH_GC_EXPOSE
+  DEF(global, "gc",       bootstrap_gc());
+#endif
 
   // The Object constructor and its methods are created before the Function
   // constructor exists, so we need connect the prototypes manually.
@@ -268,10 +264,6 @@ fh_bootstrap()
   DEF(global, "FH_VERSION", JSSTR(FH_VERSION));
   DEF(global, "load",       JSNFUNC(global_load, 1));
   DEF(global, "print",      JSNFUNC(global_print, 1));
-
-#ifdef FH_GC_EXPOSE
-  DEF(global, "gc", JSNFUNC(global_gc, 0));
-#endif
 
   return global;
 }
