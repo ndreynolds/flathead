@@ -62,7 +62,9 @@ node_new(enum ast_node_type type, ast_node *e1, ast_node *e2, ast_node *e3,
 
   node->sval = NULL;
   if (s != NULL) {
-    node->sval = strdup(s);
+    node->sval = malloc((strlen(s) + 1) * sizeof(char));
+    strcpy(node->sval, s);
+    node->sval[strlen(s)] = '\0';
   }
   return node;
 }

@@ -32,7 +32,7 @@ fh_str_concat(char *a, char *b)
 {
   size_t size = strlen(a) + strlen(b) + 1;
   char *new = malloc(size);
-  new[size] = '\0';
+  new[size - 1] = '\0';
   snprintf(new, size, "%s%s", a, b);
   return new;
 }
@@ -41,11 +41,11 @@ fh_str_concat(char *a, char *b)
 char *
 fh_str_slice(char *str, unsigned start, unsigned end)
 {
-  if (start > end || end > strlen(str))
+  if (str == NULL || start > end || end > strlen(str))
     return NULL;
   size_t size = end - start + 1;
   char *new = malloc(size);
-  new[size] = '\0';
+  new[size - 1] = '\0';
   snprintf(new, size, "%.*s", end - start, str + start);
   return new;
 }

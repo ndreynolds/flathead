@@ -189,9 +189,7 @@ fh_gc_debug_arena(gc_arena *arena)
 static void
 fh_gc_mark(js_val *val, int depth)
 {
-  if (val && val->flagged)
-    puts("Attempting to mark flagged val");
-
+  if (val && val->flagged) puts("Attempting to mark flagged val");
   if (!val || val->marked) return; 
 
   val->marked = true;

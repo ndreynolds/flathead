@@ -41,6 +41,7 @@ fh_new_val(js_type type)
   val->signal = S_NONE;
   val->proto = NULL;
   val->marked = false;
+  val->flagged = false;
 
   return val;
 }
@@ -425,8 +426,8 @@ fh_to_string(js_val *val)
       fmt = "%g";
     int size = snprintf(NULL, 0, fmt, val->number.val) + 1;
     char *num = malloc(size);
-    num[size] = '\0';
     snprintf(num, size, fmt, val->number.val);
+    num[size - 1] = '\0';
     return JSSTR(num);
   }
   if (IS_OBJ(val))
