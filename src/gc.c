@@ -236,13 +236,15 @@ fh_gc_free_val(js_val *val)
   //
   // Note we're not freeing the values pointed at, only the pointers to them
   // and the hashtable overhead.
-  if (val->map) {
-    js_prop *prop, *tmp;
-    HASH_ITER(hh, val->map, prop, tmp) {
-      HASH_DEL(val->map, prop);
-      if (prop != NULL) free(prop);
-    }
-  }
+  /* if (val->map) { */
+  /*   js_prop *prop, *tmp; */
+  /*   HASH_ITER(hh, val->map, prop, tmp) { */
+  /*     HASH_DEL(val->map, prop); */
+  /*     if (prop != NULL) { */
+  /*       free(prop); */
+  /*     } */
+  /*   } */
+  /* } */
 
   // Free any strings (dynamically alloc-ed outside slots)
   if (IS_STR(val) && val->string.ptr != NULL) {
