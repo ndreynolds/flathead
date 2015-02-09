@@ -19,6 +19,7 @@
 #ifndef CLI_H
 #define CLI_H
 
+#define ANSI_RED     "\033[31m"
 #define ANSI_YELLOW  "\033[32m"
 #define ANSI_ORANGE  "\033[33m"
 #define ANSI_BLUE    "\033[34m"

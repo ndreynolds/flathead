@@ -56,12 +56,14 @@ fh_print_version()
 void
 cfprintf(FILE *stream, const char *color, const char *tpl, ...)
 {
-  if (fh->opt_interactive) fputs(color, stream);
+  bool use_colors = fh->opt_interactive || isatty(fileno(stdin));
+
+  if (use_colors) fputs(color, stream);
 
   va_list ap;
   va_start(ap, tpl);
   vfprintf(stream, tpl, ap);
   va_end(ap);
 
-  if (fh->opt_interactive) fputs(ANSI_RESET, stream);
+  if (use_colors) fputs(ANSI_RESET, stream);
 }

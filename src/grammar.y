@@ -1119,6 +1119,18 @@ yyerror(const char *s)
 {
   eval_state *state = fh_new_state(yylloc.first_line, yylloc.first_column);
   fh_push_state(state);
+  // Show the offending line.
+  if (yyin) {
+    char buf[1000];
+    int i = 1;
+    rewind(yyin);
+    while (fgets(buf, sizeof buf, yyin) != NULL) {
+      if (yylloc.first_line == i++) { 
+        cfprintf(stderr, ANSI_RED, "%s", buf);
+        cfprintf(stderr, ANSI_GRAY, "%*s\n", yylloc.first_column + 1, "^");
+      }
+    }
+  }
   // Trim the "syntax error: " prefix so we can use `fh_throw`.
   fh_throw(state, fh_new_error(E_SYNTAX, strlen(s) >= 14 ? s + 14 : s));
 }
