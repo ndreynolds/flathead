@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Flathead by ndreynolds</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Flathead</h1>
+      <h2 class="project-tagline">A toy JavaScript interpreter written in C</h2>
+      <a href="https://github.com/ndreynolds/flathead" class="btn">View on GitHub</a>
+      <a href="https://github.com/ndreynolds/flathead/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/ndreynolds/flathead/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="flathead" class="anchor" href="#flathead" aria-hidden="true"><span class="octicon octicon-link"></span></a>Flathead</h1>
+
+<p>Flathead is a tiny, portable JavaScript (ECMA-262) interpreter written in C.</p>
+
+<p><img src="http://ndreynolds.com/images/flathead.png" alt="Flathead's REPL"></p>
+
+<p>The interpreter does a direct evaluation of the parse tree—it does not
+currently build any further IR or perform any optimizations. As a result, it
+starts up very quickly, and performs well on code that wouldn't benefit much
+from optimization, and less well on code that would (e.g. loops). </p>
+
+<p>Flathead builds on Linux, OSX and *BSD, on x86, x86_64 and ARM architectures.</p>
+
+<p>Flathead comes with the full EcmaScript runtime (i.e. the Date, Math, Array
+and other global objects) as well as a console object.</p>
+
+<p>Most of the language is now implemented, you can see the remaining
+work to be done on <a href="#the-docket">the Docket</a>.</p>
+
+<h2>
+<a id="installing" class="anchor" href="#installing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installing</h2>
+
+<p>Download or clone the source and run <code>make</code> within. </p>
+
+<pre><code>git clone https://github.com/ndreynolds/flathead.git
+cd flathead
+make
+</code></pre>
+
+<p>This creates an executable at <code>bin/flat</code> within the source directory. (You can
+optionally run <code>make install</code> to copy this to <code>/usr/local/bin/</code>.)</p>
+
+<h4>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Dependencies</h4>
+
+<p>If you received any errors, you may just be missing dependencies.</p>
+
+<p><code>flex</code> and <code>bison</code> are required to generate the lexer and parser.</p>
+
+<p>The default build depends on GNU Readline (<code>lreadline</code>) for the REPL, and PCRE
+(<code>lpcre</code>) for the regular expression implementation. They're not required,
+however, for a minimal build. Run <code>make readline=off regexp=off</code> to compile
+without them.</p>
+
+<p>If you're still having trouble building, please create an issue.</p>
+
+<h2>
+<a id="running" class="anchor" href="#running" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running</h2>
+
+<p>Once built, you can run <code>bin/flat</code> without arguments to start a REPL:</p>
+
+<pre><code>$ bin/flat
+&gt; 2 + 2
+4
+&gt;
+</code></pre>
+
+<p>Or with a script as argument:</p>
+
+<pre><code>$ bin/flat say_hello.js
+Hello!
+</code></pre>
+
+<p>View the parse tree with <code>-n</code>:</p>
+
+<pre><code>$ bin/flat -n
+&gt; 2 + 2
+source list
+  expression statement
+    expression (binary)
+      +
+      number (2.000000)
+      number (2.000000)
+4
+&gt;
+</code></pre>
+
+<p>See all the options with <code>-h</code>:</p>
+
+<pre><code>$ bin/flat -h
+Usage: flat [options] [script.js] 
+
+Options:
+  -v, --version       print version info
+  -h, --help          print this help text
+  -i, --interactive   force REPL
+  -n, --nodes         print the AST
+  -t, --tokens        print tokens
+</code></pre>
+
+<h2>
+<a id="running-the-tests" class="anchor" href="#running-the-tests" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running the tests</h2>
+
+<p>Flathead's test suite can be run against the <code>bin/flat</code> executable, as well as
+other EcmaScript implementations (assuming you have them installed).</p>
+
+<p>The test runner itself requires Node.js. It locates files with names beginning
+in <code>test_</code> and executes them with the configured implementation and options.
+There are a few Node module dependencies, so you'll need to run <code>npm install</code>
+before you can run the tests.</p>
+
+<p>The Makefile has a few shortcuts:</p>
+
+<p><code>make test</code> to run with Flathead's <code>bin/flat</code> executable.<br>
+<code>make test-v8</code> to run using <code>v8</code>.<br>
+<code>make test-node</code> to run using <code>node</code>.<br>
+<code>make test-sm</code> to run using <code>js</code> (SpiderMonkey).<br>
+<code>make test-rhino</code> to run using <code>rhino</code>.  </p>
+
+<p>There's also:</p>
+
+<p><code>make test-grammar</code> to verify parsing and AST formation </p>
+
+<h2>
+<a id="the-docket" class="anchor" href="#the-docket" aria-hidden="true"><span class="octicon octicon-link"></span></a>The Docket</h2>
+
+<ul>
+<li>With statement (<code>with</code>)</li>
+<li>Labels (e.g. <code>loop1: ...; continue loop1;</code>)</li>
+<li>Automatic Semicolon Insertion</li>
+<li>Unicode</li>
+<li>The JSON object (<a href="http://github.com/douglascrockford/JSON-js">JSON-js</a> can be used as polyfill)</li>
+<li>URI functions</li>
+<li>
+<code>String#replace</code>: replacement function</li>
+<li>
+<code>String#split</code>: RegExp separators</li>
+</ul>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/ndreynolds/flathead">Flathead</a> is maintained by <a href="https://github.com/ndreynolds">ndreynolds</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
+
