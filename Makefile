@@ -16,6 +16,7 @@
 
 CC = gcc
 CFLAGS = -Wall -Wextra -Wno-unused-parameter -O3 -std=c99 -pedantic -D_XOPEN_SOURCE
+CFLAGS += $(shell cat /proc/cpuinfo | grep fpu | grep yes > /dev/null || { echo -n "-mfloat-abi=softfp -mfpu=" ; cat /proc/cpuinfo | grep -i vfp | tr ' ' '\n' | grep -i vfp | tail -1 ; })
 
 YACC = bison
 YACC_FLAGS = -y -d -t -v
