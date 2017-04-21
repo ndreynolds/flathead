@@ -1,7 +1,9 @@
 // Date.c
 // ------
-// Date object implementation. 
+// Date object implementation.
 // Portions borrowed or inspired from Mozilla Rhino.
+
+#define _GNU_SOURCE /* for tm_gmtoff */
 
 #include <math.h>
 #include <ctype.h>
@@ -12,9 +14,9 @@
 #include "Date.h"
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Date Helpers
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 const int  hr_per_day  = 24;
 const int  min_per_hr  = 60;
@@ -57,33 +59,16 @@ month_string(int m) {
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Current Time/Offset
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 static double
-dst_offset(double raw_t)
+utc_offset(double utc_ms)
 {
-  time_t t = raw_t / 1000;
+  time_t t = utc_ms / ms_per_sec;
   struct tm *loc_tm = localtime(&t);
-  return loc_tm->tm_isdst ? -ms_per_hr : 0;
-}
-
-static double
-utc_offset()
-{
-  time_t now = time(NULL);
-  struct tm *loc_tm = localtime(&now);
-  time_t gmt_sec = mktime(loc_tm);
-  time_t loc_sec = mktime(gmtime(&now));
-
-  return (loc_sec - gmt_sec) * ms_per_sec;
-}
-
-static double
-utc_time(double t)
-{
-  return t + utc_offset() + dst_offset(t + utc_offset());
+  return loc_tm->tm_gmtoff * ms_per_sec;
 }
 
 double
@@ -95,9 +80,15 @@ utc_now()
 }
 
 static double
-local_time(double t)
+utc_time(double local_ms)
 {
-  return t - utc_offset() - dst_offset(t);
+  return local_ms - utc_offset(local_ms);
+}
+
+static double
+local_time(double utc_ms)
+{
+  return utc_ms + utc_offset(utc_ms);
 }
 
 static const char *
@@ -117,14 +108,14 @@ tz_string(double t)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Conversions
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 static double
 time_clip(double t)
 {
-  if (abs(t) > 8.64e15)
+  if (fabs(t) > 8.64e15)
     return 0;
   return t;
 }
@@ -157,7 +148,7 @@ days_in_year(double y)
 static double
 day_from_year(double y)
 {
-  return 365 * (y - 1970) + floor((y - 1969) / 4.0) - 
+  return 365 * (y - 1970) + floor((y - 1969) / 4.0) -
     floor((y - 1901) / 100.0) + floor((y - 1601) / 400.0);
 }
 
@@ -178,7 +169,7 @@ day_from_month(long m, long y)
   else if (m >= 2) day += (m - 1) / 2 - 1;
   else day += m;
 
-  if (m >= 2 && in_leap_year(time_from_year(y))) 
+  if (m >= 2 && in_leap_year(time_from_year(y)))
     ++day;
 
   return day;
@@ -338,9 +329,9 @@ make_date(double d, double t)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Date Formatting
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 static js_val *
 date_format_loc(double ut, bool incl_date, bool incl_time)
@@ -372,10 +363,10 @@ date_format_loc(double ut, bool incl_date, bool incl_time)
     int h = hour_from_time(t);
     int m = min_from_time(t);
     int s = sec_from_time(t);
-    int offset = utc_offset() + dst_offset(t);
-    int offset_h = hour_from_time(offset);
-    int offset_m = min_from_time(offset);
-    char sign = offset > 0 ? '-' : '+';
+    int offset = utc_offset(ut);
+    int offset_h = labs(offset / ms_per_hr);
+    int offset_m = labs((offset % ms_per_hr) / ms_per_min);
+    char sign = offset > 0 ? '+' : '-';
     const char *tz = tz_string(ut);
 
     // e.g. 12:31:19 GMT-0400 (EDT)
@@ -404,7 +395,7 @@ date_format_utc(double t)
   // e.g. Mon, 03 Jul 2001 23:21:48 GMT
   char *fmt = "%s, %02d %s %d %02d:%02d:%02d GMT";
 
-  size_t size = snprintf(NULL, 0, fmt, day_string(d), 
+  size_t size = snprintf(NULL, 0, fmt, day_string(d),
                          dt, month_string(m), y, h, mn, s) + 1;
   char *str = malloc(size);
   snprintf(str, size, fmt, day_string(d), dt, month_string(m), y, h, mn, s);
@@ -434,14 +425,14 @@ date_format_iso(double t)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Date Parsing
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 static bool
 date_verify_format(char *str, char *fmt)
 {
-  if (strlen(str) != strlen(fmt)) 
+  if (strlen(str) != strlen(fmt))
     return false;
 
   // Within the format string:
@@ -450,7 +441,7 @@ date_verify_format(char *str, char *fmt)
   //  ? - any character
   //
   // Everything else is taken literally.
-  
+
   int i, n;
   for (i = 0, n = strlen(str); i < n; i++) {
     char c = str[i], f = fmt[i];
@@ -499,7 +490,7 @@ date_parse_loc(char *str, double *t)
 {
   // FIXME: Assumes this is a local time (could be another TZ)
   // TODO: Add wildcards to format verifier to simplify this
-  
+
   // Wed Oct 12 1984 12:31:19 GMT-0400 (EDT)
   char *fmt_tz2 = "aaa aaa dd dddd dd:dd:dd GMT?dddd (aa)";
   char *fmt_tz3 = "aaa aaa dd dddd dd:dd:dd GMT?dddd (aaa)";
@@ -507,8 +498,8 @@ date_parse_loc(char *str, double *t)
   char *fmt_tz5 = "aaa aaa dd dddd dd:dd:dd GMT?dddd (aaaaa)";
 
   // Verify the format
-  if (!(date_verify_format(str, fmt_tz2) || 
-        date_verify_format(str, fmt_tz3) || 
+  if (!(date_verify_format(str, fmt_tz2) ||
+        date_verify_format(str, fmt_tz3) ||
         date_verify_format(str, fmt_tz4) ||
         date_verify_format(str, fmt_tz5))) return false;
 
@@ -573,16 +564,16 @@ date_parse_str(char *str)
   double t;
 
   // Rely on short-circuiting here. We'll take the first one that parses.
-  // ISO parse is least forgiving, so it goes first. 
+  // ISO parse is least forgiving, so it goes first.
   if (date_parse_iso(str, &t) || date_parse_utc(str, &t) || date_parse_loc(str, &t))
     return JSNUM(t);
   return JSNAN();
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Date Composers
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 static double
 make_part(double t, int shift)
@@ -663,9 +654,9 @@ ms_from_args(js_args *args)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Date Constructor
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 // new Date()
 // new Date(value)
@@ -690,7 +681,7 @@ date_new(js_val *instance, js_args *args, eval_state *state)
     js_val *arg = ARG(args, 0);
     if (IS_NUM(arg))
       utc = JSNUM(arg->number.val);
-    else 
+    else
       utc = date_parse_str(TO_STR(arg)->string.ptr);
   }
 
@@ -705,9 +696,9 @@ date_new(js_val *instance, js_args *args, eval_state *state)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Date Methods
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 // Date.now()
 js_val *
@@ -740,9 +731,9 @@ date_is_dst(js_val *instance, js_args *args, eval_state *state)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Date Prototype
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 // Date.prototype.getDate()
 js_val *
@@ -1116,10 +1107,10 @@ bootstrap_date()
 
   // Date.prototype
   // --------------
-  
+
   // Properties
   DEF(proto, "constructor", JSNFUNC(date_new, 7));
-  
+
   // Methods
   DEF(proto, "getDate", JSNFUNC(date_proto_get_date, 0));
   DEF(proto, "getDay", JSNFUNC(date_proto_get_day, 0));
