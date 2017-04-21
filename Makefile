@@ -16,7 +16,12 @@
 
 CC = gcc
 CFLAGS = -Wall -Wextra -Wno-unused-parameter -O3 -std=c99 -pedantic -D_XOPEN_SOURCE
-CFLAGS += $(shell cat /proc/cpuinfo | grep fpu | grep yes > /dev/null || { echo -n "-mfloat-abi=softfp -mfpu=" ; cat /proc/cpuinfo | grep -i vfp | tr ' ' '\n' | grep -i vfp | tail -1 ; })
+
+HAS_FPU = yes
+MFPU =
+
+CPUINFO = /proc/cpuinfo
+HAS_CPUINFO = $(shell test -e $(CPUINFO) && echo yes)
 
 YACC = bison
 YACC_FLAGS = -y -d -t -v
@@ -40,6 +45,15 @@ LEX_FILE = src/lexer.l
 TEST_FLAGS = --dir test
 
 VERSION = $(shell grep -o '\d.\d.\d' src/version.h)
+
+
+# Configuration
+
+ifeq ($(HAS_CPUINFO), yes)
+  HAS_FPU = $(shell cat $(CPUINFO) | grep fpu | grep yes > /dev/null && echo yes)
+  MFPU = $(shell cat $(CPUINFO) | grep -i vfp | tr ' ' '\n' | grep -i vfp | tail -1)
+endif
+
 
 # Build flags, usage: make debug=on
 
@@ -69,6 +83,10 @@ ifeq ($(regexp), off)
   CFLAGS += -DFH_NO_REGEXP
 else
   LIBS += -lpcre
+endif
+
+ifneq ($(HAS_FPU), yes)
+  CFLAGS += -mfloat-abi=softfp -mfpu=$(MFPU)
 endif
 
 .PHONY: test ctest
