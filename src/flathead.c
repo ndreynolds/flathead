@@ -376,7 +376,7 @@ fh_to_int(js_val *val)
   if (IS_INF(val) || val->number.val == 0)
     return val;
   int sign = val->number.val < 0 ? -1 : 1;
-  int_val = sign * floor(abs(val->number.val));
+  int_val = sign * floor(fabs(val->number.val));
   return JSNUM(int_val);
 }
 
@@ -400,7 +400,7 @@ fh_to_uint32(js_val *val)
     return JSNUM(0);
 
   int sign = val->number.val < 0 ? -1 : 1;
-  pos_int = sign * floor(abs(val->number.val));
+  pos_int = sign * floor(fabs(val->number.val));
   int32_bit = fmod(pos_int, pow(2, 32));
 
   return JSNUM(int32_bit);
