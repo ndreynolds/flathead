@@ -64,7 +64,7 @@ func_proto_bind(js_val *instance, js_args *args, eval_state *state)
 
   // Shift off the first argument.
   args->arg = NULL;
-  if (args->next) 
+  if (args->next)
     args = args->next;
 
   js_val *func = JSFUNC(instance->object.node);

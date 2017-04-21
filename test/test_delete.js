@@ -4,7 +4,7 @@
 var assert = console.assert;
 
 var assertEquals = function(a, b) {
-  if (a !== b) 
+  if (a !== b)
     console.log(a + ' !== ' + b);
   assert(a === b);
 };

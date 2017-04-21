@@ -1,12 +1,12 @@
 /*
  * flathead.c -- Core types, constructors, casting, and debug.
  *
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -51,7 +51,7 @@ fh_new_number(double x, bool is_nan, bool is_inf, bool is_neg)
 {
   js_val *val = fh_new_val(T_NUMBER);
 
-  if (isnan(x)) 
+  if (isnan(x))
     is_nan = true;
   if (isinf(x)) {
     is_inf = true;
@@ -183,7 +183,7 @@ fh_new_regexp(char *re)
     i--;
   }
 
-  // Store the inner pattern 
+  // Store the inner pattern
   if (i > 1)
     fh_set(val, "source", JSSTR(fh_str_slice(re, 1, i)));
 
@@ -326,11 +326,11 @@ fh_to_primitive(js_val *val, js_type hint)
   char *types[2] = {"valueOf", "toString"};
   int reverse = hint == T_STRING;
 
-  // Without a hint, objects default to Number, except Date 
+  // Without a hint, objects default to Number, except Date
   if (hint == 0 && IS_DATE(val))
     reverse = true;
 
-  int i; 
+  int i;
   for (i = reverse; i <= 1 && i >= 0; reverse ? i-- : i++) {
     maybe_func = fh_get_proto(val, types[i]);
     if (fh_is_callable(maybe_func)) {
@@ -420,7 +420,7 @@ fh_to_string(js_val *val)
     if (val->number.is_nan) return JSSTR("NaN");
     if (val->number.is_inf) return JSSTR("Infinity");
     char *fmt = "%f";
-    if (fmod(val->number.val, 1) == 0) 
+    if (fmod(val->number.val, 1) == 0)
       fmt = "%.0f";
     if (fabs(val->number.val) > 1e21)
       fmt = "%g";
@@ -464,7 +464,7 @@ fh_to_object(js_val *val)
 js_val *
 fh_to_boolean(js_val *val)
 {
-  if (IS_UNDEF(val) || IS_NULL(val)) 
+  if (IS_UNDEF(val) || IS_NULL(val))
     return JSBOOL(0);
   if (IS_NUM(val))
     return JSBOOL(!IS_NAN(val) && val->number.val != 0);
@@ -502,7 +502,7 @@ fh_throw(eval_state *state, js_val *error)
   eval_state *tmp = state;
   while(tmp != NULL) {
     if (tmp->catch) {
-      fh_set(tmp->ctx, "FH_LAST_ERROR", error); 
+      fh_set(tmp->ctx, "FH_LAST_ERROR", error);
 
       // Pop all frames up to and including the catch.
       while (fh->callstack != tmp)
@@ -519,10 +519,10 @@ fh_throw(eval_state *state, js_val *error)
 
   while (state != NULL) {
     if (state->caller_info)
-      fprintf(stderr, "  at %s in %s:%u:%u\n", 
+      fprintf(stderr, "  at %s in %s:%u:%u\n",
           state->caller_info, state->script_name, state->line, state->column);
     else
-      fprintf(stderr, "  at %s:%u:%u\n", 
+      fprintf(stderr, "  at %s:%u:%u\n",
           state->script_name, state->line, state->column);
     if (!state->parent) break;
     state = state->parent;
@@ -531,7 +531,7 @@ fh_throw(eval_state *state, js_val *error)
   // Catch errors within REPL: clear callstack and start over.
   if (fh->opt_interactive) {
     fh->callstack = NULL;
-    longjmp(fh->repl_jmp, 1); 
+    longjmp(fh->repl_jmp, 1);
   }
   exit(1);
 }
@@ -542,7 +542,7 @@ fh_throw(eval_state *state, js_val *error)
 // ----------------------------------------------------------------------------
 
 char *
-fh_typeof(js_val *value) 
+fh_typeof(js_val *value)
 {
   /* Per Table 20 of the ECMA5 spec: */
   switch (value->type) {
@@ -609,7 +609,7 @@ fh_try_get_proto(char *type)
   }
   return NULL;
 }
-  
+
 void
 fh_set_len(js_val *val, unsigned long len)
 {

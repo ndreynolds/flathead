@@ -9,9 +9,9 @@
 #include "String.h"
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // String Constructor
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 js_val *
 str_new(js_val *instance, js_args *args, eval_state *state)
@@ -23,9 +23,9 @@ str_new(js_val *instance, js_args *args, eval_state *state)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // String Methods
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 // String.fromCharCode(num1, ..., numN)
 js_val *
@@ -36,9 +36,9 @@ str_from_char_code(js_val *instance, js_args *args, eval_state *state)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // String Prototype
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 // String.prototype.charAt(index)
 js_val *
@@ -292,7 +292,7 @@ str_proto_search(js_val *instance, js_args *args, eval_state *state)
   bool caseless = fh_get_proto(regexp, "ignoreCase")->boolean.val;
   int count, *matches = fh_regexp(str, pattern, &count, 0, caseless);
 
-  if (!matches) 
+  if (!matches)
     return JSNUM(-1);
 
   js_val *result = JSNUM(matches[0]);
@@ -362,13 +362,13 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
   instance = TO_STR(instance);
   js_val *arr = JSARR();
 
-  unsigned long limit = IS_UNDEF(limit_arg) ? 
+  unsigned long limit = IS_UNDEF(limit_arg) ?
     pow(2, 32) - 1 : TO_UINT32(limit_arg)->number.val;
 
-  if (limit == 0) 
+  if (limit == 0)
     return arr;
 
-  if (IS_UNDEF(sep_arg)) { 
+  if (IS_UNDEF(sep_arg)) {
     fh_set(arr, "0", instance);
     fh_set_len(arr, 1);
     return arr;
@@ -387,7 +387,7 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
   int index = 0;                     // result array index
   int n = strlen(str);               // len of str
   int i;                             // instance string index
-  bool matched_last = false;         // 
+  bool matched_last = false;         //
 
   for (i = 0; i < n; i++) {
     matched_last = false;
@@ -395,7 +395,7 @@ str_proto_split(js_val *instance, js_args *args, eval_state *state)
       match++;
     else
       match = str[i] == sep[0];
-   
+
     if (match == (int)strlen(sep)) {
       split = fh_str_slice(str, start, i - strlen(sep) + 1);
       fh_set(arr, JSNUMKEY(index++)->string.ptr, JSSTR(split));
@@ -430,7 +430,7 @@ str_proto_substr(js_val *instance, js_args *args, eval_state *state)
   long start = TO_INT(ARG(args, 0))->number.val;
   long length = IS_UNDEF(ARG(args, 1)) ?  slen : TO_INT(ARG(args, 1))->number.val;
 
-  if (start < 0) 
+  if (start < 0)
     start = MAX(start + slen, 0);
 
   if (MIN(MAX(length, 0), slen - start) <= 0)
@@ -566,11 +566,11 @@ bootstrap_string()
 
   // Properties
 
-  DEF(prototype, "constructor", JSNFUNC(str_new, 1)); 
+  DEF(prototype, "constructor", JSNFUNC(str_new, 1));
   DEF(prototype, "length", JSNUM(0));
 
   // Methods
-  
+
   DEF(prototype, "charAt", JSNFUNC(str_proto_char_at, 1));
   DEF(prototype, "charCodeAt", JSNFUNC(str_proto_char_code_at, 1));
   DEF(prototype, "concat", JSNFUNC(str_proto_concat, 1));

@@ -284,7 +284,7 @@ test('Array#reduceRight(callback[, seed])', function() {
 
   assertEquals(5, [].reduceRight(f5, 5));
   assertEquals(5, [].reduceRight(f4, 5));
- 
+
   assertEquals(5, [5].reduceRight(f5));
   assertEquals(5, [5].reduceRight(f4));
 });

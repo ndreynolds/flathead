@@ -46,7 +46,7 @@ obj_create(js_val *instance, js_args *args, eval_state *state)
     }
   }
 
-  return obj; 
+  return obj;
 }
 
 // Object.defineProperty(obj, prop, descriptor)
@@ -150,7 +150,7 @@ js_val *
 obj_prevent_extensions(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *obj = obj_or_throw(ARG(args, 0), state, "preventExtensions");
-  obj->object.extensible = true;  
+  obj->object.extensible = true;
   return obj;
 }
 
@@ -171,7 +171,7 @@ obj_seal(js_val *instance, js_args *args, eval_state *state)
   OBJ_ITER(obj, prop) {
     prop->configurable = false;
   }
-  obj->object.extensible = false;  
+  obj->object.extensible = false;
   return obj;
 }
 
@@ -197,7 +197,7 @@ obj_freeze(js_val *instance, js_args *args, eval_state *state)
     prop->configurable = false;
     prop->writable = false;
   }
-  obj->object.extensible = false;  
+  obj->object.extensible = false;
   return obj;
 }
 

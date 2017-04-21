@@ -84,7 +84,7 @@ js_val *
 error_proto_to_string(js_val *instance, js_args *args, eval_state *state)
 {
   if (!IS_OBJ(instance))
-    fh_throw(state, 
+    fh_throw(state,
         fh_new_error(E_TYPE, "Error.prototype.toString called on non-object"));
 
   js_val *name_prop = fh_get_proto(instance, "name");
@@ -110,10 +110,10 @@ bootstrap_error(js_val *global)
   // Properties
   DEF(error, "prototype", prototype);
 
-  
+
   // Error.prototype
   // ---------------
-  
+
   // Properties
   DEF(prototype, "constructor", JSNFUNC(error_new, 1));
   DEF(prototype, "name", JSSTR("Error"));
@@ -148,7 +148,7 @@ bootstrap_error(js_val *global)
   error_ref_proto->proto = prototype;
   DEF(error_ref, "prototype", error_ref_proto);
   DEF(global, "ReferenceError", error_ref);
-  
+
   // SyntaxError
   js_val *error_syntax = JSNFUNC(error_syntax_new, 1);
   js_val *error_syntax_proto = JSOBJ();

@@ -1,12 +1,12 @@
 /*
  * props.c -- Property access and prototype/scope traversals
  *
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -37,7 +37,7 @@ fh_get(js_val *obj, char *name)
 
 /* Same as `fh_get`, but recurse the scope chain. */
 js_val *
-fh_get_rec(js_val *obj, char *name) 
+fh_get_rec(js_val *obj, char *name)
 {
   js_prop *prop = fh_get_prop_rec(obj, name);
   return prop ? prop->ptr : JSUNDEF();
@@ -89,7 +89,7 @@ fh_get_prop_proto(js_val *obj, char *name)
 // Set a property
 // ----------------------------------------------------------------------------
 
-/* Set a property on an object using the provided name and value, and the 
+/* Set a property on an object using the provided name and value, and the
  * default property flags.
  */
 void
@@ -99,7 +99,7 @@ fh_set(js_val *obj, char *name, js_val *val)
 }
 
 /* Set a property on an object using the provided name, value, and property
- * flags. 
+ * flags.
  */
 void
 fh_set_prop(js_val *obj, char *name, js_val *val, js_prop_flags flags)

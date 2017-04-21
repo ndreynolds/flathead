@@ -1,12 +1,12 @@
 /*
  * debug.c -- debugging functions
  *
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -70,7 +70,7 @@ debug_arr(FILE *stream, js_val *arr, int indent)
   for (i = 0; i < arr->object.length; i++) {
     prop = fh_get_prop(arr, JSNUMKEY(i)->string.ptr);
 
-    if (!first) 
+    if (!first)
       fprintf(stream, ", ");
     else
       first = false;
@@ -91,11 +91,11 @@ debug_num(FILE *stream, js_val *num)
 {
   if (num->number.is_nan)
     cfprintf(stream, ANSI_ORANGE, "NaN");
-  else if (num->number.is_inf) 
+  else if (num->number.is_inf)
     cfprintf(stream, ANSI_ORANGE, "%sInfinity", num->number.is_neg ? "-" : "");
   else {
     char *fmt = "%f";
-    if (fmod(num->number.val, 1) == 0) 
+    if (fmod(num->number.val, 1) == 0)
       fmt = "%.0f";
     if (fabs(num->number.val) > 1e21)
       fmt = "%g";

@@ -1,12 +1,12 @@
 /*
  * lexer.l - Flex scanner spec
  *
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -86,7 +86,7 @@ E                            [Ee][+-]?{D}+
 "new"                        return KEYWORD(NEW);
 "var"                        return KEYWORD(VAR);
 "null"                       return KEYWORD(NULLT);
-"true"                       return KEYWORD(TRUE); 
+"true"                       return KEYWORD(TRUE);
 "false"                      return KEYWORD(FALSE);
 
 
@@ -112,11 +112,11 @@ E                            [Ee][+-]?{D}+
 
     /* single-/double-quoted strings */
 L?'(\\.|[^\\']+)*'           |
-L?\"(\\.|[^\\"]+)*\"         { yylval.val = fh_extract_string(yytext); 
+L?\"(\\.|[^\\"]+)*\"         { yylval.val = fh_extract_string(yytext);
                                return TOKEN("STR", STRING); }
 
     /* identifiers */
-[_\$A-Za-z]+[_\$0-9A-Za-z]*  { yylval.val = yytext; 
+[_\$A-Za-z]+[_\$0-9A-Za-z]*  { yylval.val = yytext;
                                return TOKEN("IDENT", IDENT); }
 
     /* octals */
@@ -124,7 +124,7 @@ L?\"(\\.|[^\\"]+)*\"         { yylval.val = fh_extract_string(yytext);
                                return TOKEN("OCT", NUMBER); }
 
     /* integers */
-{D}+({E})?                   { yylval.floatval = atof(yytext); 
+{D}+({E})?                   { yylval.floatval = atof(yytext);
                                return TOKEN("INT", NUMBER); }
 
     /* hexadecimals */
@@ -132,11 +132,11 @@ L?\"(\\.|[^\\"]+)*\"         { yylval.val = fh_extract_string(yytext);
                                return TOKEN("HEX", NUMBER); }
 
     /* floats */
-({D}+\.{D}*|\.{D}+)({E})?    { yylval.floatval = atof(yytext); 
+({D}+\.{D}*|\.{D}+)({E})?    { yylval.floatval = atof(yytext);
                                return TOKEN("FLOAT", NUMBER); }
 
     /* regexps */
-L?\/([^*/\n\\]+|\\.)([^/\n\\]+|\\.)*\/([gimy]{0,4}) { 
+L?\/([^*/\n\\]+|\\.)([^/\n\\]+|\\.)*\/([gimy]{0,4}) {
                                /* FIXME: This is incomplete */
                                if (prev_token == NUMBER     ||
                                    prev_token == STRING     ||
@@ -147,25 +147,25 @@ L?\/([^*/\n\\]+|\\.)([^/\n\\]+|\\.)*\/([gimy]{0,4}) {
                                    prev_token == NULLT      ||
                                    prev_token == PLUSPLUS   ||
                                    prev_token == MINUSMINUS) REJECT;
-                                    
+
                                yylval.val = yytext;
                                return TOKEN("REGEXP", REGEXP); }
 
 
     /* MULTI-CHARACTER PUNCTUATORS & OPERATORS */
 
-"||"                         return OP(OR); 
-"&&"                         return OP(AND); 
-"++"                         return OP(PLUSPLUS); 
-"--"                         return OP(MINUSMINUS); 
-"=="                         return OP(EQEQ); 
-"!="                         return OP(NE); 
-"<="                         return OP(LTE); 
-">="                         return OP(GTE); 
+"||"                         return OP(OR);
+"&&"                         return OP(AND);
+"++"                         return OP(PLUSPLUS);
+"--"                         return OP(MINUSMINUS);
+"=="                         return OP(EQEQ);
+"!="                         return OP(NE);
+"<="                         return OP(LTE);
+">="                         return OP(GTE);
 "+="                         return OP(PLUSEQ);
-"-="                         return OP(MINUSEQ); 
-"*="                         return OP(MULTEQ); 
-"/="                         return OP(DIVEQ); 
+"-="                         return OP(MINUSEQ);
+"*="                         return OP(MULTEQ);
+"/="                         return OP(DIVEQ);
 "%="                         return OP(MODEQ);
 "&="                         return OP(ANDEQ);
 "^="                         return OP(XOREQ);
@@ -194,7 +194,7 @@ L?\/([^*/\n\\]+|\\.)([^/\n\\]+|\\.)*\/([gimy]{0,4}) {
 
     /* NEWLINES */
 
-\n                           { yycolumn = 0; 
+\n                           { yycolumn = 0;
                                yytext = NULL;
                                TOKEN("NEWLINE", 0);
                                if (fh->opt_interactive) return EOF; }
@@ -202,7 +202,7 @@ L?\/([^*/\n\\]+|\\.)([^/\n\\]+|\\.)*\/([gimy]{0,4}) {
 
     /* END OF FILE */
 
-<<EOF>>                      { yycolumn = 0; 
+<<EOF>>                      { yycolumn = 0;
                                if (fh->opt_interactive) exit(0);
                                return EOF; }
 
@@ -213,7 +213,7 @@ L?\/([^*/\n\\]+|\\.)([^/\n\\]+|\\.)*\/([gimy]{0,4}) {
 
 
 %%
-  
+
 
 int
 yywrap(void)
@@ -225,9 +225,9 @@ void
 yyuseraction(void)
 {
   yylloc.first_line = yylloc.last_line = yylineno;
-  yylloc.first_column = yycolumn; 
+  yylloc.first_column = yycolumn;
   yylloc.last_column = yycolumn + yyleng - 1;
-  yycolumn += yyleng; 
+  yycolumn += yyleng;
 }
 
 void

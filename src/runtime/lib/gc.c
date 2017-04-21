@@ -41,7 +41,7 @@ gc_info(js_val *instance, js_args *args, eval_state *state)
 //
 // Flags a value for verbose GC logging. Because there's so much noise from
 // allocating objects for the standard runtime, it can be difficult to follow
-// the lifecycle of an individual value. 
+// the lifecycle of an individual value.
 js_val *
 gc_spy(js_val *instance, js_args *args, eval_state *state)
 {

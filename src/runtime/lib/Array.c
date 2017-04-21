@@ -14,16 +14,16 @@
 #include "Array.h"
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Merge Sort (implements Array#sort)
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 static int (*cmp_func)(js_prop *, js_prop *);   // Current Array#sort cmp func
 static js_val *js_cmp_func;                     // JavaScript-defined cmp func
 static eval_state *js_cmp_state;                // Eval state of JS cmp func
 
-static void 
-merge(js_prop **left, js_prop **right, 
+static void
+merge(js_prop **left, js_prop **right,
           unsigned long l_len, unsigned long r_len, js_prop **out)
 {
   unsigned long i, j, k;
@@ -33,8 +33,8 @@ merge(js_prop **left, js_prop **right,
   while (i < l_len) out[k++] = left[i++];
   while (j < r_len) out[k++] = right[j++];
 }
- 
-static void 
+
+static void
 recur(js_prop **arr, js_prop **tmp, unsigned long len)
 {
   long l = len / 2;
@@ -45,8 +45,8 @@ recur(js_prop **arr, js_prop **tmp, unsigned long len)
 
   merge(tmp, tmp + l, l, len - l, arr);
 }
- 
-static void 
+
+static void
 merge_sort(js_prop **arr, unsigned long len)
 {
   js_prop **tmp = malloc(sizeof(js_prop *) * len);
@@ -74,9 +74,9 @@ cmp_js(js_prop *a, js_prop *b)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Array Constructor
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 // new Array(element0, element1, ..., elementN)
 // new Array(arrayLength)
@@ -97,9 +97,9 @@ arr_new(js_val *instance, js_args *args, eval_state *state)
   }
 
   // Create array of elements
-  
+
   unsigned i; // num of args will be less than UINT_MAX
-  for (i = 0; i < ARGLEN(args); i++) 
+  for (i = 0; i < ARGLEN(args); i++)
     fh_set(arr, JSNUMKEY(i)->string.ptr, ARG(args, i));
 
   fh_set_len(arr, i);
@@ -107,9 +107,9 @@ arr_new(js_val *instance, js_args *args, eval_state *state)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Array Methods
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 // Array.isArray(obj)
 js_val *
@@ -120,9 +120,9 @@ arr_is_array(js_val *instance, js_args *args, eval_state *state)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Array Prototype
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 // Array.prototype.pop()
 js_val *
@@ -174,9 +174,9 @@ arr_proto_reverse(js_val *instance, js_args *args, eval_state *state)
     iprop = fh_get_prop(instance, ik);
     jprop = fh_get_prop(instance, jk);
 
-    // Need to do some checks to account for missing properties 
+    // Need to do some checks to account for missing properties
     // (they may have been deleted or never set)
-    
+
     if (jprop)
       jprop->ptr = jprop->ptr == NULL ? JSUNDEF() : jprop->ptr;
     if (iprop)
@@ -205,7 +205,7 @@ js_val *
 arr_proto_shift(js_val *instance, js_args *args, eval_state *state)
 {
   // Shift off first element, but then we have to rename all the keys.
-  
+
   unsigned long len = instance->object.length;
   if (len == 0) return JSUNDEF();
 
@@ -320,12 +320,12 @@ arr_proto_splice(js_val *instance, js_args *args, eval_state *state)
     }
     else {
       val = fh_get(instance, JSNUMKEY(i)->string.ptr);
-      fh_set(keepers, JSNUMKEY(k)->string.ptr, val); 
+      fh_set(keepers, JSNUMKEY(k)->string.ptr, val);
       k++, i++;
     }
   }
 
-  // We're doing a hotswap of the keepers hash into the instance array.  
+  // We're doing a hotswap of the keepers hash into the instance array.
   // Still technically mutates the instance array (its pointer hasn't changed)
   instance->map = keepers->map;
 
@@ -401,7 +401,7 @@ arr_proto_concat(js_val *instance, js_args *args, eval_state *state)
         // Let the outer loop increment i if we're at the end:
         if (k < arg->object.length - 1) i++;
       }
-    } 
+    }
     else {
       fh_set(concat, key->string.ptr, arg);
     }
@@ -464,7 +464,7 @@ arr_proto_slice(js_val *instance, js_args *args, eval_state *state)
     j = len + begin->number.val;
   else
     j = 0;
-  
+
   unsigned long k;
   if (IS_UNDEF(end) || end->number.val > len)
     k = len;
@@ -478,7 +478,7 @@ arr_proto_slice(js_val *instance, js_args *args, eval_state *state)
   if (j >= k)
     return slice;
 
-  // slice from j inclusive to k exclusive. 
+  // slice from j inclusive to k exclusive.
   js_val *val;
   unsigned long i;
   for (i = 0; j < k && j < len; j++, i++) {
@@ -739,7 +739,7 @@ arr_proto_reduce_right(js_val *instance, js_args *args, eval_state *state)
     reduction = fh_get(instance, JSNUMKEY(i)->string.ptr);
 
     if (len == 1) return reduction;
-    
+
     i--;
   }
   else

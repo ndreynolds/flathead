@@ -27,7 +27,7 @@ test('for-in with variable declaration on object', function() {
 
 test('for-in with variable declaration on array', function() {
   var arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-  
+ 
   for (var i in arr) {
     assertBetween(arr[i], 0, 10);
   }

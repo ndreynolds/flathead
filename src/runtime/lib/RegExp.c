@@ -4,9 +4,9 @@
 #include "RegExp.h"
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // RegExp Constructor
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 // [new] RegExp(pattern)
 js_val *
@@ -40,9 +40,9 @@ regexp_new(js_val *instance, js_args *args, eval_state *state)
 }
 
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // RegExp Prototype
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 // RegExp.prototype.exec(str)
 js_val *
@@ -62,7 +62,7 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
   int length = strlen(str->string.ptr);
   int i = fh_to_int32(last_ind)->number.val;
 
-  if (!global) 
+  if (!global)
     i = 0;
 
   while (!matched) {
@@ -72,7 +72,7 @@ regexp_proto_exec(js_val *instance, js_args *args, eval_state *state)
       return JSNULL();
     }
     matches = fh_regexp(str->string.ptr, pattern->string.ptr, &count, i, caseless);
-    if (count == 0) 
+    if (count == 0)
       i++;
     else
       matched = true;

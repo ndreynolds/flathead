@@ -1,12 +1,12 @@
 /*
  * flathead.h -- Core types, constructors, casting, and debug.
  *
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -75,11 +75,11 @@
 
 #define E_ERROR        "Error"
 #define E_EVAL         "EvalError"
-#define E_RANGE        "RangeError"     
+#define E_RANGE        "RangeError"
 #define E_REFERENCE    "ReferenceError"
 #define E_SYNTAX       "SyntaxError"
 #define E_TYPE         "TypeError"
-#define E_URI          "URIError" 
+#define E_URI          "URIError"
 
 #define ARG(args,n)    args_get((args), (n))
 #define ARGLEN(args)   args_len(args)
@@ -125,7 +125,7 @@ typedef enum {
 } js_type;
 
 typedef enum {
-  P_NONE    = 0x00, 
+  P_NONE    = 0x00,
   P_WRITE   = 0x01,
   P_ENUM    = 0x02,
   P_CONF    = 0x04,
@@ -202,7 +202,7 @@ typedef struct {
  * applicable), the arguments as values in linked-list format, and the evaluation
  * state, which contains information that may be used for error reporting.
  */
-typedef struct js_val * (js_native_function)(struct js_val *, struct js_args *, eval_state *); 
+typedef struct js_val * (js_native_function)(struct js_val *, struct js_args *, eval_state *);
 
 typedef struct {
   bool native;
@@ -229,12 +229,12 @@ typedef struct js_val {
   js_number number;
   js_string string;
   js_boolean boolean;
-  js_object object;   
+  js_object object;
   js_type type;
   ctl_signal signal;
   struct js_val *proto;
   bool marked;
-  bool flagged; 
+  bool flagged;
   js_prop *map;
 } js_val;
 

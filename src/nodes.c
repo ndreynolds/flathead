@@ -1,12 +1,12 @@
 /*
  * nodes.c -- AST node definitions and traversal helpers
  *
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -34,7 +34,7 @@ node_alloc()
 }
 
 ast_node *
-node_new(enum ast_node_type type, ast_node *e1, ast_node *e2, ast_node *e3, 
+node_new(enum ast_node_type type, ast_node *e1, ast_node *e2, ast_node *e3,
          double x, char *s, int line, int column)
 {
   ast_node *node = node_alloc();
@@ -57,7 +57,7 @@ node_new(enum ast_node_type type, ast_node *e1, ast_node *e2, ast_node *e3,
   node->column = column;
 
   node->val = 0;
-  if (type == NODE_NUM || type == NODE_BOOL || type == NODE_MEMBER) 
+  if (type == NODE_NUM || type == NODE_BOOL || type == NODE_MEMBER)
     node->val = x;
 
   node->sval = NULL;
@@ -105,7 +105,7 @@ node_count(ast_node *node)
   return count;
 }
 
-void 
+void
 node_print(ast_node *node, bool rec, int depth)
 {
   if (depth) printf("%*s", depth, " ");

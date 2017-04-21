@@ -1,12 +1,12 @@
 /*
  * regexp.h -- PCRE wrapper
  *
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -39,7 +39,7 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
   int error_offset;
   int *output_vector = malloc(regexp_vector_len * sizeof(int));
   int options = PCRE_JAVASCRIPT_COMPAT;
-  if (caseless) 
+  if (caseless)
     options |= PCRE_CASELESS;
 
   pcre *regexp = pcre_compile(pattern, options, &error, &error_offset, NULL);
@@ -48,7 +48,7 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
     fh_throw(NULL, fh_new_error(E_SYNTAX, fmt, error, error_offset));
   }
 
-  rc = pcre_exec(regexp, NULL, str, strlen(str), offset, 0, 
+  rc = pcre_exec(regexp, NULL, str, strlen(str), offset, 0,
                  output_vector, regexp_vector_len);
 
   if (count != NULL)
@@ -60,7 +60,7 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
     free(output_vector);
     return NULL;
   }
-  
+
   return output_vector;
 #else
   fh_throw(NULL, fh_new_error(E_ERROR, "Regular expressions are not available"));
@@ -70,7 +70,7 @@ fh_regexp(char *str, char *pattern, int *count, int offset, bool caseless)
 
 /* Get the number of capturing subpatterns in the regular expression. This is
  * used to get the `NCapturingParens` value used in parts of the ECMA spec */
-int 
+int
 fh_regexp_ncaptures(char *pattern)
 {
 #ifndef FH_NO_REGEXP

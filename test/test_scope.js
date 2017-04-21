@@ -35,7 +35,7 @@ var x = 1;
         // Variable shadowing
         var y = 9;
       })();
-      
+     
     })();
 
   })();

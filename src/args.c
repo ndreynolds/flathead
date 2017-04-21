@@ -1,12 +1,12 @@
 /*
- * args.c -- singly linked list used internally to represent arguments 
+ * args.c -- singly linked list used internally to represent arguments
  *
  * Copyright (c) 2013 Nick Reynolds
- *  
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -31,7 +31,7 @@ args_new()
 void
 args_append(js_args *args, js_val *val)
 {
-  if (args->arg == NULL) 
+  if (args->arg == NULL)
     args->arg = val;
   else {
     while (args->next != NULL) args = args->next;
@@ -45,9 +45,9 @@ args_get(js_args *args, int n)
 {
   int i;
   for (i = 0; i <= n; i++) {
-    if (i == n) 
+    if (i == n)
       return args->arg ? args->arg : JSUNDEF();
-    if (args->next == NULL) 
+    if (args->next == NULL)
       break;
     args = args->next;
   }

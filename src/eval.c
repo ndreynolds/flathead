@@ -1,12 +1,12 @@
 /*
  * eval.c -- AST-walking interpreter
  *
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -62,7 +62,7 @@ static js_val * member_exp(js_val *, ast_node *);
 static js_val *
 member_parent(js_val *ctx, ast_node *member)
 {
-  return member->e2->type == NODE_MEMBER ? 
+  return member->e2->type == NODE_MEMBER ?
     member_exp(ctx, member->e2) :
     fh_eval(ctx, member->e2);
 }
@@ -72,7 +72,7 @@ member_child(js_val *ctx, ast_node *member)
 {
   // In `x.foo` we'll take 'foo' literally, in `x[foo]` we need to eval 'foo'.
   // This distinction is stored as 0/1 in the val slot.
-  return member->val ? 
+  return member->val ?
     TO_STR(fh_eval(ctx, member->e1)) :
     str_from_node(ctx, member->e1);
 }
@@ -328,7 +328,7 @@ gt_op(js_val *a, js_val *b, bool or_equal)
 static js_val *
 and_exp(js_val *ctx, ast_node *a, ast_node *b)
 {
-  // && operator returns the first false value, or the second true value. 
+  // && operator returns the first false value, or the second true value.
   js_val *aval = fh_eval(ctx, a);
   if (TO_BOOL(aval)->boolean.val) return fh_eval(ctx, b);
   return aval;
@@ -346,7 +346,7 @@ or_exp(js_val *ctx, ast_node *a, ast_node *b)
 static js_val *
 delete_op(js_val *ctx, ast_node *node)
 {
-  js_val *name = str_from_node(ctx, node->e1), 
+  js_val *name = str_from_node(ctx, node->e1),
          *env = ctx;
 
   if (node->e1->type == NODE_MEMBER) {
@@ -368,10 +368,10 @@ delete_op(js_val *ctx, ast_node *node)
 // Declaration & Assignment
 // ----------------------------------------------------------------------------
 
-static void 
+static void
 assign(js_val *obj, char *name, js_val *val, char *op)
 {
-  if (STREQ(op, "=")) { 
+  if (STREQ(op, "=")) {
     fh_set_rec(obj, name, val);
     return;
   }
@@ -391,7 +391,7 @@ assign_exp(js_val *ctx, ast_node *node)
   char *key = node->e1->sval;
 
   if (node->e1->type == NODE_MEMBER) {
-    js_val *old_ctx = ctx; 
+    js_val *old_ctx = ctx;
     ctx = member_parent(old_ctx, node->e1);
     key = member_child(old_ctx, node->e1)->string.ptr;
 
@@ -468,8 +468,8 @@ switch_stmt(js_val *ctx, ast_node *node)
 
   ast_node *current,
            *caseblock = node->e2,
-           *clauses_a = caseblock->e1, 
-           *defaultclause = caseblock->e2, 
+           *clauses_a = caseblock->e1,
+           *defaultclause = caseblock->e2,
            *clauses_b = caseblock->e3;
 
   bool matched = false;
@@ -497,7 +497,7 @@ switch_stmt(js_val *ctx, ast_node *node)
     }
   }
 
-  // Take the default case if it exists and we haven't matched 
+  // Take the default case if it exists and we haven't matched
   // anything yet.
   if (defaultclause && !matched) {
     result = fh_eval(ctx, defaultclause->e2);
@@ -654,7 +654,7 @@ forin_stmt(js_val *ctx, ast_node *node)
     env = member_parent(ctx, node->e1);
     name = member_child(ctx, node->e1);
   }
-  else 
+  else
     name = str_from_node(ctx, node->e1);
 
   js_prop *p;
@@ -689,7 +689,7 @@ try_stmt(js_val *ctx, ast_node *node)
     fh_eval(ctx, node->e1);
   // Catch
   else {
-    fh_set(ctx, node->e2->e1->sval, fh_get(ctx, "FH_LAST_ERROR")); 
+    fh_set(ctx, node->e2->e1->sval, fh_get(ctx, "FH_LAST_ERROR"));
     fh_eval(ctx, node->e2->e2);
   }
 
@@ -779,7 +779,7 @@ build_args(js_val *ctx, ast_node *args_node)
 static js_val *
 call(js_val *ctx, js_val *this, js_val *func, eval_state *state, js_args *args)
 {
-  if (IS_UNDEF(this) || IS_NULL(this)) 
+  if (IS_UNDEF(this) || IS_NULL(this))
     this = fh->global;
 
   state->ctx = ctx;
@@ -791,7 +791,7 @@ call(js_val *ctx, js_val *this, js_val *func, eval_state *state, js_args *args)
     js_val *instance = func->object.instance;
     state->caller_info = "(built-in function)";
 
-    // new Number, new Boolean, etc. return wrapper objects. 
+    // new Number, new Boolean, etc. return wrapper objects.
     // Here we resolve the wrapper to the value it wraps.
     if (instance && IS_OBJ(instance) && instance->object.primitive)
       instance = instance->object.primitive;
@@ -817,7 +817,7 @@ call_exp(js_val *ctx, ast_node *node)
   js_val *maybe_func = fh_eval(ctx, node->e1);
 
   // Special treatment for:
-  //   CallExpression [ Expression ] 
+  //   CallExpression [ Expression ]
   //   CallExpression . Identifier
   if (node->e2->type != NODE_ARG_LST)
     return fh_get_proto(maybe_func, str_from_node(ctx, node->e2)->string.ptr);
@@ -830,7 +830,7 @@ call_exp(js_val *ctx, ast_node *node)
   js_args *args = build_args(ctx, node->e2);
 
   // Check for a bound this (see Function#bind)
-  js_val *this = maybe_func->object.bound_this ? 
+  js_val *this = maybe_func->object.bound_this ?
     maybe_func->object.bound_this : fh_get(ctx, "this");
 
   fh_push_state(state);
@@ -884,7 +884,7 @@ new_exp(js_val *ctx, ast_node *exp)
   js_val *res, *obj = JSOBJ(), *proto = fh_get(ctr, "prototype");
 
   fh_push_state(state);
-  res = call(ctx, obj, ctr, state, args); 
+  res = call(ctx, obj, ctr, state, args);
   fh_pop_state();
   res = IS_OBJ(res) ? res : obj;
 
@@ -991,7 +991,7 @@ bin_exp(js_val *ctx, ast_node *node)
   // Arithmetic and string operations
   if (STREQ(op, "+")) return add_op(a, b);
   if (STREQ(op, "-")) return sub_op(a, b);
-  if (STREQ(op, "*")) return mul_op(a, b); 
+  if (STREQ(op, "*")) return mul_op(a, b);
   if (STREQ(op, "/")) return div_op(a, b);
   if (STREQ(op, "%")) return mod_op(a, b);
 
@@ -1001,7 +1001,7 @@ bin_exp(js_val *ctx, ast_node *node)
   if (STREQ(op, "===")) return eq_op(a, b, true);
   if (STREQ(op, "!==")) return neq_op(a, b, true);
 
-  // Relational 
+  // Relational
   if (STREQ(op, "<"))  return lt_op(a, b, false);
   if (STREQ(op, ">"))  return gt_op(a, b, false);
   if (STREQ(op, "<=")) return lt_op(a, b, true);
@@ -1050,7 +1050,7 @@ static js_val *
 base_exp(js_val *ctx, ast_node *node)
 {
   switch (node->sub_type) {
-    case NODE_UNARY_POST: 
+    case NODE_UNARY_POST:
       return postfix_exp(ctx, node);
     case NODE_UNARY_PRE:
       return prefix_exp(ctx, node);
@@ -1064,7 +1064,7 @@ base_exp(js_val *ctx, ast_node *node)
 // Evaluation
 // ----------------------------------------------------------------------------
 
-js_val * 
+js_val *
 fh_eval(js_val *ctx, ast_node *node)
 {
   if (!node) return JSUNDEF();
@@ -1107,7 +1107,7 @@ fh_eval(js_val *ctx, ast_node *node)
     case NODE_FORIN:       forin_stmt(ctx, node); break;
     case NODE_EMPT_STMT:   break;
 
-    default: 
+    default:
     {
       eval_state *state = fh_new_state(node->line, node->column);
       fh_push_state(state);

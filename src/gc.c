@@ -1,12 +1,12 @@
 /*
  * gc.c -- slotted memory management and mark-sweep garbage collection
  *
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -26,7 +26,7 @@
 #define GC_PRINT(indent, ...) printf("%*s", indent, ""); printf(__VA_ARGS__)
 #define GC_DEBUG(indent, val) fh_debug(stdout, val, indent, true)
 #else
-#define GC_PRINT(indent, ...) 
+#define GC_PRINT(indent, ...)
 #define GC_DEBUG(indent, val)
 #endif
 
@@ -34,8 +34,8 @@
 #define GC_PRINT_VERBOSE(indent, ...) GC_PRINT(indent, ...)
 #define GC_DEBUG_VERBOSE(indent, val) GC_DEBUG(indent, val)
 #else
-#define GC_PRINT_VERBOSE(indent, ...) 
-#define GC_DEBUG_VERBOSE(indent, val) 
+#define GC_PRINT_VERBOSE(indent, ...)
+#define GC_DEBUG_VERBOSE(indent, val)
 #endif
 
 /* GC Overview
@@ -126,7 +126,7 @@ fh_malloc(bool first_attempt)
   if (first_attempt) {
     fh_gc();
     return fh_malloc(false);
-  } 
+  }
   fprintf(stderr, "Error: process out of memory");
   exit(EXIT_FAILURE);
   UNREACHABLE();
@@ -177,7 +177,7 @@ fh_gc_debug()
 }
 
 static void
-fh_gc_debug_arena(gc_arena *arena) 
+fh_gc_debug_arena(gc_arena *arena)
 {
 #ifdef FH_GC_PROFILE_VERBOSE
   for (int i = 0; i < arena->num_slots; i++) {
@@ -190,7 +190,7 @@ static void
 fh_gc_mark(js_val *val, int depth)
 {
   if (val && val->flagged) puts("Attempting to mark flagged val");
-  if (!val || val->marked) return; 
+  if (!val || val->marked) return;
 
   val->marked = true;
 
@@ -230,7 +230,7 @@ fh_gc_mark(js_val *val, int depth)
 static void
 fh_gc_free_val(js_val *val)
 {
-  // Free the object hashtable 
+  // Free the object hashtable
   //
   // Note we're not freeing the values pointed at, only the pointers to them
   // and the hashtable overhead.
@@ -287,7 +287,7 @@ fh_gc()
   fh->gc_state = GC_STATE_MARK;
   fh_gc_mark(fh->global, 0);
   if (fh->callstack) {
-    eval_state *top = fh->callstack; 
+    eval_state *top = fh->callstack;
     while (top) {
       fh_gc_mark(top->scope, 0);
       top = top->parent;

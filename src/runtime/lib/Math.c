@@ -1,6 +1,6 @@
 // Math.c
 // ------
-// Implementation of the Math object methods -- light wrappers 
+// Implementation of the Math object methods -- light wrappers
 // around math.h library functions.
 
 #include <math.h>
@@ -57,7 +57,7 @@ js_val *
 math_ceil(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *x = TO_NUM(ARG(args, 0));
-  if (x->number.is_inf) 
+  if (x->number.is_inf)
     return x->number.is_neg ? JSNINF() : JSINF();
   return JSNUM(ceil(x->number.val));
 }
@@ -83,7 +83,7 @@ js_val *
 math_floor(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *x = TO_NUM(ARG(args, 0));
-  if (x->number.is_inf) 
+  if (x->number.is_inf)
     return x->number.is_neg ? JSNINF() : JSINF();
   return JSNUM(floor(x->number.val));
 }
@@ -116,7 +116,7 @@ math_max(js_val *instance, js_args *args, eval_state *state)
   for (i = 0; i < (length - 1); i++) {
     x = TO_NUM(ARG(args, i+1));
     if (x->number.is_nan) return JSNAN();
-    if (x->number.is_inf || x->number.val > max->number.val) 
+    if (x->number.is_inf || x->number.val > max->number.val)
       max = x;
   };
   return max;
@@ -142,7 +142,7 @@ math_min(js_val *instance, js_args *args, eval_state *state)
   for (i = 0; i < (length - 1); i++) {
     x = TO_NUM(ARG(args, i+1));
     if (x->number.is_nan) return JSNAN();
-    if (x->number.val < min->number.val) 
+    if (x->number.val < min->number.val)
       min = x;
   };
   return min;
@@ -201,7 +201,7 @@ math_tan(js_val *instance, js_args *args, eval_state *state)
   return JSNUM(tan(x->number.val));
 }
 
-unsigned long 
+unsigned long
 mix(unsigned long a, unsigned long b, unsigned long c)
 {
   a=a-b;  a=a-c;  a=a^(c >> 13);
@@ -216,10 +216,10 @@ mix(unsigned long a, unsigned long b, unsigned long c)
   return c;
 }
 
-void 
+void
 seed_rand()
 {
-  // Need more entropy than time alone provides. 
+  // Need more entropy than time alone provides.
   srand(mix(clock(), time(NULL), getpid()));
 }
 

@@ -1,6 +1,6 @@
 // Number.c
 // --------
-// TODO: Work on precision 
+// TODO: Work on precision
 
 #include <float.h>
 #include <math.h>
@@ -24,7 +24,7 @@ number_proto_to_exponential(js_val *instance, js_args *args, eval_state *state)
 {
   js_val *digits = ARG(args, 0);
 
-  if (instance->number.is_nan || instance->number.is_inf) 
+  if (instance->number.is_nan || instance->number.is_inf)
     return TO_STR(instance);
 
   if (digits->type != T_UNDEF) {
@@ -127,7 +127,7 @@ bootstrap_number()
 
   // Number.prototype
   // ----------------
-  
+
   // Properties
   DEF(prototype, "constructor", JSNFUNC(number_new, 1));
 

@@ -1,12 +1,12 @@
 /*
  * nodes.h -- AST node definitions and traversal helpers
  *
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -90,7 +90,7 @@ typedef struct ast_node {
 } ast_node;
 
 ast_node * node_alloc(void);
-ast_node * node_new(enum ast_node_type, ast_node *, ast_node *, ast_node *, 
+ast_node * node_new(enum ast_node_type, ast_node *, ast_node *, ast_node *,
                     double, char *, int, int);
 ast_node * node_pop(ast_node *);
 void node_rewind(ast_node *);

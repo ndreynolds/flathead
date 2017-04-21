@@ -42,10 +42,10 @@ bootstrap_boolean()
 
   // Boolean.prototype
   // -----------------
-  
+
   // Properties
   DEF(prototype, "constructor", JSNFUNC(bool_new, 1));
-  
+
   // Methods
   DEF(prototype, "toString", JSNFUNC(bool_proto_to_string, 0));
   DEF(prototype, "valueOf", JSNFUNC(bool_proto_value_of, 0));

@@ -9,7 +9,7 @@ Flathead is a tiny, portable JavaScript (ECMA-262) interpreter written in C.
 The interpreter does a direct evaluation of the parse tree—it does not
 currently build any further IR or perform any optimizations. As a result, it
 starts up very quickly, and performs well on code that wouldn't benefit much
-from optimization, and less well on code that would (e.g. loops). 
+from optimization, and less well on code that would (e.g. loops).
 
 Flathead builds on Linux, OSX and \*BSD, on x86, x86_64 and ARM architectures.
 
@@ -22,7 +22,7 @@ work to be done on [the Docket](#the-docket).
 
 Installing
 ----------
-Download or clone the source and run `make` within. 
+Download or clone the source and run `make` within.
 
     git clone https://github.com/ndreynolds/flathead.git
     cd flathead
@@ -31,7 +31,7 @@ Download or clone the source and run `make` within.
 This creates an executable at `bin/flat` within the source directory. (You can
 optionally run `make install` to copy this to `/usr/local/bin/`.)
 
-#### Dependencies 
+#### Dependencies
 
 If you received any errors, you may just be missing dependencies.
 
@@ -75,7 +75,7 @@ View the parse tree with `-n`:
 See all the options with `-h`:
 
     $ bin/flat -h
-    Usage: flat [options] [script.js] 
+    Usage: flat [options] [script.js]
 
     Options:
       -v, --version       print version info
@@ -97,15 +97,15 @@ before you can run the tests.
 
 The Makefile has a few shortcuts:
 
-`make test` to run with Flathead's `bin/flat` executable.  
-`make test-v8` to run using `v8`.   
-`make test-node` to run using `node`.  
-`make test-sm` to run using `js` (SpiderMonkey).  
-`make test-rhino` to run using `rhino`.  
+`make test` to run with Flathead's `bin/flat` executable.
+`make test-v8` to run using `v8`.
+`make test-node` to run using `node`.
+`make test-sm` to run using `js` (SpiderMonkey).
+`make test-rhino` to run using `rhino`.
 
 There's also:
 
-`make test-grammar` to verify parsing and AST formation 
+`make test-grammar` to verify parsing and AST formation
 
 
 The Docket

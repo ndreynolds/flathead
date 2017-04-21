@@ -1,12 +1,12 @@
 /*
- * runtime.c -- Bootstrap global object and friends 
- * 
- * Copyright (c) 2012-2013 Nick Reynolds
- *  
+ * runtime.c -- Bootstrap global object and friends
+ *
+ * Copyright (c) 2012-2017 Nick Reynolds
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- *  
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -162,12 +162,12 @@ load_file(char *name)
 
   FILE *file = fopen(name, "r");
 
-  fseek(file, 0, SEEK_END); 
+  fseek(file, 0, SEEK_END);
   unsigned size = ftell(file);
   fseek(file, 0, SEEK_SET);
 
   char *fcontent = malloc(size + 1);
-  size_t result = fread(fcontent, 1, size, file); 
+  size_t result = fread(fcontent, 1, size, file);
   fclose(file);
 
   if (result != size) {
