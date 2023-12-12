@@ -229,9 +229,8 @@ fh_bootstrap()
   DEF(global, "Error",    bootstrap_error(global));
   DEF(global, "Math",     bootstrap_math());
   DEF(global, "console",  bootstrap_console());
-#ifdef FH_GC_EXPOSE
   DEF(global, "gc",       bootstrap_gc());
-#endif
+
 
   // The Object constructor and its methods are created before the Function
   // constructor exists, so we need connect the prototypes manually.
@@ -265,7 +264,7 @@ fh_bootstrap()
 
   // Extras
   DEF(global, "FH_VERSION", JSSTR(FH_VERSION));
-  DEF(global, "load",       JSNFUNC(global_load, 1));
+  //DEF(global, "load",       JSNFUNC(global_load, 1));
   DEF(global, "print",      JSNFUNC(global_print, 1));
 
   return global;

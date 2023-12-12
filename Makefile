@@ -14,8 +14,11 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-CC = gcc
-CFLAGS = -Wall -Wextra -Wno-unused-parameter -O3 -std=c99 -pedantic -D_XOPEN_SOURCE
+CC = afl-lto
+CFLAGS = -Wall -Wextra -Wno-unused-parameter -O2 -std=c99 -pedantic -D_XOPEN_SOURCE -DFUZZING
+#AFL_USE_ASAN=1
+#AFL_USE_MSAN=1
+#AFL_USE_UBSAN=1
 
 HAS_FPU = yes
 MFPU =
@@ -93,13 +96,6 @@ endif
 
 all: default
 
-debug: CFLAGS += -g -O0
-debug: clean default
-
-malloc-debug: CC = gcc-4.9
-malloc-debug: LIBS += -lduma
-malloc-debug: debug
-
 
 lex.yy.c: $(LEX_FILE)
 	$(LEX) --header-file=lex.yy.h $(LEX_FLAGS) $(LEX_FILE)
@@ -126,7 +122,7 @@ install:
 	cp $(OUT_FILE) /usr/local/bin/
 
 default: linker
-	@echo "[CC -o] $(OUT_FILE)"
+	@echo "[$(CC) -o] $(OUT_FILE)"
 	@$(CC) -o $(OUT_FILE) $(OBJ_FILES) $(LIBS)
 
 

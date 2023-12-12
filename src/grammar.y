@@ -1224,64 +1224,25 @@ fh_eval_string(char *string, js_val *ctx)
   return res;
 }
 
-int
-main(int argc, char **argv)
-{
-  // Create the global state object
-  fh = fh_new_global_state();
+__AFL_FUZZ_INIT();
 
-  int c = 0, fakeind = 0, optind = 1;
-  static struct option long_options[] = {
-    {"version", no_argument, NULL, 'v'},
-    {"help", no_argument, NULL, 'h'},
-    {"interactive", no_argument, NULL, 'i'},
-    {"nodes", no_argument, NULL, 'n'},
-    {"tokens", no_argument, NULL, 't'},
-    {NULL, 0, NULL, 0}
-  };
+int main(){
 
-  while ((c = getopt_long(argc, argv, "vhint", long_options, &fakeind)) != -1) {
-    switch (c) {
-      case 0: break;
-      case 'v': fh_print_version(); return 0;
-      case 'h': fh_print_help(); return 0;
-      case 'i': fh->opt_interactive = true; break;
-      case 'n': fh->opt_print_ast = true; break;
-      case 't': fh->opt_print_tokens = true; break;
-      default: break;
+#ifdef __AFL_HAVE_MANUAL_CONTROL
+  __AFL_INIT();
+#endif
+    unsigned char *buf = __AFL_FUZZ_TESTCASE_BUF;
+
+    while (__AFL_LOOP(10000)) {
+        int len = __AFL_FUZZ_TESTCASE_LEN;  // don't use the macro directly in a
+                                            // call!
+        // Create the global state object
+        fh = fh_new_global_state();
+        // Bootstrap our runtime 
+        fh->global = fh_bootstrap();
+
+        fh_eval_string(buf, fh->global);
+        free(fh);
     }
-    optind++;
-  }
-
-  static FILE *source = NULL;
-  if (optind < argc) {
-    source = fopen(argv[optind], "r");
-    fh->script_name = argv[optind];
-  }
-  else if (!isatty(fileno(stdin)) && !fh->opt_interactive) {
-    source = stdin;
-  }
-  else {
-    fh->opt_interactive = true;
-    fh->script_name = "(repl)";
-  }
-
-  // Bootstrap our runtime
-  fh->global = fh_bootstrap();
-
-  // We can operate as a REPL or in file/stdin mode.
-  if (fh->opt_interactive) {
-    fh_print_startup();
-    while (true) {
-      // Normally errors cause the program to exit, but we'd like the REPL to
-      // continue. Use setjmp here and longjmp in `fh_throw` to simulate
-      // exception handling.
-      if (!setjmp(fh->repl_jmp))
-        DEBUG(fh_eval_file(source, fh->global));
-    }
-  }
-  else
-    fh_eval_file(source, fh->global);
-
-  return 0;
+    return 0;
 }
