@@ -23,7 +23,7 @@
   #include "src/flathead.h"
   #include "y.tab.h"
 
-  int yycolumn = 1;
+  int yycollum_l = 1;
   int prev_token = 0;
   void yyuseraction(void);
   YY_BUFFER_STATE yy_scan_string(const char *);
@@ -194,7 +194,7 @@ L?\/([^*/\n\\]+|\\.)([^/\n\\]+|\\.)*\/([gimy]{0,4}) {
 
     /* NEWLINES */
 
-\n                           { yycolumn = 0;
+\n                           { yycollum_l = 0;
                                yytext = NULL;
                                TOKEN("NEWLINE", 0);
                                if (fh->opt_interactive) return EOF; }
@@ -202,7 +202,7 @@ L?\/([^*/\n\\]+|\\.)([^/\n\\]+|\\.)*\/([gimy]{0,4}) {
 
     /* END OF FILE */
 
-<<EOF>>                      { yycolumn = 0;
+<<EOF>>                      { yycollum_l = 0;
                                if (fh->opt_interactive) exit(0);
                                return EOF; }
 
@@ -225,9 +225,9 @@ void
 yyuseraction(void)
 {
   yylloc.first_line = yylloc.last_line = yylineno;
-  yylloc.first_column = yycolumn;
-  yylloc.last_column = yycolumn + yyleng - 1;
-  yycolumn += yyleng;
+  yylloc.first_column = yycollum_l;
+  yylloc.last_column = yycollum_l + yyleng - 1;
+  yycollum_l += yyleng;
 }
 
 void
